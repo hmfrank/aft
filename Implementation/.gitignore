@@ -1,2 +1,4 @@
 .clion_build
 .idea
+*.d
+*.o

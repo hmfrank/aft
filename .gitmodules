@@ -1,0 +1,3 @@
+[submodule "Implementation/libs/Gamma"]
+	path = Implementation/libs/Gamma
+	url = https://github.com/LancePutnam/Gamma.git
