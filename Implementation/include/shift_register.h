@@ -42,6 +42,19 @@ class ShiftRegister
 		/// \param value new item to append
 		/// \return old item, that got removed
 		float push(float value);
+
+		/// Returns the element at the given index.
+		///
+		/// ```
+		/// result = shift_buffer[i];
+		/// ```
+		/// is equivalent to:
+		/// ```
+		/// shift_buffer.get_content(buffer);
+		/// result = buffer[i];
+		/// ```
+		/// but you don't copy the enitry buffer.
+		float operator[](size_t index);
 };
 
 #endif //IMPLEMENTIERUNG_SHIFT_REGISTER_H
