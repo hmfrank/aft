@@ -8,6 +8,7 @@ link_directories(libs/Gamma/build/lib/)
 
 add_executable(
         Implementierung
+        src/beat_prediction.cpp include/beat_prediction.h
         include/constants.h
         src/main.cpp
         src/onset_detection.cpp include/onset_detection.h
