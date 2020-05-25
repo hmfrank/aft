@@ -1,10 +1,8 @@
 #include "tempo_induction.h"
+
 #include <cmath>
+#include "constants.h"
 #include <cstring>
-
-
-// interval time at which ODF samples arrive in seconds (= 1 / odf sample rate)
-const float ODF_SAMPLE_INTERVAL = 0.01161f;
 
 
 // analysis frame size in seconds
@@ -17,22 +15,9 @@ const float ANALYSIS_FRAME_SHIFT_S = 1.48608;
 // analysis frame shift in ODF-samples
 const size_t ANALYSIS_FRAME_SHIFT = roundf(ANALYSIS_FRAME_SHIFT_S / ODF_SAMPLE_INTERVAL); // = 128
 
-
-// sets strongest point of BPM weighing
-const float PREFERRED_TEMPO = 120.0;
 // inter-beat-interval of the preferred tempo in ODF samples
 // see equation (8) in [2007 Davies, Plumbey - Context-Dependent Beat Tracking of Musical Audio]
 const size_t BETA = roundf(60.0f / ODF_SAMPLE_INTERVAL / PREFERRED_TEMPO);
-
-// minimum tempo in BPM
-const float MIN_TEMPO = 80.0;
-// maximum inter-beat-interval in ODF-samples
-const size_t TAU_MAX = ceilf(60.0f / ODF_SAMPLE_INTERVAL / MIN_TEMPO);
-
-// maximum tempo in BPM
-const float MAX_TEMPO = 160.0;
-// minimum inter-beat-interval in ODF-samples
-const size_t TAU_MIN = floorf(60.0f / ODF_SAMPLE_INTERVAL / MAX_TEMPO);
 
 
 const size_t TTM_SIZE = TAU_MAX - TAU_MIN + 1;
@@ -98,7 +83,7 @@ TempoInduction::TempoInduction() : input_buffer(ANALYSIS_FRAME_SIZE)
 		TEMPO_TRANSITION_MATRIX = new_ttm();
 	}
 
-	this->current_tempo = 0;
+	this->current_tempo = PREFERRED_TEMPO;
 	this->n_new_samples = 0;
 	this->state_probabilities = new float [TTM_SIZE];
 

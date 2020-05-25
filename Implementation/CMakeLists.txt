@@ -8,6 +8,7 @@ link_directories(libs/Gamma/build/lib/)
 
 add_executable(
         Implementierung
+        include/constants.h
         src/main.cpp
         src/onset_detection.cpp include/onset_detection.h
         src/shift_register.cpp  include/shift_register.h

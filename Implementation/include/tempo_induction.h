@@ -2,7 +2,7 @@
 #define IMPLEMENTIERUNG_TEMPO_INDUCTION_H
 
 #include <Gamma/Types.h>
-#include <shift_register.h>
+#include "shift_register.h"
 
 using namespace gam;
 
@@ -10,7 +10,7 @@ using namespace gam;
 
 
 /// Implementation of the tempo induction part (Section 2.3.) of
-/// [2009 Davies+Plumbley+Stark - Real-time Beat-synchronous Analysis of Musical Audio].
+/// [2009 Daviesi, Plumbley, Stark - Real-time Beat-synchronous Analysis of Musical Audio].
 ///
 /// The actual algorithm is in the `next_sample` method that is supposed to be called repeatedly for each new sample
 /// of the onset detection function.
