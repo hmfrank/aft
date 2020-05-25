@@ -1,8 +1,8 @@
-#include "onset_detection.h"
+#include "tempo_induction.h"
+
+using namespace gam;
 
 int main()
 {
-	OnsetDetector od = OnsetDetector(1024);
-
 	return 0;
 }

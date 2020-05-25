@@ -7,10 +7,10 @@
 using namespace gam;
 
 // TODO: unit test
+// TODO: code style
 
-/// Computes the complex spectral difference onset detection function of [1].
-///
-/// [1] 2004 Bello, Davies, Duxburry, Sandler - On the Use of Phase and Energy for Musical Onset Detection in the Complex Domain
+/// Computes the complex spectral difference onset detection function of
+/// [2004 Bello, Davies, Duxburry, Sandler - On the Use of Phase and Energy for Musical Onset Detection in the Complex Domain].
 class OnsetDetector
 {
 	private:
