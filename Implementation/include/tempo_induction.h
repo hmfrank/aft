@@ -2,7 +2,7 @@
 #define IMPLEMENTIERUNG_TEMPO_INDUCTION_H
 
 #include <Gamma/Types.h>
-#include "shift_register.h"
+#include <shift_register.h>
 
 using namespace gam;
 

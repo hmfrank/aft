@@ -3,6 +3,13 @@ project(Implementierung)
 
 set(CMAKE_CXX_STANDARD 14)
 
-include_directories(libs/Gamma/)
+include_directories(include/ libs/Gamma/)
 link_directories(libs/Gamma/build/lib/)
-add_executable(Implementierung main.cpp onset_detection.cpp onset_detection.h tempo_induction.cpp tempo_induction.h shift_register.cpp shift_register.h)
+
+add_executable(
+        Implementierung
+        src/main.cpp
+        src/onset_detection.cpp include/onset_detection.h
+        src/shift_register.cpp  include/shift_register.h
+        src/tempo_induction.cpp include/tempo_induction.h
+)

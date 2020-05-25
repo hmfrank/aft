@@ -1,11 +1,11 @@
 EXE = a.out
-SRC = $(wildcard *.cpp)
-OBJ = $(patsubst %.cpp, %.o, $(SRC))
-DEP = $(patsubst %.cpp, %.d, $(SRC))
+SRC = $(wildcard src/*.cpp)
+OBJ = $(patsubst src/%.cpp, obj/%.o, $(SRC))
+DEP = $(patsubst src/%.cpp, dep/%.d, $(SRC))
 
 # C compiler flags
 CC = g++
-CFLAGS = -std=c++14 -Wall -Wextra -I libs/Gamma/ -L libs/Gamma/build/lib/
+CFLAGS = -std=c++14 -Wall -Wextra -I include/ -I libs/Gamma/ -L libs/Gamma/build/lib/
 LDFLAGS =
 
 # phony targets
@@ -14,7 +14,7 @@ LDFLAGS =
 all: $(EXE)
 
 clean:
-	rm -rf $(EXE) $(OBJ) $(DEP)
+	rm -rf $(EXE) $(OBJ) $(DEP) dep/ obj/
 
 run: all
 	./$(EXE)
@@ -25,11 +25,18 @@ $(EXE): $(OBJ)
 	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
 
 # .o file
-%.o: %.cpp
+obj/%.o: src/%.cpp obj/
 	$(CC) $(CFLAGS) -c $< -o $@
 
 -include $(DEP)
 
 # .d file
-%.d: %.cpp
+dep/%.d: src/%.cpp dep/
 	$(CC) $(CFLAGS) -MM $< -MT $(patsubst %.cpp, %.o, $<) -MF $@
+
+# folders
+dep/:
+	mkdir -p dep/
+
+obj/:
+	mkdir -p obj/
