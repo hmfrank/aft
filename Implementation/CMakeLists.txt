@@ -8,10 +8,10 @@ link_directories(libs/Gamma/build/lib/)
 
 add_executable(
         Implementierung
-        src/beat_prediction.cpp include/beat_prediction.h
+        src/2009_DaPlSt/beat_prediction.cpp include/2009_DaPlSt/beat_prediction.h
+        src/2009_DaPlSt/onset_detection.cpp include/2009_DaPlSt/onset_detection.h
+        src/2009_DaPlSt/tempo_induction.cpp include/2009_DaPlSt/tempo_induction.h
         include/constants.h
         src/main.cpp
-        src/onset_detection.cpp include/onset_detection.h
         src/shift_register.cpp  include/shift_register.h
-        src/tempo_induction.cpp include/tempo_induction.h
 )

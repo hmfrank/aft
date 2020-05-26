@@ -1,5 +1,5 @@
 EXE = a.out
-SRC = $(wildcard src/*.cpp)
+SRC = $(wildcard src/*.cpp src/*/*.cpp)
 OBJ = $(patsubst src/%.cpp, obj/%.o, $(SRC))
 DEP = $(patsubst src/%.cpp, dep/%.d, $(SRC))
 
@@ -8,13 +8,14 @@ CC = g++
 CFLAGS = -std=c++14 -Wall -Wextra -I include/ -I libs/Gamma/ -L libs/Gamma/build/lib/
 LDFLAGS =
 
+
 # phony targets
 .PHONY: all clean run
 
 all: $(EXE)
 
 clean:
-	rm -rf $(EXE) $(OBJ) $(DEP) dep/ obj/
+	rm -rf $(EXE) dep/ obj/
 
 run: all
 	./$(EXE)
@@ -25,18 +26,17 @@ $(EXE): $(OBJ)
 	$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
 
 # .o file
-obj/%.o: src/%.cpp obj/
+.SECONDEXPANSION:
+obj/%.o: src/%.cpp $$(dir obj/%.o)
 	$(CC) $(CFLAGS) -c $< -o $@
 
 -include $(DEP)
 
 # .d file
-dep/%.d: src/%.cpp dep/
+.SECONDEXPANSION:
+dep/%.d: src/%.cpp $$(dir dep/%.d)
 	$(CC) $(CFLAGS) -MM $< -MT $(patsubst %.cpp, %.o, $<) -MF $@
 
 # folders
-dep/:
-	mkdir -p dep/
-
-obj/:
-	mkdir -p obj/
+%/:
+	mkdir -p $@
