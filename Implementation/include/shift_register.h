@@ -43,6 +43,14 @@ class ShiftRegister
 		/// \return old item, that got removed
 		float push(float value);
 
+		/// Pushes an array of items into the shift register.
+		///
+		/// This has the same effect as calling `push(item)` on every item in `buffer`.
+		///
+		/// \param buffer pointer to the array to push into the shift register
+		/// \param buffer_len number of element to read from `buffer`
+		void push_range(const float *buffer, size_t buffer_len);
+
 		/// Returns the element at the given index.
 		///
 		/// ```
