@@ -5,8 +5,8 @@ DEP = $(patsubst src/%.cpp, dep/%.d, $(SRC))
 
 # C compiler flags
 CC = g++
-CFLAGS = -std=c++14 -Wall -Wextra -I include/ -I libs/Gamma/ -L libs/Gamma/build/lib/
-LDFLAGS =
+CFLAGS = -std=c++14 -I include/ -I libs/Gamma/ -L libs/Gamma/build/lib/
+LDFLAGS = -lGamma
 
 
 # phony targets

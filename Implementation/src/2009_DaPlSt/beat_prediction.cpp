@@ -1,6 +1,6 @@
 #include "2009_DaPlSt/beat_prediction.h"
 
-#include "constants.h"
+#include "2009_DaPlSt/constants.h"
 #include <cstring>
 
 // see equation (2) in [2009 Davies, Plumbley, Stark - Real-time Beat-synchronous Analysis of Musical Audio].

@@ -1,7 +1,7 @@
 #include "2009_DaPlSt/tempo_induction.h"
 
+#include "2009_DaPlSt/constants.h"
 #include <cmath>
-#include "constants.h"
 #include <cstring>
 
 
@@ -98,115 +98,122 @@ TempoInduction::~TempoInduction()
 	delete [] this->state_probabilities;
 }
 
-float TempoInduction::next_sample(float odf_sample)
+float TempoInduction::get_tempo() const
+{
+	return this->current_tempo;
+}
+
+bool TempoInduction::next_sample(float odf_sample)
 {
 	this->input_buffer.push(odf_sample);
 
 	// we only perform a new analysis evey ANALYSIS_FRAME_SHIFT samples
-	if (++this->n_new_samples >= ANALYSIS_FRAME_SHIFT)
+	if (++this->n_new_samples < ANALYSIS_FRAME_SHIFT)
 	{
-		this->n_new_samples = 0;
+		return false;
+	}
 
-		// extract analysis frame with 8 zeros padding on either side
-		float buffer[ANALYSIS_FRAME_SIZE + 16];
-		float *analysis_frame = buffer + 8;
-		this->input_buffer.get_content(analysis_frame);
+	this->n_new_samples = 0;
 
-		// subtract moving mean and set negative values to 0
-		float modified_analysis_frame[ANALYSIS_FRAME_SIZE];
-		for (size_t i = 0; i < ANALYSIS_FRAME_SIZE; ++i)
+	// extract analysis frame with 8 zeros padding on either side
+	float buffer[ANALYSIS_FRAME_SIZE + 16];
+	float *analysis_frame = buffer + 8;
+	this->input_buffer.get_content(analysis_frame);
+
+	// subtract moving mean and set negative values to 0
+	float modified_analysis_frame[ANALYSIS_FRAME_SIZE];
+	for (size_t i = 0; i < ANALYSIS_FRAME_SIZE; ++i)
+	{
+		modified_analysis_frame[i] = analysis_frame[i] - avg(analysis_frame + i - 8, 17);
+		if (modified_analysis_frame[i] < 0) modified_analysis_frame[i] = 0;
+	}
+
+	// compute auto correlation function
+	float acf[ANALYSIS_FRAME_SIZE];
+	autocorrelation(modified_analysis_frame, ANALYSIS_FRAME_SIZE, acf);
+
+	// comb filter stuff
+	float max_sum = -INFINITY;
+	// Since we only need a portion of the entire comb filter-bank output, we store an excerpt of the entire
+	// output in `comb_filter_output`.
+	// This excerpt ranges from index `TAU_MIN` to `TAU_MAX` (inclusive).
+	// So index 0 of `comb_filter_output` would be index `TAU_MIN` of the actual entire comb filter-bank output.
+	float comb_filter_output[TTM_SIZE];
+
+	for (size_t tau = TAU_MIN; tau <= TAU_MAX; ++tau) // tau = spacing of comb filter elements in ODF samples
+	{
+		float weight =
+				(float) tau / (float) (BETA * BETA) *
+				expf(-(float) (tau * tau) / (2 * (float) (BETA * BETA)));
+		float sum = 0;
+
+		for (size_t p = 1; p <= 4; ++p)
 		{
-			modified_analysis_frame[i] = analysis_frame[i] - avg(analysis_frame + i - 8, 17);
-			if (modified_analysis_frame[i] < 0) modified_analysis_frame[i] = 0;
+			for (size_t v = 1 - p; v <= p - 1; ++v)
+			{
+				size_t lag = tau * p + v;
+
+				sum += acf[lag] * weight / (float) (2 * p - 1);
+			}
 		}
 
-		// compute auto correlation function
-		float acf[ANALYSIS_FRAME_SIZE];
-		autocorrelation(modified_analysis_frame, ANALYSIS_FRAME_SIZE, acf);
-
-		// comb filter stuff
-		float max_sum = -INFINITY;
-		// Since we only need a portion of the entire comb filter-bank output, we store an excerpt of the entire
-		// output in `comb_filter_output`.
-		// This excerpt ranges from index `TAU_MIN` to `TAU_MAX` (inclusive).
-		// So index 0 of `comb_filter_output` would be index `TAU_MIN` of the actual entire comb filter-bank output.
-		float comb_filter_output[TTM_SIZE];
-
-		for (size_t tau = TAU_MIN; tau <= TAU_MAX; ++tau) // tau = spacing of comb filter elements in ODF samples
+		if (sum > max_sum)
 		{
-			float weight =
-					(float) tau / (float) (BETA * BETA) *
-					expf(-(float) (tau * tau) / (2 * (float) (BETA * BETA)));
-			float sum = 0;
+			max_sum = sum;
 
+			bzero(comb_filter_output, sizeof(*comb_filter_output) * TTM_SIZE);
 			for (size_t p = 1; p <= 4; ++p)
 			{
 				for (size_t v = 1 - p; v <= p - 1; ++v)
 				{
 					size_t lag = tau * p + v;
+					size_t i = lag - TAU_MIN;
 
-					sum += acf[lag] * weight / (float) (2 * p - 1);
-				}
-			}
-
-			if (sum > max_sum)
-			{
-				max_sum = sum;
-
-				bzero(comb_filter_output, sizeof(*comb_filter_output) * TTM_SIZE);
-				for (size_t p = 1; p <= 4; ++p)
-				{
-					for (size_t v = 1 - p; v <= p - 1; ++v)
-					{
-						size_t lag = tau * p + v;
-						size_t i = lag - TAU_MIN;
-
-						comb_filter_output[i] = acf[lag] * weight / (float) (2 * p - 1);
-					}
+					comb_filter_output[i] = acf[lag] * weight / (float) (2 * p - 1);
 				}
 			}
 		}
-
-		// update stored state probabilities
-		float prev_sp[TTM_SIZE];
-		memcpy(prev_sp, this->state_probabilities, sizeof(float) * TTM_SIZE);
-
-		for (size_t i = 0; i < TTM_SIZE; ++i)
-		{
-			float sum = 0;
-
-			for (size_t j = 0; j < TTM_SIZE; ++j)
-			{
-				sum += TEMPO_TRANSITION_MATRIX[i * TTM_SIZE + j] * prev_sp[i];
-			}
-
-			this->state_probabilities[i] = sum;
-		}
-
-		float sum = 0;
-		for (size_t i = 0; i < TTM_SIZE; ++i)
-		{
-			sum += this->state_probabilities[i] *= comb_filter_output[i];
-		}
-
-		// normalize and find maximum
-		float max = -INFINITY;
-		size_t index_max = 0;
-
-		for (size_t i = 0; i < TTM_SIZE; ++i)
-		{
-			this->state_probabilities[i] /= sum;
-
-			if (this->state_probabilities[i] >= max)
-			{
-				max = this->state_probabilities[i];
-				index_max = i;
-			}
-		}
-
-		this->current_tempo = 60.0f / ODF_SAMPLE_INTERVAL / (float)(index_max + TAU_MIN);
 	}
 
-	return this->current_tempo;
+	// update stored state probabilities
+	float prev_sp[TTM_SIZE];
+	memcpy(prev_sp, this->state_probabilities, sizeof(float) * TTM_SIZE);
+
+	for (size_t i = 0; i < TTM_SIZE; ++i)
+	{
+		float sum = 0;
+
+		for (size_t j = 0; j < TTM_SIZE; ++j)
+		{
+			sum += TEMPO_TRANSITION_MATRIX[i * TTM_SIZE + j] * prev_sp[i];
+		}
+
+		this->state_probabilities[i] = sum;
+	}
+
+	float sum = 0;
+	for (size_t i = 0; i < TTM_SIZE; ++i)
+	{
+		sum += this->state_probabilities[i] *= comb_filter_output[i];
+	}
+
+	// normalize and find maximum
+	float max = -INFINITY;
+	size_t index_max = 0;
+
+	for (size_t i = 0; i < TTM_SIZE; ++i)
+	{
+		this->state_probabilities[i] /= sum;
+
+		if (this->state_probabilities[i] >= max)
+		{
+			max = this->state_probabilities[i];
+			index_max = i;
+		}
+	}
+
+	this->current_tempo = 60.0f / ODF_SAMPLE_INTERVAL / (float)(index_max + TAU_MIN);
+
+	return true;
 }
 

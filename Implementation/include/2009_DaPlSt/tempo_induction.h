@@ -10,7 +10,7 @@ using namespace gam;
 
 
 /// Implementation of the tempo induction part (Section 2.3.) of
-/// [2009 Daviesi, Plumbley, Stark - Real-time Beat-synchronous Analysis of Musical Audio].
+/// [2009 Davies, Plumbley, Stark - Real-time Beat-synchronous Analysis of Musical Audio].
 ///
 /// The actual algorithm is in the `next_sample` method that is supposed to be called repeatedly for each new sample
 /// of the onset detection function.
@@ -37,14 +37,17 @@ class TempoInduction
 		TempoInduction();
 		~TempoInduction();
 
-		/// Consumes a sample of the onset detection function and returns the current tempo estimate in BPM.
+		/// Returns the current tempo estimate in BPM.
+		float get_tempo() const;
+
+		/// Consumes a sample of the onset detection function and updates the current tempo estimate if enough samples
+		/// are there.
 		///
 		/// The tempo estimate is only updated every `ANALYSIS_FRAME_STEP` samples.
-		/// Hence, you'll get the same return value as for the previous call, most of the time.
 		///
 		/// \param odf_sample next sample of the onset detection function
-		/// \return current tempo estimate in BPM
-		float next_sample(float odf_sample);
+		/// \return true, iff the tempo estimate was updated
+		bool next_sample(float odf_sample);
 };
 
 #endif //IMPLEMENTIERUNG_TEMPO_INDUCTION_H
