@@ -1,7 +1,8 @@
-#ifndef IMPLEMENTIERUNG_MAIN_H
-#define IMPLEMENTIERUNG_MAIN_H
+#ifndef IMPLEMENTIERUNG_2009_DAPLST_H
+#define IMPLEMENTIERUNG_2009_DAPLST_H
 
 #include "2009_DaPlSt/beat_prediction.h"
+#include "2009_DaPlSt/constants.h"
 #include "2009_DaPlSt/onset_detection.h"
 #include "2009_DaPlSt/tempo_induction.h"
 #include <Gamma/DFT.h>
@@ -28,7 +29,7 @@ class _2009_DaPlSt
 		size_t next_beat;
 
 		STFT stft;
-		OnsetDetector onset_detection;
+		OnsetDetection onset_detection;
 		TempoInduction tempo_induction;
 		BeatPrediction beat_prediction;
 
@@ -60,4 +61,4 @@ class _2009_DaPlSt
 		int next(float sample);
 };
 
-#endif //IMPLEMENTIERUNG_MAIN_H
+#endif //IMPLEMENTIERUNG_2009_DAPLST_H

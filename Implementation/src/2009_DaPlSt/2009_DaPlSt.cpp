@@ -1,14 +1,12 @@
-#include "2009_DaPlSt/main.h"
-
-#include "2009_DaPlSt/constants.h"
+#include "2009_DaPlSt/2009_DaPlSt.h"
 
 
-_2009_DaPlSt::_2009_DaPlSt(float sample_rate) : onset_detection(0)
+_2009_DaPlSt::_2009_DaPlSt(float sample_rate)
 {
 	unsigned int hop_size = (unsigned int)roundf(ODF_SAMPLE_INTERVAL * sample_rate);
 	this->stft = STFT(2 * hop_size, hop_size, 0, HANN, COMPLEX);
 
-	this->onset_detection = OnsetDetector(stft.numBins());
+	this->onset_detection = OnsetDetection(stft.numBins());
 	this->tempo_induction = TempoInduction();
 	this->beat_prediction = BeatPrediction();
 
