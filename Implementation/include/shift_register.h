@@ -3,7 +3,6 @@
 
 #include <cstddef>
 
-// TODO: generisch machen
 // TODO: unit test
 // TODO: code style
 
@@ -27,6 +26,8 @@ class ShiftRegister
 
 	public:
 		explicit ShiftRegister(size_t len);
+		ShiftRegister(const ShiftRegister&);
+		ShiftRegister& operator = (const ShiftRegister&);
 		~ShiftRegister();
 
 		/// Writes the contents of the shift register into `buffer`.

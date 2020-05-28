@@ -46,7 +46,12 @@ class BeatPrediction
 		float eq2rhs(ssize_t m);
 
 	public:
+		static BeatPrediction New();
+		static void Delete(BeatPrediction *self);
+
 		BeatPrediction();
+		BeatPrediction(const BeatPrediction&);
+		BeatPrediction& operator = (const BeatPrediction&);
 		~BeatPrediction();
 
 		/// Updates the tempo used for beat prediction.

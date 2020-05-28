@@ -2,6 +2,7 @@
 
 #include <cstring>
 
+
 ShiftRegister::ShiftRegister(size_t len)
 {
 	this->start = 0;
@@ -10,10 +11,34 @@ ShiftRegister::ShiftRegister(size_t len)
 	bzero(this->data, sizeof(*this->data) * len);
 }
 
+ShiftRegister::ShiftRegister(const ShiftRegister &that)
+{
+	this->start = that.start;
+	this->len = that.len;
+	this->data = new float[this->len];
+	memcpy(this->data, that.data, sizeof(*this->data) * this->len);
+}
+
+ShiftRegister &ShiftRegister::operator=(const ShiftRegister &that)
+{
+	if (this != &that)
+	{
+		this->start = that.start;
+		this->len = that.len;
+
+		delete [] this->data;
+		this->data = new float[this->len];
+		memcpy(this->data, that.data, sizeof(*this->data) * this->len);
+	}
+
+	return *this;
+}
+
 ShiftRegister::~ShiftRegister()
 {
-	delete[] this->data;
+	delete [] this->data;
 }
+
 
 void ShiftRegister::get_content(float *buffer) const
 {

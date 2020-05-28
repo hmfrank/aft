@@ -35,6 +35,8 @@ class TempoInduction
 
 	public:
 		TempoInduction();
+		TempoInduction(const TempoInduction&);
+		TempoInduction& operator =(const TempoInduction&);
 		~TempoInduction();
 
 		/// Returns the current tempo estimate in BPM.

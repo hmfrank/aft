@@ -11,20 +11,23 @@ using namespace gam;
 
 /// Computes the complex spectral difference onset detection function of
 /// [2004 Bello, Davies, Duxburry, Sandler - On the Use of Phase and Energy for Musical Onset Detection in the Complex Domain].
-class OnsetDetector
+class OnsetDetection
 {
 	private:
 		// number of frequency bins (also array size) of all "frames" used by this class
 		size_t n_bins;
 
-		// Two pointers to heap-allocated arrays of size `n_bins`.
-		// [0] stores the previous frame
-		// [1] stores the frame before that
-		Complex<float> *prev_frames[2];
+		// previous frame
+		Complex<float> *p_frame;
+
+		// frame before the previous frame
+		Complex<float> *pp_frame;
 
 	public:
-		explicit OnsetDetector(size_t n_bins);
-		~OnsetDetector();
+		explicit OnsetDetection(size_t n_bins);
+		OnsetDetection(const OnsetDetection&);
+		OnsetDetection& operator =(const OnsetDetection&);
+		~OnsetDetection();
 
 		/// Computes the next sample of the onset detection function as described in section IV of the paper.
 		///

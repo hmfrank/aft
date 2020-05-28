@@ -24,11 +24,9 @@ class _2009_DaPlSt
 {
 	private:
 		size_t time;
-
-		//
 		size_t next_beat;
-
-		STFT stft;
+		float sample_rate;
+		STFT *stft;
 		OnsetDetection onset_detection;
 		TempoInduction tempo_induction;
 		BeatPrediction beat_prediction;
@@ -37,6 +35,9 @@ class _2009_DaPlSt
 		/// \param sample_rate Rate of the audio samples passed to `next()` in Herz.
 		///     Recommended Sample Rate: 44100 or any half or double (22050, 11025, 88200, etc.)
 		explicit _2009_DaPlSt(float sample_rate);
+		_2009_DaPlSt(const _2009_DaPlSt&);
+		_2009_DaPlSt& operator = (const _2009_DaPlSt&);
+		~_2009_DaPlSt();
 
 		/// Returns current stream time in onset detection function samples.
 		///

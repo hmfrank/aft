@@ -27,6 +27,80 @@ const size_t TTM_SIZE = TAU_MAX - TAU_MIN + 1;
 float *TEMPO_TRANSITION_MATRIX = nullptr;
 
 
+float *new_ttm()
+{
+	auto *result = new float [TTM_SIZE * TTM_SIZE];
+	float sigma = (MAX_TEMPO - MIN_TEMPO) / 8.0f;
+
+	for (size_t i = 0; i < TTM_SIZE; ++i)
+	{
+		for (size_t j = 0; j < TTM_SIZE; ++j)
+		{
+			float t_i = 60.0f / ODF_SAMPLE_INTERVAL / (float)(i + TAU_MIN);
+			float t_j = 60.0f / ODF_SAMPLE_INTERVAL / (float)(i + TAU_MAX);
+
+			result[i * TTM_SIZE + j] =
+				expf(-(t_i - t_j) * (t_i - t_j) / 2.0f / sigma / sigma) /
+				sigma / sqrtf(2.0f * M_PI);
+		}
+	}
+
+	return result;
+}
+
+TempoInduction::TempoInduction() : input_buffer(ANALYSIS_FRAME_SIZE)
+{
+	if (TEMPO_TRANSITION_MATRIX == nullptr)
+	{
+		TEMPO_TRANSITION_MATRIX = new_ttm();
+	}
+
+	this->current_tempo = PREFERRED_TEMPO;
+	this->n_new_samples = 0;
+	this->state_probabilities = new float [TTM_SIZE];
+
+	for (size_t i = 0; i < TTM_SIZE; ++i)
+	{
+		this->state_probabilities[i] = 1.0f;
+	}
+}
+
+TempoInduction::TempoInduction(const TempoInduction &that) : input_buffer(that.input_buffer)
+{
+	this->current_tempo = that.current_tempo;
+	this->n_new_samples = that.n_new_samples;
+
+	this->state_probabilities = new float[TTM_SIZE];
+	memcpy(this->state_probabilities, that.state_probabilities, sizeof(*this->state_probabilities) * TTM_SIZE);
+}
+
+TempoInduction &TempoInduction::operator=(const TempoInduction &that)
+{
+	if (this != &that)
+	{
+		this->current_tempo = that.current_tempo;
+		this->n_new_samples = that.n_new_samples;
+		this->input_buffer = that.input_buffer; // should call the copy assignment operator
+
+		delete [] this->state_probabilities;
+		this->state_probabilities = new float[TTM_SIZE];
+		memcpy(this->state_probabilities, that.state_probabilities, sizeof(*this->state_probabilities) * TTM_SIZE);
+	}
+
+	return *this;
+}
+
+TempoInduction::~TempoInduction()
+{
+	delete [] this->state_probabilities;
+}
+
+
+float TempoInduction::get_tempo() const
+{
+	return this->current_tempo;
+}
+
 void autocorrelation(float const *input, size_t input_len, float *output)
 {
 	for (size_t lag = 0; lag < input_len; ++lag)
@@ -52,55 +126,6 @@ float avg(float const *buffer, size_t buffer_len)
 	}
 
 	return sum / (float) buffer_len;
-}
-
-
-float *new_ttm()
-{
-	auto *result = new float [TTM_SIZE * TTM_SIZE];
-	float sigma = (MAX_TEMPO - MIN_TEMPO) / 8.0f;
-
-	for (size_t i = 0; i < TTM_SIZE; ++i)
-	{
-		for (size_t j = 0; j < TTM_SIZE; ++j)
-		{
-			float t_i = 60.0f / ODF_SAMPLE_INTERVAL / (float)(i + TAU_MIN);
-			float t_j = 60.0f / ODF_SAMPLE_INTERVAL / (float)(i + TAU_MAX);
-
-			result[i * TTM_SIZE + j] =
-					expf(-(t_i - t_j) * (t_i - t_j) / 2.0f / sigma / sigma) /
-					sigma / sqrtf(2.0f * M_PI);
-		}
-	}
-
-	return result;
-}
-
-TempoInduction::TempoInduction() : input_buffer(ANALYSIS_FRAME_SIZE)
-{
-	if (TEMPO_TRANSITION_MATRIX == nullptr)
-	{
-		TEMPO_TRANSITION_MATRIX = new_ttm();
-	}
-
-	this->current_tempo = PREFERRED_TEMPO;
-	this->n_new_samples = 0;
-	this->state_probabilities = new float [TTM_SIZE];
-
-	for (size_t i = 0; i < TTM_SIZE; ++i)
-	{
-		this->state_probabilities[i] = 1.0f;
-	}
-}
-
-TempoInduction::~TempoInduction()
-{
-	delete [] this->state_probabilities;
-}
-
-float TempoInduction::get_tempo() const
-{
-	return this->current_tempo;
 }
 
 bool TempoInduction::next_sample(float odf_sample)
@@ -216,4 +241,3 @@ bool TempoInduction::next_sample(float odf_sample)
 
 	return true;
 }
-

@@ -3,11 +3,84 @@
 #include "2009_DaPlSt/constants.h"
 #include <cstring>
 
+// TODO: only allocate one block of memory for all 3 arrays
+
+
 // see equation (2) in [2009 Davies, Plumbley, Stark - Real-time Beat-synchronous Analysis of Musical Audio].
 const float ALPHA = 0.9;
 
 // see equation (3) in [2009 Davies, Plumbley, Stark - Real-time Beat-synchronous Analysis of Musical Audio].
 const float ETA = 5.0;
+
+
+BeatPrediction::BeatPrediction() : past_score(0)
+{
+	// `set_tempo()` initializes `beat_period`, `past_weighting`, and
+	// `future_weighting`.
+	this->past_weighting = nullptr;
+	this->future_weighting = nullptr;
+	this->set_tempo(PREFERRED_TEMPO);
+
+	this->past_score = ShiftRegister(2 * TAU_MAX);
+	this->current_score = 0;
+	this->future_score = new float[TAU_MAX + 1];
+	bzero(this->future_score, sizeof(*this->future_score) * (TAU_MAX + 1));
+}
+
+BeatPrediction::BeatPrediction(const BeatPrediction &that) : past_score(0)
+{
+	this->beat_period = that.beat_period;
+
+	size_t size = 2 * this->beat_period + 1;
+	this->past_weighting = new float[size];
+	memcpy(this->past_weighting, that.past_weighting, sizeof(*this->past_weighting) * size);
+
+	size = this->beat_period + 1;
+	this->future_weighting = new float[size];
+	memcpy(this->future_weighting, that.future_weighting, sizeof(*this->future_weighting) * size);
+
+	this->past_score = that.past_score; // should call copy assignment operator
+	this->current_score = that.current_score;
+
+	size = TAU_MAX + 1;
+	this->future_score = new float[size];
+	memcpy(this->future_score, that.future_score, sizeof(*this->future_score) * size);
+}
+
+BeatPrediction &BeatPrediction::operator=(const BeatPrediction &that)
+{
+	if (this != &that)
+	{
+		this->beat_period = that.beat_period;
+
+		delete [] this->past_weighting;
+		size_t size = 2 * this->beat_period + 1;
+		this->past_weighting = new float[size];
+		memcpy(this->past_weighting, that.past_weighting, sizeof(*this->past_weighting) * size);
+
+		delete [] this->future_weighting;
+		size = this->beat_period + 1;
+		this->future_weighting = new float[size];
+		memcpy(this->future_weighting, that.future_weighting, sizeof(*this->future_weighting) * size);
+
+		this->past_score = that.past_score; // should call copy assignment operator
+		this->current_score = that.current_score;
+
+		delete [] this->future_score;
+		size = TAU_MAX + 1;
+		this->future_score = new float[size];
+		memcpy(this->future_score, that.future_score, sizeof(*this->future_score) * size);
+	}
+
+	return *this;
+}
+
+BeatPrediction::~BeatPrediction()
+{
+	delete [] this->past_weighting;
+	delete [] this->future_weighting;
+	delete [] this->future_score;
+}
 
 
 float BeatPrediction::score_function(ssize_t index)
@@ -24,24 +97,6 @@ float BeatPrediction::score_function(ssize_t index)
 	{
 		return this->future_score[index - 1];
 	}
-}
-
-BeatPrediction::BeatPrediction() : past_score(2 * TAU_MAX)
-{
-	this->current_score = 0;
-	this->future_score = new float[TAU_MAX + 1];
-	bzero(this->future_score, sizeof(*this->future_score) * (TAU_MAX + 1));
-
-	this->past_weighting = nullptr;
-	this->future_weighting = nullptr;
-	this->set_tempo(PREFERRED_TEMPO);
-}
-
-BeatPrediction::~BeatPrediction()
-{
-	delete [] this->future_score;
-	delete [] this->past_weighting;
-	delete [] this->future_weighting;
 }
 
 void BeatPrediction::set_tempo(float tempo)
