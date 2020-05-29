@@ -3,6 +3,7 @@
 #include "2009_DaPlSt/constants.h"
 #include <cmath>
 #include <cstring>
+#include "misc.h"
 
 
 // analysis frame size in seconds
@@ -114,18 +115,6 @@ void autocorrelation(float const *input, size_t input_len, float *output)
 
 		output[lag] = sum / (float) (input_len - lag);
 	}
-}
-
-float avg(float const *buffer, size_t buffer_len)
-{
-	float sum = 0;
-
-	for (size_t i = 0; i < buffer_len; ++i)
-	{
-		sum += buffer[i];
-	}
-
-	return sum / (float) buffer_len;
 }
 
 bool TempoInduction::next_sample(float odf_sample)

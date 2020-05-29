@@ -3,6 +3,8 @@ SRC = $(wildcard src/*.cpp src/*/*.cpp)
 OBJ = $(patsubst src/%.cpp, obj/%.o, $(SRC))
 DEP = $(patsubst src/%.cpp, dep/%.d, $(SRC))
 
+# TODO: fix Makefile, so that only file that have changed get recompiled
+
 # C compiler flags
 CC = g++
 CFLAGS = -std=c++14 -I include/ -I libs/Gamma/ -L libs/Gamma/build/lib/
