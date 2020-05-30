@@ -7,9 +7,11 @@ DEP = $(patsubst src/%.cpp, dep/%.d, $(SRC))
 
 # C compiler flags
 CC = g++
-CFLAGS = -std=c++14 -I include/ -I libs/Gamma/ -L libs/Gamma/build/lib/
+INCLUDE = include/ libs/Gamma/ libs/simple2d/include/ /usr/include/SDL2/
+LIBS = libs/Gamma/build/lib/ libs/simple2d/build/
+CFLAGS = -std=c++14 $(addprefix -I , $(INCLUDE)) $(addprefix -L , $(LIBS)) -D_REENTRANT
 # might also need those in the future: -lrt -lasound -ljack -lpthread
-LDFLAGS = -lGamma -lportaudio
+LDFLAGS = -lGamma -lportaudio -lsimple2d -lSDL2 -lGL -lm -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lpthread
 
 
 # phony targets
