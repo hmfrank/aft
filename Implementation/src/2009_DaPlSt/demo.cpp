@@ -1,23 +1,27 @@
 #include "2009_DaPlSt/demo.h"
 
 #include "2009_DaPlSt/2009_DaPlSt.h"
-#include <cmath>
-#include <cstring>
 #include <Gamma/AudioIO.h>
-#include <Gamma/SoundFile.h>
 #include <iostream>
-#include "misc.h"
+#include <simple2d.h>
+#include "shift_register.h"
+#include <thread>
 
 using namespace gam;
 using namespace std;
+
+
+const char *TITLE = "2009 Davies, Plumbley, Stark - Real-time Beat-synchronous Analysis of Musical Audio";
+const int WIDTH = 1000;
+const int HEIGHT = 500;
 
 
 // represents the parsed command line args
 struct Args
 {
 	char *executable;
-	char *input_file;
-	char *output_file;
+
+	Args();
 
 	/// Parses the command line arguments.
 	///
@@ -26,92 +30,137 @@ struct Args
 	Args(int argc, char **argv);
 };
 
+Args::Args()
+{
+	this->executable = nullptr;
+}
+
 Args::Args(int argc, char **argv)
 {
-	if (argc == 3)
-	{
-		this->executable = argv[0];
-		this->input_file = argv[1];
-		this->output_file = argv[2];
-	}
-	else
-	{
-		const char *exe = argc >= 1 ? argv[0] : "./2009_DaPlSt_Demo";
-		cerr << "Error: Invalid number of arguments." << endl;
-		cerr << "Usage: $ " << exe << " [input file] [output file]" << endl;
-		this->executable = nullptr;
-	}
+	this->executable = argv[0];
 }
+
+
+// current command line args
+Args args;
+
+// buffer of audio samples to show on the screen
+ShiftRegister input_samples(WIDTH);
+
+// loop variable for endless-loop-threads
+bool halt = false;
 
 
 void audio_callback(AudioIOData& io)
 {
 	_2009_DaPlSt& beat_tracking = io.user<_2009_DaPlSt>();
 
+	cout << "callback" << endl;
+
 	while (io())
 	{
 		float sample = io.in(0);
 
+		cout << sample << endl;
+		input_samples.push(sample);
 		beat_tracking.next(sample);
-		// TODO: process result
 	}
+}
+
+void setup_audio_input()
+{
+	AudioDevice::printAll();
+	AudioDevice dev = AudioDevice::defaultInput();
+	_2009_DaPlSt beat_tracking = _2009_DaPlSt(dev.defaultSampleRate());
+	AudioIO io(
+		(int)round(ODF_SAMPLE_INTERVAL * dev.defaultSampleRate()),
+		dev.defaultSampleRate(),
+		&audio_callback,
+		&beat_tracking,
+		0,
+		1
+	);
+
+	io.deviceIn(dev);
+	io.print();
+
+	io.start();
+}
+
+void stdin_input_loop()
+{
+	while (!halt)
+	{
+		float sample;
+
+		if (read(0, &sample, sizeof(sample)) != sizeof(sample))
+		{
+			break;
+		}
+
+		input_samples.push(sample);
+	}
+}
+
+void update()
+{
+
+}
+
+void render()
+{
+	float samples[WIDTH];
+	input_samples.get_content(samples);
+
+	for (int i = 0; i < WIDTH; ++i)
+	{
+		float sample = samples[i];
+		float height = sample * HEIGHT;
+
+		S2D_DrawLine(
+			i, HEIGHT / 2, i, HEIGHT / 2 + height, 1,
+			1, 1, 1, 1,
+			1, 1, 1, 1,
+			1, 1, 1, 1,
+			1, 1, 1, 1
+		);
+	}
+}
+
+S2D_Window *create_window()
+{
+	S2D_Window *window = S2D_CreateWindow(
+		TITLE,
+		WIDTH,
+		HEIGHT,
+		update,
+		render,
+		0
+	);
+	window->viewport.mode = S2D_EXPAND;
+	window->vsync = false;
 }
 
 int demo(int argc, char **argv)
 {
-	Args args = Args(argc, argv);
+	args = Args(argc, argv);
 
 	if (args.executable == nullptr)
 	{
 		return 1;
 	}
 
-	// use live input
-	if (strcmp(args.input_file, "-") == 0)
-	{
-		AudioDevice dev = AudioDevice::defaultInput();
-		_2009_DaPlSt beat_tracking = _2009_DaPlSt(dev.defaultSampleRate());
-		AudioIO io(
-			(int)round(ODF_SAMPLE_INTERVAL * dev.defaultSampleRate()),
-			dev.defaultSampleRate(),
-			&audio_callback,
-			&beat_tracking,
-			0,
-			1
-		);
+	// setup
+	thread audio_input_thread(stdin_input_loop);
+	S2D_Window *window = create_window();
 
-		io.deviceIn(dev);
-		io.print();
+	// run
+	S2D_Show(window);
 
-		io.start();
-		cout << "Press ENTER to stop." << endl;
-		cin.get();
-		io.stop();
-	}
-	// use file input
-	else
-	{
-		SoundFile file(args.input_file);
-		file.openRead();
-
-		_2009_DaPlSt beat_tracking = _2009_DaPlSt(file.frameRate());
-
-		size_t buffer_len_frames = roundf(ODF_SAMPLE_INTERVAL * file.frameRate());
-		size_t buffer_len_samples = buffer_len_frames * file.channels();
-		float buffer[buffer_len_samples];
-		int n_frames_read;
-
-		while (0 != (n_frames_read = file.read(buffer, buffer_len_frames)))
-		{
-			for (int frame = 0; frame < n_frames_read; ++frame)
-			{
-				float mono_sample = avg(buffer + frame, file.channels());
-
-				beat_tracking.next(mono_sample);
-				// TODO: process result
-			}
-		}
-	}
+	// teardown
+	halt = true;
+	S2D_FreeWindow(window);
+	audio_input_thread.join();
 
 	return 0;
 }

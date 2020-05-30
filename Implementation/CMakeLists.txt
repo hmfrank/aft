@@ -6,7 +6,7 @@ set(CMAKE_CXX_STANDARD 14)
 include_directories(include/ libs/Gamma/ libs/simple2d/include/)
 link_directories(libs/Gamma/build/lib/ libs/simple2d/build/)
 link_libraries(Gamma portaudio simple2d SDL2 GL m SDL2_image SDL2_mixer
-		SDL2_ttf)
+		SDL2_ttf pthread)
 
 add_executable(
         Implementierung
