@@ -6,6 +6,7 @@ _2009_DaPlSt::_2009_DaPlSt(float sample_rate) : onset_detection(0)
 	this->time = 0;
 	this->next_beat = 0;
 	this->sample_rate = sample_rate;
+	this->odf_sample = 0;
 
 	size_t hop_size = roundf(ODF_SAMPLE_INTERVAL * this->sample_rate);
 	this->stft = new STFT(
@@ -27,6 +28,7 @@ _2009_DaPlSt::_2009_DaPlSt(const _2009_DaPlSt &that)
 	this->time = that.time;
 	this->next_beat = that.next_beat;
 	this->sample_rate = that.sample_rate;
+	this->odf_sample = 0;
 
 	unsigned hop_size = roundf(ODF_SAMPLE_INTERVAL * this->sample_rate);
 	this->stft = new STFT(
@@ -49,6 +51,7 @@ _2009_DaPlSt &_2009_DaPlSt::operator=(const _2009_DaPlSt &that)
 		this->time = that.time;
 		this->next_beat = that.next_beat;
 		this->sample_rate = that.sample_rate;
+		this->odf_sample = that.odf_sample;
 
 		delete this->stft;
 		unsigned hop_size = roundf(ODF_SAMPLE_INTERVAL * this->sample_rate);
@@ -76,6 +79,11 @@ _2009_DaPlSt::~_2009_DaPlSt()
 const STFT *_2009_DaPlSt::get_stft() const
 {
 	return this->stft;
+}
+
+float _2009_DaPlSt::get_odf_sample() const
+{
+	return this->odf_sample;
 }
 
 size_t _2009_DaPlSt::get_time() const
@@ -109,10 +117,10 @@ int _2009_DaPlSt::next(float sample)
 		stft_frame[k] = stft->bin(k);
 	}
 
-	float odf_sample = this->onset_detection.next_sample(stft_frame);
+	this->odf_sample = this->onset_detection.next_sample(stft_frame);
 	int result = 1;
 
-	if (this->tempo_induction.next_sample(odf_sample))
+	if (this->tempo_induction.next_sample(this->odf_sample))
 	{
 		// new tempo estimate is available
 		float tempo = this->tempo_induction.get_tempo();
@@ -120,7 +128,7 @@ int _2009_DaPlSt::next(float sample)
 		++result;
 	}
 
-	this->next_beat = this->time + this->beat_prediction.next_prediction(odf_sample);
+	this->next_beat = this->time + this->beat_prediction.next_prediction(this->odf_sample);
 
 	return result;
 }

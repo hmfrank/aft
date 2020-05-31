@@ -60,12 +60,14 @@ S2D_Window *window;
 // text objects
 S2D_Text *text_audio_input;
 S2D_Text *text_spectrogram;
+S2D_Text *text_odf;
 
 // data to show on screen
 ShiftRegister input_samples_max(WIDTH);
 ShiftRegister input_samples_min(WIDTH);
 float stft_max = 0;
 ShiftRegister *stft_content;
+ShiftRegister odf_samples(WIDTH);
 
 // loop variable for endless-loop-threads
 bool halt = false;
@@ -92,6 +94,7 @@ void stdin_input_loop()
 			{
 				stft_content[bin].push(stft->bin(bin).mag());
 			}
+			odf_samples.push(beat_tracking.get_odf_sample());
 		}
 	}
 }
@@ -122,14 +125,14 @@ void render_audio_input(float top, float bottom)
 			x, y_mikkle + input_samples_min[x] * height / 2,
 			x, y_mikkle + input_samples_max[x] * height / 2,
 			1,
-			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+			0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1
 		);
 	}
 
 	// center line
 	S2D_DrawLine(
 		0, y_mikkle, WIDTH - 1, y_mikkle, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+		0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1
 	);
 
 	// text
@@ -179,12 +182,39 @@ void render_spectrogram(float top, float bottom)
 	S2D_DrawText(text_spectrogram);
 }
 
+void render_odf(float top, float bottom)
+{
+	// top and bottom line
+	S2D_DrawLine(
+		0, top, WIDTH - 1, top, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+	);
+	S2D_DrawLine(
+		0, bottom, WIDTH - 1, bottom, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+	);
+
+	float height = bottom - top;
+
+	for (size_t x = 0; x < WIDTH; ++x)
+	{
+		S2D_DrawLine(
+			x, bottom, x, bottom - odf_samples[x] * height, 1,
+			1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1
+		);
+	}
+
+	text_odf->y = top;
+	S2D_DrawText(text_odf);
+}
+
 void render()
 {
 	size_t n_bins = beat_tracking.get_stft()->numBins();
 
 	render_audio_input(0, 200);
-	render_spectrogram(200, 200 + n_bins);
+//	render_spectrogram(200, 200 + n_bins);
+	render_odf(200, 400);
 }
 
 void init()
@@ -202,7 +232,7 @@ void init()
 	audio_input_thread = thread(stdin_input_loop);
 
 	// window
-	HEIGHT = n_bins + 200;
+	HEIGHT = 400;
 	window = S2D_CreateWindow(
 		TITLE,
 		WIDTH,
@@ -219,11 +249,17 @@ void init()
 	// text objects
 	text_audio_input = S2D_CreateText(FONT, "Audio Input", 20);
 	assert(text_audio_input != nullptr);
-	text_audio_input->x = 0;
+	text_audio_input->x = text_audio_input->color.r = text_audio_input->color.b = 0;
+	text_audio_input->color.g = 1;
 
 	text_spectrogram = S2D_CreateText(FONT, "Spectrogram", 20);
 	assert(text_spectrogram != nullptr);
 	text_spectrogram->x = 0;
+
+	text_odf = S2D_CreateText(FONT, "Onset Detection Function", 20);
+	assert(text_odf != nullptr);
+	text_odf->x = text_odf->color.b = 0;
+	text_odf->color.r = text_odf->color.g = 1;
 }
 
 void free()
@@ -231,6 +267,8 @@ void free()
 	halt = true;
 
 	S2D_FreeText(text_audio_input);
+	S2D_FreeText(text_spectrogram);
+	S2D_FreeText(text_odf);
 	S2D_FreeWindow(window);
 	audio_input_thread.join();
 	delete[] stft_content;

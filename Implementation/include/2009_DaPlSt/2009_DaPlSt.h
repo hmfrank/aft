@@ -27,6 +27,7 @@ class _2009_DaPlSt
 		size_t time;
 		size_t next_beat;
 		float sample_rate;
+		float odf_sample;
 		STFT *stft;
 		OnsetDetection onset_detection;
 		TempoInduction tempo_induction;
@@ -42,6 +43,9 @@ class _2009_DaPlSt
 
 		/// Returns the current STFT object.
 		const STFT *get_stft() const;
+
+		/// Returns the current onset detection function sample.
+		float get_odf_sample() const;
 
 		/// Returns current stream time in onset detection function samples.
 		///
