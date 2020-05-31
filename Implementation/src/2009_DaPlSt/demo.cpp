@@ -12,49 +12,29 @@
 using namespace gam;
 using namespace std;
 
-// TODO: make accesses to the same variable from different thread thread-safe
+// TODO: make accesses to the same variable from different threads thread-safe
 
 
+// ========== CONSTANTS ========== //
+// window title
 const char *TITLE = "2009 Davies, Plumbley, Stark - Real-time Beat-synchronous Analysis of Musical Audio";
+// font for text inside the window
 const char *FONT = "res/roboto.ttf";
+// window width in px
 const int WIDTH = 1000;
+// expected sample rate of the input stream in Hz
 const float SAMPLE_RATE = 44100;
 
 
-// represents the parsed command line args
-struct Args
-{
-	char *executable;
-
-	Args();
-
-	/// Parses the command line arguments.
-	///
-	/// If the arguments cannot be parsed, an error and usage message is printed
-	/// and `executable` is set to NULL.
-	Args(int argc, char **argv);
-};
-
-Args::Args()
-{
-	this->executable = nullptr;
-}
-
-Args::Args(int argc, char **argv)
-{
-	this->executable = argv[0];
-}
-
-
-// current command line args
-Args args;
-
+// ========== GLOBAL VARIABLES ========== //
 _2009_DaPlSt beat_tracking(SAMPLE_RATE);
 
+// handles obtaining and processing of audio samples and runs until halt = true
 thread audio_input_thread;
 
-// main window
+// window height
 int HEIGHT;
+// window handle
 S2D_Window *window;
 
 // text objects
@@ -73,6 +53,7 @@ ShiftRegister odf_samples(WIDTH);
 bool halt = false;
 
 
+// ========== FUNCTIONS, STRUCTS, THE REST ========== //
 void stdin_input_loop()
 {
 	const STFT *stft = beat_tracking.get_stft();
@@ -310,9 +291,35 @@ void setup_audio_input()
 	io.start();
 }
 
+
+// represents the parsed command line args
+struct Args
+{
+	char *executable;
+
+	Args();
+
+	/// Parses the command line arguments.
+	///
+	/// If the arguments cannot be parsed, an error and usage message is printed
+	/// and `executable` is set to NULL.
+	Args(int argc, char **argv);
+};
+
+Args::Args()
+{
+	this->executable = nullptr;
+}
+
+Args::Args(int argc, char **argv)
+{
+	this->executable = argv[0];
+}
+
+
 int demo(int argc, char **argv)
 {
-	args = Args(argc, argv);
+	Args args = Args(argc, argv);
 
 	if (args.executable == nullptr)
 	{
