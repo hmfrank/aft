@@ -163,6 +163,23 @@ void render_spectrogram(float top, float bottom)
 	S2D_DrawText(text_spectrogram);
 }
 
+void render_time_grid()
+{
+	const float alpha = 0.25;
+	float step = 1.0f / ODF_SAMPLE_INTERVAL;
+	int i, x = 1;
+
+	while ((x = WIDTH - (int)roundf(step * i)) > 0)
+	{
+		S2D_DrawLine(
+			x, 0, x, HEIGHT, 1,
+			1, 1, 1, alpha, 1, 1, 1, alpha, 1, 1, 1, alpha, 1, 1, 1, alpha
+		);
+
+		++i;
+	}
+}
+
 void render_odf(float top, float bottom)
 {
 	// top and bottom line
@@ -180,7 +197,7 @@ void render_odf(float top, float bottom)
 	for (size_t x = 0; x < WIDTH; ++x)
 	{
 		S2D_DrawLine(
-			x, bottom, x, bottom - odf_samples[x] * height, 1,
+			x, bottom, x, bottom - odf_samples[x] * height / 2, 1,
 			1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1
 		);
 	}
@@ -193,6 +210,7 @@ void render()
 {
 	size_t n_bins = beat_tracking.get_stft()->numBins();
 
+	render_time_grid();
 	render_audio_input(0, 200);
 //	render_spectrogram(200, 200 + n_bins);
 	render_odf(200, 400);
