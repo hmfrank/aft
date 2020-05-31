@@ -193,12 +193,18 @@ void render_odf(float top, float bottom)
 	);
 
 	float height = bottom - top;
+	// after this x value, another color is used to highlight the 6s analysis
+	// frame of the tempo induction stage
+	float threshold = WIDTH - 6.0f / ODF_SAMPLE_INTERVAL;
+	float green;
 
 	for (size_t x = 0; x < WIDTH; ++x)
 	{
+		green = x < threshold ? 1 : 0.5;
+
 		S2D_DrawLine(
 			x, bottom, x, bottom - odf_samples[x] * height / 2, 1,
-			1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1, 1, 1, 0, 1
+			1, green, 0, 1, 1, green, 0, 1, 1, green, 0, 1, 1, green, 0, 1
 		);
 	}
 
