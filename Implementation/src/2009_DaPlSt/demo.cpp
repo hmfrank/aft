@@ -21,7 +21,9 @@ const char *TITLE = "2009 Davies, Plumbley, Stark - Real-time Beat-synchronous A
 // font for text inside the window
 const char *FONT = "res/roboto.ttf";
 // window width in px
-const int WIDTH = 1000;
+const size_t WIDTH = 1000;
+// x coordinate of the present moment
+const size_t X_PRESENT = WIDTH - TAU_MAX - 1;
 // expected sample rate of the input stream in Hz
 const float SAMPLE_RATE = 44100;
 
@@ -33,7 +35,7 @@ _2009_DaPlSt beat_tracking(SAMPLE_RATE);
 thread audio_input_thread;
 
 // window height
-int HEIGHT;
+size_t HEIGHT;
 // window handle
 S2D_Window *window;
 
@@ -43,11 +45,11 @@ S2D_Text *text_spectrogram;
 S2D_Text *text_odf;
 
 // data to show on screen
-ShiftRegister input_samples_max(WIDTH);
-ShiftRegister input_samples_min(WIDTH);
+ShiftRegister input_samples_max(X_PRESENT);
+ShiftRegister input_samples_min(X_PRESENT);
 float stft_max = 0;
 ShiftRegister *stft_content;
-ShiftRegister odf_samples(WIDTH);
+ShiftRegister odf_samples(X_PRESENT);
 
 // loop variable for endless-loop-threads
 bool halt = false;
@@ -100,7 +102,7 @@ void render_audio_input(float top, float bottom)
 	float height = bottom - top;
 	float y_mikkle = (bottom + top) / 2;
 
-	for (int x = 0; x < WIDTH; ++x)
+	for (int x = 0; x < X_PRESENT; ++x)
 	{
 		S2D_DrawLine(
 			x, y_mikkle + input_samples_min[x] * height / 2,
@@ -112,7 +114,7 @@ void render_audio_input(float top, float bottom)
 
 	// center line
 	S2D_DrawLine(
-		0, y_mikkle, WIDTH - 1, y_mikkle, 1,
+		0, y_mikkle, X_PRESENT - 1, y_mikkle, 1,
 		0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1, 0, 1
 	);
 
@@ -140,7 +142,7 @@ void render_spectrogram(float top, float bottom)
 
 	for (size_t bin = 0; bin < n_bins; ++bin)
 	{
-		for (size_t x = 0; x < WIDTH; ++x)
+		for (size_t x = 0; x < X_PRESENT; ++x)
 		{
 			float intensity = stft_content[bin][x];
 			float g = intensity * scale;
@@ -167,9 +169,9 @@ void render_time_grid()
 {
 	const float alpha = 0.25;
 	float step = 1.0f / ODF_SAMPLE_INTERVAL;
-	int i, x = 1;
+	int i, x = 0;
 
-	while ((x = WIDTH - (int)roundf(step * i)) > 0)
+	while ((x = X_PRESENT - (int)roundf(step * i)) > 0)
 	{
 		S2D_DrawLine(
 			x, 0, x, HEIGHT, 1,
@@ -178,6 +180,12 @@ void render_time_grid()
 
 		++i;
 	}
+
+	// draw present line
+	S2D_DrawLine(
+		X_PRESENT, 0, X_PRESENT, HEIGHT, 2,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+	);
 }
 
 void render_odf(float top, float bottom)
@@ -195,10 +203,10 @@ void render_odf(float top, float bottom)
 	float height = bottom - top;
 	// after this x value, another color is used to highlight the 6s analysis
 	// frame of the tempo induction stage
-	float threshold = WIDTH - 6.0f / ODF_SAMPLE_INTERVAL;
+	float threshold = X_PRESENT - 6.0f / ODF_SAMPLE_INTERVAL;
 	float green;
 
-	for (size_t x = 0; x < WIDTH; ++x)
+	for (size_t x = 0; x < X_PRESENT; ++x)
 	{
 		green = x < threshold ? 1 : 0.5;
 
@@ -216,9 +224,9 @@ void render()
 {
 	size_t n_bins = beat_tracking.get_stft()->numBins();
 
+//	render_spectrogram(0, n_bins);
 	render_time_grid();
 	render_audio_input(0, 200);
-//	render_spectrogram(200, 200 + n_bins);
 	render_odf(200, 400);
 }
 
@@ -230,7 +238,7 @@ void init()
 	assert(stft_content != nullptr);
 	for (int bin = 0; bin < n_bins; ++bin)
 	{
-		stft_content[bin] = ShiftRegister(WIDTH);
+		stft_content[bin] = ShiftRegister(X_PRESENT);
 	}
 
 	// input thread
