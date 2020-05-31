@@ -3,6 +3,13 @@
 #include <cstring>
 
 
+ShiftRegister::ShiftRegister()
+{
+	this->start = 0;
+	this->len = 0;
+	this->data = nullptr;
+}
+
 ShiftRegister::ShiftRegister(size_t len)
 {
 	this->start = 0;

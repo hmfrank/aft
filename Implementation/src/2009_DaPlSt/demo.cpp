@@ -12,11 +12,12 @@
 using namespace gam;
 using namespace std;
 
+// TODO: make accesses to the same variable from different thread thread-safe
+
 
 const char *TITLE = "2009 Davies, Plumbley, Stark - Real-time Beat-synchronous Analysis of Musical Audio";
 const char *FONT = "res/roboto.ttf";
 const int WIDTH = 1000;
-const int HEIGHT = 500;
 const float SAMPLE_RATE = 44100;
 
 
@@ -48,17 +49,23 @@ Args::Args(int argc, char **argv)
 // current command line args
 Args args;
 
+_2009_DaPlSt beat_tracking(SAMPLE_RATE);
+
 thread audio_input_thread;
 
 // main window
+int HEIGHT;
 S2D_Window *window;
 
 // text objects
 S2D_Text *text_audio_input;
+S2D_Text *text_spectrogram;
 
 // data to show on screen
 ShiftRegister input_samples_max(WIDTH);
 ShiftRegister input_samples_min(WIDTH);
+float stft_max = 0;
+ShiftRegister *stft_content;
 
 // loop variable for endless-loop-threads
 bool halt = false;
@@ -66,9 +73,8 @@ bool halt = false;
 
 void stdin_input_loop()
 {
-	_2009_DaPlSt beat_tracking(SAMPLE_RATE);
-	ShiftRegister current_stft_frame(beat_tracking.get_stft()->sizeHop());
-
+	const STFT *stft = beat_tracking.get_stft();
+	ShiftRegister current_stft_frame(stft->sizeHop());
 	float sample;
 
 	while (!halt && (read(0, &sample, sizeof(sample)) == sizeof(sample)))
@@ -82,6 +88,10 @@ void stdin_input_loop()
 
 			input_samples_min.push(min(samples, current_stft_frame.get_len()));
 			input_samples_max.push(max(samples, current_stft_frame.get_len()));
+			for (int bin = 0; bin < stft->numBins(); ++bin)
+			{
+				stft_content[bin].push(stft->bin(bin).mag());
+			}
 		}
 	}
 }
@@ -90,34 +100,109 @@ void update()
 {
 }
 
-void render()
+void render_audio_input(float top, float bottom)
 {
-	float samples_min[WIDTH];
-	float samples_max[WIDTH];
+	// top and bottom line
+	S2D_DrawLine(
+		0, top, WIDTH - 1, top, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+	);
+	S2D_DrawLine(
+		0, bottom, WIDTH - 1, bottom, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+	);
 
-	input_samples_min.get_content(samples_min);
-	input_samples_max.get_content(samples_max);
+	// waveform
+	float height = bottom - top;
+	float y_mikkle = (bottom + top) / 2;
 
-	for (int i = 0; i < WIDTH; ++i)
+	for (int x = 0; x < WIDTH; ++x)
 	{
 		S2D_DrawLine(
-			i, HEIGHT / 2 + samples_min[i] * HEIGHT / 2, i, HEIGHT / 2 + samples_max[i] * HEIGHT / 2, 1,
-			1, 1, 1, 1,
-			1, 1, 1, 1,
-			1, 1, 1, 1,
-			1, 1, 1, 1
+			x, y_mikkle + input_samples_min[x] * height / 2,
+			x, y_mikkle + input_samples_max[x] * height / 2,
+			1,
+			1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 		);
 	}
 
+	// center line
+	S2D_DrawLine(
+		0, y_mikkle, WIDTH - 1, y_mikkle, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+	);
+
+	// text
+	text_audio_input->y = top;
 	S2D_DrawText(text_audio_input);
+}
+
+void render_spectrogram(float top, float bottom)
+{
+	// top and bottom line
+	S2D_DrawLine(
+		0, top, WIDTH - 1, top, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+	);
+	S2D_DrawLine(
+		0, bottom, WIDTH - 1, bottom, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+	);
+
+	size_t n_bins = beat_tracking.get_stft()->numBins();
+
+	float scale = 10 / stft_max;
+	stft_max = 0;
+
+	for (size_t bin = 0; bin < n_bins; ++bin)
+	{
+		for (size_t x = 0; x < WIDTH; ++x)
+		{
+			float intensity = stft_content[bin][x];
+			float g = intensity * scale;
+
+			if (intensity > stft_max)
+			{
+				stft_max = intensity;
+			}
+
+			// single pixel
+			S2D_DrawLine(
+				x, bottom - 1 - bin, x + 1, bottom - 1 - bin, 1,
+				g, g, g, 1, g, g, g, 1, g, g, g, 1, g, g, g, 1
+			);
+		}
+	}
+
+	// text
+	text_spectrogram->y = top;
+	S2D_DrawText(text_spectrogram);
+}
+
+void render()
+{
+	size_t n_bins = beat_tracking.get_stft()->numBins();
+
+	render_audio_input(0, 200);
+	render_spectrogram(200, 200 + n_bins);
 }
 
 void init()
 {
+	// STFT shift registers
+	size_t n_bins = beat_tracking.get_stft()->numBins();
+	stft_content = new ShiftRegister[n_bins];
+	assert(stft_content != nullptr);
+	for (int bin = 0; bin < n_bins; ++bin)
+	{
+		stft_content[bin] = ShiftRegister(WIDTH);
+	}
+
 	// input thread
 	audio_input_thread = thread(stdin_input_loop);
 
 	// window
+	HEIGHT = n_bins + 200;
 	window = S2D_CreateWindow(
 		TITLE,
 		WIDTH,
@@ -134,7 +219,11 @@ void init()
 	// text objects
 	text_audio_input = S2D_CreateText(FONT, "Audio Input", 20);
 	assert(text_audio_input != nullptr);
-	text_audio_input->x = text_audio_input->y = 0;
+	text_audio_input->x = 0;
+
+	text_spectrogram = S2D_CreateText(FONT, "Spectrogram", 20);
+	assert(text_spectrogram != nullptr);
+	text_spectrogram->x = 0;
 }
 
 void free()
@@ -144,11 +233,12 @@ void free()
 	S2D_FreeText(text_audio_input);
 	S2D_FreeWindow(window);
 	audio_input_thread.join();
+	delete[] stft_content;
 }
 
-void audio_callback(AudioIOData& io)
+void audio_callback(AudioIOData &io)
 {
-	_2009_DaPlSt& beat_tracking = io.user<_2009_DaPlSt>();
+	_2009_DaPlSt &beat_tracking = io.user<_2009_DaPlSt>();
 
 	cout << "callback" << endl;
 
@@ -168,7 +258,7 @@ void setup_audio_input()
 	AudioDevice dev = AudioDevice::defaultInput();
 	_2009_DaPlSt beat_tracking = _2009_DaPlSt(dev.defaultSampleRate());
 	AudioIO io(
-		(int)round(ODF_SAMPLE_INTERVAL * dev.defaultSampleRate()),
+		(int) round(ODF_SAMPLE_INTERVAL * dev.defaultSampleRate()),
 		dev.defaultSampleRate(),
 		&audio_callback,
 		&beat_tracking,
