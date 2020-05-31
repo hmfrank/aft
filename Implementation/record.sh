@@ -5,4 +5,4 @@
 DEVICE=alsa_output.pci-0000_00_1b.0.analog-stereo.monitor
 #DEVICE=alsa_input.pci-0000_00_1b.0.analog-stereo
 
-pacat --record --rate=1000 --channels=1 --format=float32le --latency-msec 25 -d "$DEVICE"
+pacat --record --rate=44100 --channels=1 --format=float32le --latency-msec 25 -d "$DEVICE"

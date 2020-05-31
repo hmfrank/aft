@@ -1,8 +1,10 @@
 #include "2009_DaPlSt/demo.h"
 
 #include "2009_DaPlSt/2009_DaPlSt.h"
+#include <cassert>
 #include <Gamma/AudioIO.h>
 #include <iostream>
+#include "misc.h"
 #include <simple2d.h>
 #include "shift_register.h"
 #include <thread>
@@ -12,8 +14,10 @@ using namespace std;
 
 
 const char *TITLE = "2009 Davies, Plumbley, Stark - Real-time Beat-synchronous Analysis of Musical Audio";
+const char *FONT = "res/roboto.ttf";
 const int WIDTH = 1000;
 const int HEIGHT = 500;
+const float SAMPLE_RATE = 44100;
 
 
 // represents the parsed command line args
@@ -44,12 +48,103 @@ Args::Args(int argc, char **argv)
 // current command line args
 Args args;
 
-// buffer of audio samples to show on the screen
-ShiftRegister input_samples(WIDTH);
+thread audio_input_thread;
+
+// main window
+S2D_Window *window;
+
+// text objects
+S2D_Text *text_audio_input;
+
+// data to show on screen
+ShiftRegister input_samples_max(WIDTH);
+ShiftRegister input_samples_min(WIDTH);
 
 // loop variable for endless-loop-threads
 bool halt = false;
 
+
+void stdin_input_loop()
+{
+	_2009_DaPlSt beat_tracking(SAMPLE_RATE);
+	ShiftRegister current_stft_frame(beat_tracking.get_stft()->sizeHop());
+
+	float sample;
+
+	while (!halt && (read(0, &sample, sizeof(sample)) == sizeof(sample)))
+	{
+		current_stft_frame.push(sample);
+
+		if (beat_tracking.next(sample) > 0)
+		{
+			float samples[current_stft_frame.get_len()];
+			current_stft_frame.get_content(samples);
+
+			input_samples_min.push(min(samples, current_stft_frame.get_len()));
+			input_samples_max.push(max(samples, current_stft_frame.get_len()));
+		}
+	}
+}
+
+void update()
+{
+}
+
+void render()
+{
+	float samples_min[WIDTH];
+	float samples_max[WIDTH];
+
+	input_samples_min.get_content(samples_min);
+	input_samples_max.get_content(samples_max);
+
+	for (int i = 0; i < WIDTH; ++i)
+	{
+		S2D_DrawLine(
+			i, HEIGHT / 2 + samples_min[i] * HEIGHT / 2, i, HEIGHT / 2 + samples_max[i] * HEIGHT / 2, 1,
+			1, 1, 1, 1,
+			1, 1, 1, 1,
+			1, 1, 1, 1,
+			1, 1, 1, 1
+		);
+	}
+
+	S2D_DrawText(text_audio_input);
+}
+
+void init()
+{
+	// input thread
+	audio_input_thread = thread(stdin_input_loop);
+
+	// window
+	window = S2D_CreateWindow(
+		TITLE,
+		WIDTH,
+		HEIGHT,
+		update,
+		render,
+		0
+	);
+	assert(window != nullptr);
+
+	window->viewport.mode = S2D_EXPAND;
+	window->vsync = false;
+
+	// text objects
+	text_audio_input = S2D_CreateText(FONT, "Audio Input", 20);
+	assert(text_audio_input != nullptr);
+	text_audio_input->x = text_audio_input->y = 0;
+}
+
+void free()
+{
+	halt = true;
+
+	S2D_FreeText(text_audio_input);
+	S2D_FreeWindow(window);
+	audio_input_thread.join();
+}
 
 void audio_callback(AudioIOData& io)
 {
@@ -62,7 +157,7 @@ void audio_callback(AudioIOData& io)
 		float sample = io.in(0);
 
 		cout << sample << endl;
-		input_samples.push(sample);
+		input_samples_max.push(sample);
 		beat_tracking.next(sample);
 	}
 }
@@ -87,60 +182,6 @@ void setup_audio_input()
 	io.start();
 }
 
-void stdin_input_loop()
-{
-	while (!halt)
-	{
-		float sample;
-
-		if (read(0, &sample, sizeof(sample)) != sizeof(sample))
-		{
-			break;
-		}
-
-		input_samples.push(sample);
-	}
-}
-
-void update()
-{
-
-}
-
-void render()
-{
-	float samples[WIDTH];
-	input_samples.get_content(samples);
-
-	for (int i = 0; i < WIDTH; ++i)
-	{
-		float sample = samples[i];
-		float height = sample * HEIGHT;
-
-		S2D_DrawLine(
-			i, HEIGHT / 2, i, HEIGHT / 2 + height, 1,
-			1, 1, 1, 1,
-			1, 1, 1, 1,
-			1, 1, 1, 1,
-			1, 1, 1, 1
-		);
-	}
-}
-
-S2D_Window *create_window()
-{
-	S2D_Window *window = S2D_CreateWindow(
-		TITLE,
-		WIDTH,
-		HEIGHT,
-		update,
-		render,
-		0
-	);
-	window->viewport.mode = S2D_EXPAND;
-	window->vsync = false;
-}
-
 int demo(int argc, char **argv)
 {
 	args = Args(argc, argv);
@@ -150,17 +191,9 @@ int demo(int argc, char **argv)
 		return 1;
 	}
 
-	// setup
-	thread audio_input_thread(stdin_input_loop);
-	S2D_Window *window = create_window();
-
-	// run
+	init();
 	S2D_Show(window);
-
-	// teardown
-	halt = true;
-	S2D_FreeWindow(window);
-	audio_input_thread.join();
+	free();
 
 	return 0;
 }

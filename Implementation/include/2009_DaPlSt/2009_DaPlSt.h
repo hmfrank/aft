@@ -10,6 +10,7 @@
 using namespace gam;
 
 // TODO: unit test
+// TODO: next() -> operator()()
 
 
 /// Implementation of the algorithm described in
@@ -38,6 +39,9 @@ class _2009_DaPlSt
 		_2009_DaPlSt(const _2009_DaPlSt&);
 		_2009_DaPlSt& operator = (const _2009_DaPlSt&);
 		~_2009_DaPlSt();
+
+		/// Returns the current STFT object.
+		const STFT *get_stft() const;
 
 		/// Returns current stream time in onset detection function samples.
 		///

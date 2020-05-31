@@ -7,7 +7,7 @@ _2009_DaPlSt::_2009_DaPlSt(float sample_rate) : onset_detection(0)
 	this->next_beat = 0;
 	this->sample_rate = sample_rate;
 
-	unsigned hop_size = roundf(ODF_SAMPLE_INTERVAL * this->sample_rate);
+	size_t hop_size = roundf(ODF_SAMPLE_INTERVAL * this->sample_rate);
 	this->stft = new STFT(
 		2 * hop_size,
 		hop_size,
@@ -71,6 +71,11 @@ _2009_DaPlSt &_2009_DaPlSt::operator=(const _2009_DaPlSt &that)
 _2009_DaPlSt::~_2009_DaPlSt()
 {
 	delete this->stft;
+}
+
+const STFT *_2009_DaPlSt::get_stft() const
+{
+	return this->stft;
 }
 
 size_t _2009_DaPlSt::get_time() const
