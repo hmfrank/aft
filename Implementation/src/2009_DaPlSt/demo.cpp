@@ -186,10 +186,6 @@ void render_acf(float top, float bottom)
 {
 	render_borders(top, bottom);
 
-	const float *acf = beat_tracking.get_tempo_induction()->get_acf();
-	float gain = 20 / TempoInduction::lag_weight(BETA);
-	float r = 0;
-
 	// render min max tempo lines
 	S2D_DrawLine(
 		TAU_MIN, bottom, TAU_MIN, top, 1,
@@ -200,27 +196,46 @@ void render_acf(float top, float bottom)
 		1, 1, 1, 0.25, 1, 1, 1, 0.25, 1, 1, 1, 0.25, 1, 1, 1, 0.25
 	);
 
-	// render acf
+	// render comb filter weighing function
+	float comb_gain = 0.8f / TempoInduction::comb_filter_weight(BETA);
+
 	for (size_t i = 0; i < ANALYSIS_FRAME_SIZE; ++i)
 	{
-		float value = acf[i] * TempoInduction::lag_weight(i);
+		float value = TempoInduction::comb_filter_weight(i);
+
+		S2D_DrawLine(
+			i, bottom, i, bottom - value * comb_gain * (bottom - top), 1,
+			1, 1, 1, 0.25, 1, 1, 1, 0.25, 1, 1, 1, 0.25, 1, 1, 1, 0.25
+		);
+	}
+
+	// render acf
+	const float *acf = beat_tracking.get_tempo_induction()->get_acf();
+	float r = 0;
+	float acf_gain = 1.0f / max(acf, TAU_MAX * 4 + 3);
+
+	for (size_t i = 0; i < ANALYSIS_FRAME_SIZE; ++i)
+	{
 		r = i > TAU_MAX * 4 + 3 ? 1 : 0;
 
 		S2D_DrawLine(
-			i, bottom, i, bottom - value * gain * (bottom - top), 1,
+			i, bottom,
+			i, max(top, bottom - acf[i] * acf_gain * (bottom - top)),
+			1,
 			r, 1, 1, 1, r, 1, 1, 1, r, 1, 1, 1, r, 1, 1, 1
 		);
 	}
 
 	// render comb filter
 	size_t tau = 60.0f / ODF_SAMPLE_INTERVAL / beat_tracking.get_tempo();
+	comb_gain *= TempoInduction::comb_filter_weight(tau);
 
 	for (ssize_t p = 1; p <= 4; ++p)
 	{
 		for (ssize_t v = 1 - p; v <= p - 1; ++v)
 		{
 			ssize_t lag = tau * p + v;
-			float height = 1.0f / (float)(2 * p - 1);
+			float height = comb_gain / (float)(2 * p - 1);
 
 			S2D_DrawLine(
 				lag, bottom, lag, bottom - height * (bottom - top), 1,
@@ -238,7 +253,7 @@ void render_acf(float top, float bottom)
 	snprintf(
 		string[0], 128,
 		"Tempo Range: %.1f - %.1f BPM",
-		MAX_TEMPO, MIN_TEMPO
+		MIN_TEMPO, MAX_TEMPO
 	);
 	snprintf(
 		string[1], 128,
@@ -359,6 +374,12 @@ void render_score_function(float top, float bottom)
 	// text
 	text_score_function->y = (int)top;
 	S2D_DrawText(text_score_function);
+
+	// draw present line, again
+	S2D_DrawLine(
+		X_PRESENT, bottom, X_PRESENT, top, 2,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+	);
 }
 
 void render_spectrogram(float top, float bottom)
@@ -463,7 +484,7 @@ void init()
 	window->vsync = false;
 
 	// text objects
-	text_acf = S2D_CreateText(FONT, "Weighted ACF of Modified Analysis Frame + Comb Filter", 20);
+	text_acf = S2D_CreateText(FONT, "ACF of Modified Analysis Frame + Comb Filter", 20);
 	assert(text_acf != nullptr);
 	text_acf->x = text_acf->color.r = 0;
 	text_acf->color.g = text_acf->color.b = 1;

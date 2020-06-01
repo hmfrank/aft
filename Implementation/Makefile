@@ -4,6 +4,7 @@ OBJ = $(patsubst src/%.cpp, obj/%.o, $(SRC))
 DEP = $(patsubst src/%.cpp, dep/%.d, $(SRC))
 
 # TODO: fix Makefile, so that only file that have changed get recompiled
+# z.B. wenn man was in constants.h ändert muss man i wie 2 mal komilieren
 
 # C compiler flags
 CC = g++
