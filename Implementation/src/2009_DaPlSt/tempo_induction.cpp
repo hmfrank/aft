@@ -187,15 +187,13 @@ bool TempoInduction::next_sample(float odf_sample)
 	// compute auto correlation function
 	autocorrelation(modified_analysis_frame, ANALYSIS_FRAME_SIZE, this->acf);
 
-	// comb filter stuff
+	// find best tau
 	float max_sum = -INFINITY;
-	// We don't actually need this much memory for the comb filter output
-	// but it's easier this way.
-	float comb_filter_output[ANALYSIS_FRAME_SIZE];
+	size_t best_tau = TAU_MIN;
 
 	for (size_t tau = TAU_MIN; tau <= TAU_MAX; ++tau) // tau = spacing of comb filter elements in ODF samples
 	{
-		float weight = lag_weight(tau);
+		float weight = comb_filter_weight(tau);
 		float sum = 0;
 
 		for (ssize_t p = 1; p <= 4; ++p)
@@ -211,21 +209,30 @@ bool TempoInduction::next_sample(float odf_sample)
 		if (sum > max_sum)
 		{
 			max_sum = sum;
-
-			bzero(comb_filter_output, sizeof(*comb_filter_output) * ANALYSIS_FRAME_SIZE);
-			for (ssize_t p = 1; p <= 4; ++p)
-			{
-				for (ssize_t v = 1 - p; v <= p - 1; ++v)
-				{
-					ssize_t lag = tau * p + v;
-
-					comb_filter_output[lag] = this->acf[lag] * weight / (float) (2 * p - 1);
-				}
-			}
+			best_tau = tau;
 		}
 	}
 
+	// We don't actually need this much memory for the comb filter output
+	// but it's easier this way.
+	float weight = comb_filter_weight(best_tau);
+	float comb_filter_output[ANALYSIS_FRAME_SIZE];
+	bzero(comb_filter_output, sizeof(*comb_filter_output) * ANALYSIS_FRAME_SIZE);
+
+	for (ssize_t p = 1; p <= 4; ++p)
+	{
+		for (ssize_t v = 1 - p; v <= p - 1; ++v)
+		{
+			ssize_t lag = best_tau * p + v;
+
+			comb_filter_output[lag] = this->acf[lag] * weight / (float) (2 * p - 1);
+		}
+	}
+	this->current_tempo = 60.0f / ODF_SAMPLE_INTERVAL / (float)best_tau;
+	return true;
+
 	// update stored state probabilities
+	float sp_total = 0;
 	float prev_sp[TTM_SIZE];
 	memcpy(prev_sp, this->state_probabilities, sizeof(float) * TTM_SIZE);
 
@@ -238,13 +245,8 @@ bool TempoInduction::next_sample(float odf_sample)
 			sum += TEMPO_TRANSITION_MATRIX[i * TTM_SIZE + j] * prev_sp[i];
 		}
 
-		this->state_probabilities[i] = sum;
-	}
-
-	float sum = 0;
-	for (size_t i = 0; i < TTM_SIZE; ++i)
-	{
-		sum += this->state_probabilities[i] *= comb_filter_output[i + TAU_MIN];
+		this->state_probabilities[i] = sum * comb_filter_output[i + TAU_MIN];
+		sp_total += this->state_probabilities[i];
 	}
 
 	// normalize and find maximum
@@ -253,7 +255,7 @@ bool TempoInduction::next_sample(float odf_sample)
 
 	for (size_t i = 0; i < TTM_SIZE; ++i)
 	{
-		this->state_probabilities[i] /= sum;
+		this->state_probabilities[i] /= sp_total;
 
 		if (this->state_probabilities[i] >= max)
 		{
@@ -267,9 +269,9 @@ bool TempoInduction::next_sample(float odf_sample)
 	return true;
 }
 
-float TempoInduction::lag_weight(size_t lag)
+float TempoInduction::comb_filter_weight(size_t tau)
 {
 	return
-		(float) lag / (float) (BETA * BETA) *
-		expf(-(float) (lag * lag) / (2 * (float) (BETA * BETA)));
+		(float) tau / (float) (BETA * BETA) *
+		expf(-(float) (tau * tau) / (2 * (float) (BETA * BETA)));
 }

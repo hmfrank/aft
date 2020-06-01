@@ -100,7 +100,7 @@ class TempoInduction
 
 		/// Weighing function 'w_G' in
 		/// [2007 Davies, Plumbey - Context-Dependent Beat Tracking of Musical Audio].
-		static float lag_weight(size_t lag);
+		static float comb_filter_weight(size_t tau);
 };
 
 #endif //IMPLEMENTIERUNG_TEMPO_INDUCTION_H
