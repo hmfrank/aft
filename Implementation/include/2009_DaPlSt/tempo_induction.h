@@ -27,6 +27,8 @@ const size_t BETA = roundf(60.0f / ODF_SAMPLE_INTERVAL / PREFERRED_TEMPO);
 
 /// Implementation of the tempo induction part (Section 2.3.) of
 /// [2009 Davies, Plumbley, Stark - Real-time Beat-synchronous Analysis of Musical Audio].
+/// Most details of this algorithm are described in
+/// [2007 Davies, Plumbey - Context-Dependent Beat Tracking of Musical Audio].
 ///
 /// The actual algorithm is in the `next_sample` method that is supposed to be called repeatedly for each new sample
 /// of the onset detection function.
@@ -95,6 +97,10 @@ class TempoInduction
 		/// \param odf_sample next sample of the onset detection function
 		/// \return true, iff the tempo estimate was updated
 		bool next_sample(float odf_sample);
+
+		/// Weighing function 'w_G' in
+		/// [2007 Davies, Plumbey - Context-Dependent Beat Tracking of Musical Audio].
+		static float lag_weight(size_t lag);
 };
 
 #endif //IMPLEMENTIERUNG_TEMPO_INDUCTION_H

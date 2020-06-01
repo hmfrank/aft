@@ -189,24 +189,20 @@ bool TempoInduction::next_sample(float odf_sample)
 
 	// comb filter stuff
 	float max_sum = -INFINITY;
-	// Since we only need a portion of the entire comb filter-bank output, we store an excerpt of the entire
-	// output in `comb_filter_output`.
-	// This excerpt ranges from index `TAU_MIN` to `TAU_MAX` (inclusive).
-	// So index 0 of `comb_filter_output` would be index `TAU_MIN` of the actual entire comb filter-bank output.
-	float comb_filter_output[TTM_SIZE];
+	// We don't actually need this much memory for the comb filter output
+	// but it's easier this way.
+	float comb_filter_output[ANALYSIS_FRAME_SIZE];
 
 	for (size_t tau = TAU_MIN; tau <= TAU_MAX; ++tau) // tau = spacing of comb filter elements in ODF samples
 	{
-		float weight =
-				(float) tau / (float) (BETA * BETA) *
-				expf(-(float) (tau * tau) / (2 * (float) (BETA * BETA)));
+		float weight = lag_weight(tau);
 		float sum = 0;
 
-		for (size_t p = 1; p <= 4; ++p)
+		for (ssize_t p = 1; p <= 4; ++p)
 		{
-			for (size_t v = 1 - p; v <= p - 1; ++v)
+			for (ssize_t v = 1 - p; v <= p - 1; ++v)
 			{
-				size_t lag = tau * p + v;
+				ssize_t lag = tau * p + v;
 
 				sum += this->acf[lag] * weight / (float) (2 * p - 1);
 			}
@@ -216,15 +212,14 @@ bool TempoInduction::next_sample(float odf_sample)
 		{
 			max_sum = sum;
 
-			bzero(comb_filter_output, sizeof(*comb_filter_output) * TTM_SIZE);
-			for (size_t p = 1; p <= 4; ++p)
+			bzero(comb_filter_output, sizeof(*comb_filter_output) * ANALYSIS_FRAME_SIZE);
+			for (ssize_t p = 1; p <= 4; ++p)
 			{
-				for (size_t v = 1 - p; v <= p - 1; ++v)
+				for (ssize_t v = 1 - p; v <= p - 1; ++v)
 				{
-					size_t lag = tau * p + v;
-					size_t i = lag - TAU_MIN;
+					ssize_t lag = tau * p + v;
 
-					comb_filter_output[i] = this->acf[lag] * weight / (float) (2 * p - 1);
+					comb_filter_output[lag] = this->acf[lag] * weight / (float) (2 * p - 1);
 				}
 			}
 		}
@@ -249,7 +244,7 @@ bool TempoInduction::next_sample(float odf_sample)
 	float sum = 0;
 	for (size_t i = 0; i < TTM_SIZE; ++i)
 	{
-		sum += this->state_probabilities[i] *= comb_filter_output[i];
+		sum += this->state_probabilities[i] *= comb_filter_output[i + TAU_MIN];
 	}
 
 	// normalize and find maximum
@@ -270,4 +265,11 @@ bool TempoInduction::next_sample(float odf_sample)
 	this->current_tempo = 60.0f / ODF_SAMPLE_INTERVAL / (float)(index_max + TAU_MIN);
 
 	return true;
+}
+
+float TempoInduction::lag_weight(size_t lag)
+{
+	return
+		(float) lag / (float) (BETA * BETA) *
+		expf(-(float) (lag * lag) / (2 * (float) (BETA * BETA)));
 }
