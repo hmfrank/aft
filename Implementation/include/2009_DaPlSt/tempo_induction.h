@@ -42,6 +42,9 @@ class TempoInduction
 
 		ShiftRegister input_buffer;
 
+		// Points to the block of memory that is allocated by this class/
+		float *allocation_ptr;
+
 		// Points to an array of size `TTM_SIZE` that's allocated and freed in the constructor and destructor
 		// of this class.
 		//
@@ -51,14 +54,25 @@ class TempoInduction
 
 		// Points to the last modified analysis frame that is the input of the
 		// auto-correlation.
-		// The array has length `ANALYSIS_FRAME_SIZE`.
+		// This array has length `ANALYSIS_FRAME_SIZE`.
 		float *modified_analysis_frame;
+
+		// Points to the output buffer of the last auto correlation that was
+		// performed on the modified analysis frame.
+		// This array has length `ANALYSIS_FRAME_SIZE`.
+		float *acf;
 
 	public:
 		TempoInduction();
 		TempoInduction(const TempoInduction&);
 		TempoInduction& operator =(const TempoInduction&);
 		~TempoInduction();
+
+		/// Returns a pointer to the output buffer of the last auto correlation
+		/// that was performed on the modified analysis frame.
+		///
+		/// The array has length `ANALYSIS_FRAME_SIZE`.
+		const float *get_acf() const;
 
 		/// Returns a pointer to the last used modified analysis frame, which
 		/// is the input of the auto-correlation.

@@ -40,6 +40,7 @@ size_t HEIGHT;
 S2D_Window *window;
 
 // text objects
+S2D_Text *text_acf;
 S2D_Text *text_audio_input;
 S2D_Text *text_modified_af;
 S2D_Text *text_score_function;
@@ -91,6 +92,25 @@ void update()
 {
 }
 
+/// Returns the x coordinate of the current start of the analysis frame.
+float get_x_analysis_frame_start()
+{
+	return (float)(
+		X_PRESENT -
+		ANALYSIS_FRAME_SIZE -
+		beat_tracking.get_tempo_induction()->get_n_new_samples()
+	);
+}
+
+/// Returns the x coordinate of the last pixel of the analysis frame + 1.
+float get_x_analysis_frame_end()
+{
+	return (float)(
+		X_PRESENT -
+		beat_tracking.get_tempo_induction()->get_n_new_samples()
+	);
+}
+
 void render_borders(float top, float bottom)
 {
 	S2D_DrawLine(
@@ -103,8 +123,91 @@ void render_borders(float top, float bottom)
 	);
 }
 
+/// Draws a thick "present" line at `X_PRESENT` and 1-second-spaced thin grid
+/// lines to the left.
+/// Everything is drawn between the Y-coordinates `top` and `bottom`.
+void render_time_grid(float top, float bottom)
+{
+	const float alpha = 0.25;
+	float step = 1.0f / ODF_SAMPLE_INTERVAL;
+	int i = 0, x = 0;
+
+	while ((x = X_PRESENT - (int)roundf(step * i)) > 0)
+	{
+		S2D_DrawLine(
+			x, bottom, x, top, 1,
+			1, 1, 1, alpha, 1, 1, 1, alpha, 1, 1, 1, alpha, 1, 1, 1, alpha
+		);
+
+		++i;
+	}
+
+	// draw present line
+	S2D_DrawLine(
+		X_PRESENT, bottom, X_PRESENT, top, 2,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+	);
+}
+
+/// Renders a time series with samples between 0 and 1.
+///
+/// If the samples of your time series are not in the range 0 to 1, you can use
+/// the `gain` parameter to scale them before rendering.
+///
+/// \param top y coordinate of the top of the plot
+/// \param bottom y coordinate of the bottom of the plot
+/// \param buffer ptr to the time series
+/// \param buffer_len # samples to plot
+/// \param x_start x coordinate of the start (left edge) of the plot
+/// \param gain multiplication factor of the time series before rendering
+/// \param r red
+/// \param g green
+/// \param b blue
+/// \param a alpha (opacity)
+void render_time_series(
+	float top, float bottom,
+	const float *buffer, size_t buffer_len,
+	float x_start, float gain,
+	float r, float g, float b, float a
+)
+{
+	for (size_t i = 0; i < buffer_len; ++i)
+	{
+		float x = i + x_start;
+
+		S2D_DrawLine(
+			x, bottom, x, bottom - buffer[i] * gain * (bottom - top), 1,
+			r, g, b, a, r, g, b, a, r, g, b, a, r, g, b, a
+		);
+	}
+}
+
+void render_acf(float top, float bottom)
+{
+	render_borders(top, bottom);
+
+	const float *acf = beat_tracking.get_tempo_induction()->get_acf();
+	float gain = 10;
+	float r = 0;
+
+	for (size_t i = 0; i < ANALYSIS_FRAME_SIZE; ++i)
+	{
+		float x = i;
+		r = i > TAU_MAX * 4 + 3 ? 1 : 0;
+
+		S2D_DrawLine(
+			x, bottom, x, bottom - acf[i] * gain * (bottom - top), 1,
+			r, 1, 1, 1, r, 1, 1, 1, r, 1, 1, 1, r, 1, 1, 1
+		);
+	}
+
+	text_acf->y = (int)top;
+	S2D_DrawText(text_acf);
+}
+
 void render_audio_input(float top, float bottom)
 {
+	render_time_grid(top, bottom);
 	render_borders(top, bottom);
 
 	// waveform
@@ -128,37 +231,34 @@ void render_audio_input(float top, float bottom)
 	);
 
 	// text
-	text_audio_input->y = top;
+	text_audio_input->y = (int)top;
 	S2D_DrawText(text_audio_input);
 }
 
 void render_modified_analysis_frame(float top, float bottom)
 {
+	render_time_grid(top, bottom);
 	render_borders(top, bottom);
 
 	const float *mod_af = beat_tracking.get_tempo_induction()->get_modified_analysis_frame();
-	float af_start = X_PRESENT - ANALYSIS_FRAME_SIZE - beat_tracking.get_tempo_induction()->get_n_new_samples();
 
-	for (size_t i = 0; i < ANALYSIS_FRAME_SIZE; ++i)
-	{
-		float x = i + af_start;
+	render_time_series(
+		top, bottom,
+		mod_af, ANALYSIS_FRAME_SIZE,
+		get_x_analysis_frame_start(), 1,
+		0, 0.5, 1.0, 1.0
+	);
 
-		S2D_DrawLine(
-			x, bottom, x, bottom - mod_af[i] * (bottom - top), 1,
-			0, 0.5, 1.0, 1.0, 0, 0.5, 1.0, 1.0, 0, 0.5, 1.0, 1.0, 0, 0.5, 1.0, 1.0
-		);
-	}
-
-	// text
-	text_modified_af->y = top;
+	text_modified_af->y = (int)top;
 	S2D_DrawText(text_modified_af);
 }
 
 void render_score_function(float top, float bottom)
 {
+	render_time_grid(top, bottom);
 	render_borders(top, bottom);
 
-	float scale = (float)(bottom - top) / (score_max > 0 ? score_max : 1);
+	float gain = 1.0f / (score_max > 0 ? score_max : 1);
 	score_max = 0;
 
 	// past score function
@@ -172,7 +272,7 @@ void render_score_function(float top, float bottom)
 		}
 
 		S2D_DrawLine(
-			x, bottom, x, bottom - score * scale, 1,
+			x, bottom, x, bottom - score * gain * (bottom - top), 1,
 			1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1
 		);
 	}
@@ -181,16 +281,12 @@ void render_score_function(float top, float bottom)
 	const float *future = beat_tracking.get_beat_prediction()->get_future_score();
 	size_t future_len = beat_tracking.get_beat_prediction()->get_beat_period();
 
-	for (size_t i = 0; i < future_len; ++i)
-	{
-		float x = i + X_PRESENT;
-		float score = future[i];
-
-		S2D_DrawLine(
-			x, bottom, x, bottom - score * scale, 1,
-			1, 0, 0.5, 1, 1, 0, 0.5, 1, 1, 0, 0.5, 1, 1, 0, 0.5, 1
-		);
-	}
+	render_time_series(
+		top, bottom,
+		future, future_len,
+		X_PRESENT, gain,
+		1, 0, 0.5, 1
+	);
 
 	// next beat prediction
 	float relative_next_beat_time = beat_tracking.get_next_beat_time() - beat_tracking.get_time();
@@ -201,7 +297,7 @@ void render_score_function(float top, float bottom)
 	);
 
 	// text
-	text_score_function->y = top;
+	text_score_function->y = (int)top;
 	S2D_DrawText(text_score_function);
 }
 
@@ -235,42 +331,20 @@ void render_spectrogram(float top, float bottom)
 	}
 
 	// text
-	text_spectrogram->y = top;
+	text_spectrogram->y = (int)top;
 	S2D_DrawText(text_spectrogram);
-}
-
-void render_time_grid()
-{
-	const float alpha = 0.25;
-	float step = 1.0f / ODF_SAMPLE_INTERVAL;
-	int i, x = 0;
-
-	while ((x = X_PRESENT - (int)roundf(step * i)) > 0)
-	{
-		S2D_DrawLine(
-			x, 0, x, HEIGHT, 1,
-			1, 1, 1, alpha, 1, 1, 1, alpha, 1, 1, 1, alpha, 1, 1, 1, alpha
-		);
-
-		++i;
-	}
-
-	// draw present line
-	S2D_DrawLine(
-		X_PRESENT, 0, X_PRESENT, HEIGHT, 2,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-	);
 }
 
 void render_odf(float top, float bottom)
 {
+	render_time_grid(top, bottom);
 	render_borders(top, bottom);
 
 	float height = bottom - top;
 	// between `af_start` and `af_end`, another color is used to highlight the
 	// 6s analysis frame of the tempo induction stage
-	float af_start = X_PRESENT - ANALYSIS_FRAME_SIZE - beat_tracking.get_tempo_induction()->get_n_new_samples();
-	float af_end = X_PRESENT - beat_tracking.get_tempo_induction()->get_n_new_samples();
+	float af_start = get_x_analysis_frame_start();
+	float af_end = get_x_analysis_frame_end();
 	float green;
 
 	for (size_t x = 0; x < X_PRESENT; ++x)
@@ -283,7 +357,7 @@ void render_odf(float top, float bottom)
 		);
 	}
 
-	text_odf->y = top;
+	text_odf->y = (int)top;
 	S2D_DrawText(text_odf);
 }
 
@@ -292,11 +366,11 @@ void render()
 	size_t n_bins = beat_tracking.get_stft()->numBins();
 
 //	render_spectrogram(0, n_bins);
-	render_time_grid();
-	render_audio_input(0, 100);
-	render_odf(100, 300);
-	render_modified_analysis_frame(300, 500);
-	render_score_function(500, 700);
+	render_audio_input(0, 200);
+	render_odf(200, 400);
+	render_modified_analysis_frame(400, 600);
+	render_acf(600, 800);
+	render_score_function(800, 1000);
 }
 
 void init()
@@ -314,7 +388,7 @@ void init()
 	audio_input_thread = thread(stdin_input_loop);
 
 	// window
-	HEIGHT = 700;
+	HEIGHT = 1000;
 	window = S2D_CreateWindow(
 		TITLE,
 		WIDTH,
@@ -329,6 +403,11 @@ void init()
 	window->vsync = false;
 
 	// text objects
+	text_acf = S2D_CreateText(FONT, "ACF of Modified Analysis Frame", 20);
+	assert(text_acf != nullptr);
+	text_acf->x = text_acf->color.r = 0;
+	text_acf->color.g = text_acf->color.b = 1;
+
 	text_audio_input = S2D_CreateText(FONT, "Audio Input", 20);
 	assert(text_audio_input != nullptr);
 	text_audio_input->x = text_audio_input->color.r = text_audio_input->color.b = 0;
@@ -359,6 +438,7 @@ void free()
 {
 	halt = true;
 
+	S2D_FreeText(text_acf);
 	S2D_FreeText(text_audio_input);
 	S2D_FreeText(text_modified_af);
 	S2D_FreeText(text_score_function);
