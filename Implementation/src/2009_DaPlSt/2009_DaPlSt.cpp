@@ -76,6 +76,11 @@ _2009_DaPlSt::~_2009_DaPlSt()
 	delete this->stft;
 }
 
+const BeatPrediction *_2009_DaPlSt::get_beat_prediction() const
+{
+	return &this->beat_prediction;
+}
+
 const STFT *_2009_DaPlSt::get_stft() const
 {
 	return this->stft;

@@ -41,6 +41,7 @@ S2D_Window *window;
 
 // text objects
 S2D_Text *text_audio_input;
+S2D_Text *text_score_function;
 S2D_Text *text_spectrogram;
 S2D_Text *text_odf;
 
@@ -50,6 +51,8 @@ ShiftRegister input_samples_min(X_PRESENT);
 float stft_max = 0;
 ShiftRegister *stft_content;
 ShiftRegister odf_samples(X_PRESENT);
+float score_max = 0;
+ShiftRegister score_function(X_PRESENT);
 
 // loop variable for endless-loop-threads
 bool halt = false;
@@ -78,6 +81,7 @@ void stdin_input_loop()
 				stft_content[bin].push(stft->bin(bin).mag());
 			}
 			odf_samples.push(beat_tracking.get_odf_sample());
+			score_function.push(beat_tracking.get_beat_prediction()->get_current_score());
 		}
 	}
 }
@@ -123,6 +127,65 @@ void render_audio_input(float top, float bottom)
 	S2D_DrawText(text_audio_input);
 }
 
+void render_score_function(float top, float bottom)
+{
+	// top and bottom line
+	S2D_DrawLine(
+		0, top, WIDTH - 1, top, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+	);
+	S2D_DrawLine(
+		0, bottom, WIDTH - 1, bottom, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+	);
+
+	float scale = (float)(bottom - top) / (score_max > 0 ? score_max : 1);
+	score_max = 0;
+
+	// past score function
+	for (size_t x = 0; x < X_PRESENT; ++x)
+	{
+		float score = score_function[x];
+
+		if (score > score_max)
+		{
+			score_max = score;
+		}
+
+		S2D_DrawLine(
+			x, bottom, x, bottom - score * scale, 1,
+			1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 1
+		);
+	}
+
+	// future score function
+	const float *future = beat_tracking.get_beat_prediction()->get_future_score();
+	size_t future_len = beat_tracking.get_beat_prediction()->get_beat_period();
+
+	for (size_t i = 0; i < future_len; ++i)
+	{
+		float x = i + X_PRESENT;
+		float score = future[i];
+
+		S2D_DrawLine(
+			x, bottom, x, bottom - score * scale, 1,
+			1, 0, 0.5, 1, 1, 0, 0.5, 1, 1, 0, 0.5, 1, 1, 0, 0.5, 1
+		);
+	}
+
+	// next beat prediction
+	float relative_next_beat_time = beat_tracking.get_next_beat_time() - beat_tracking.get_time();
+	float x = X_PRESENT - 1 + relative_next_beat_time;
+	S2D_DrawLine(
+		x, bottom, x, top, 1,
+		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
+	);
+
+	// text
+	text_score_function->y = top;
+	S2D_DrawText(text_score_function);
+}
+
 void render_spectrogram(float top, float bottom)
 {
 	// top and bottom line
@@ -137,7 +200,7 @@ void render_spectrogram(float top, float bottom)
 
 	size_t n_bins = beat_tracking.get_stft()->numBins();
 
-	float scale = 10 / stft_max;
+	float scale = 10 / (stft_max > 0 ? stft_max : 1);
 	stft_max = 0;
 
 	for (size_t bin = 0; bin < n_bins; ++bin)
@@ -208,7 +271,7 @@ void render_odf(float top, float bottom)
 
 	for (size_t x = 0; x < X_PRESENT; ++x)
 	{
-		green = x < threshold ? 1 : 0.5;
+		green = x < threshold ? 0.5 : 1;
 
 		S2D_DrawLine(
 			x, bottom, x, bottom - odf_samples[x] * height / 2, 1,
@@ -228,6 +291,7 @@ void render()
 	render_time_grid();
 	render_audio_input(0, 200);
 	render_odf(200, 400);
+	render_score_function(400, 600);
 }
 
 void init()
@@ -245,7 +309,7 @@ void init()
 	audio_input_thread = thread(stdin_input_loop);
 
 	// window
-	HEIGHT = 400;
+	HEIGHT = 600;
 	window = S2D_CreateWindow(
 		TITLE,
 		WIDTH,
@@ -265,6 +329,11 @@ void init()
 	text_audio_input->x = text_audio_input->color.r = text_audio_input->color.b = 0;
 	text_audio_input->color.g = 1;
 
+	text_score_function = S2D_CreateText(FONT, "Score Function", 20);
+	assert(text_score_function != nullptr);
+	text_score_function->x = text_score_function->color.g = text_score_function->color.b = 0;
+	text_score_function->color.r = 1;
+
 	text_spectrogram = S2D_CreateText(FONT, "Spectrogram", 20);
 	assert(text_spectrogram != nullptr);
 	text_spectrogram->x = 0;
@@ -280,6 +349,7 @@ void free()
 	halt = true;
 
 	S2D_FreeText(text_audio_input);
+	S2D_FreeText(text_score_function);
 	S2D_FreeText(text_spectrogram);
 	S2D_FreeText(text_odf);
 	S2D_FreeWindow(window);
@@ -360,6 +430,8 @@ int demo(int argc, char **argv)
 
 	init();
 	S2D_Show(window);
+	char x;
+	cin >> x;
 	free();
 
 	return 0;

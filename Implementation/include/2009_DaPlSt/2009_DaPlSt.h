@@ -41,6 +41,9 @@ class _2009_DaPlSt
 		_2009_DaPlSt& operator = (const _2009_DaPlSt&);
 		~_2009_DaPlSt();
 
+		/// Returns a pointer to the internal beat prediction object.
+		const BeatPrediction *get_beat_prediction() const;
+
 		/// Returns the current STFT object.
 		const STFT *get_stft() const;
 
