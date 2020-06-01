@@ -9,6 +9,7 @@
 
 using namespace gam;
 
+// TODO: herrausfinden, warum er manchmal auf TAU_MIN hängen bleibt
 // TODO: unit test
 // TODO: next() -> operator()()
 

@@ -187,22 +187,82 @@ void render_acf(float top, float bottom)
 	render_borders(top, bottom);
 
 	const float *acf = beat_tracking.get_tempo_induction()->get_acf();
-	float gain = 10;
+	float gain = 20 / TempoInduction::lag_weight(BETA);
 	float r = 0;
 
+	// render min max tempo lines
+	S2D_DrawLine(
+		TAU_MIN, bottom, TAU_MIN, top, 1,
+		1, 1, 1, 0.25, 1, 1, 1, 0.25, 1, 1, 1, 0.25, 1, 1, 1, 0.25
+	);
+	S2D_DrawLine(
+		TAU_MAX, bottom, TAU_MAX, top, 1,
+		1, 1, 1, 0.25, 1, 1, 1, 0.25, 1, 1, 1, 0.25, 1, 1, 1, 0.25
+	);
+
+	// render acf
 	for (size_t i = 0; i < ANALYSIS_FRAME_SIZE; ++i)
 	{
-		float x = i;
+		float value = acf[i] * TempoInduction::lag_weight(i);
 		r = i > TAU_MAX * 4 + 3 ? 1 : 0;
 
 		S2D_DrawLine(
-			x, bottom, x, bottom - acf[i] * gain * (bottom - top), 1,
+			i, bottom, i, bottom - value * gain * (bottom - top), 1,
 			r, 1, 1, 1, r, 1, 1, 1, r, 1, 1, 1, r, 1, 1, 1
 		);
 	}
 
+	// render comb filter
+	size_t tau = 60.0f / ODF_SAMPLE_INTERVAL / beat_tracking.get_tempo();
+
+	for (ssize_t p = 1; p <= 4; ++p)
+	{
+		for (ssize_t v = 1 - p; v <= p - 1; ++v)
+		{
+			ssize_t lag = tau * p + v;
+			float height = 1.0f / (float)(2 * p - 1);
+
+			S2D_DrawLine(
+				lag, bottom, lag, bottom - height * (bottom - top), 1,
+				1, 0, 0, 0.5, 1, 0, 0, 0.5, 1, 0, 0, 0.5, 1, 0, 0, 0.5
+			);
+			// this->acf[lag] * weight / (float) (2 * p - 1);
+		}
+	}
+
+	// render text
 	text_acf->y = (int)top;
 	S2D_DrawText(text_acf);
+
+	char string[3][128];
+	snprintf(
+		string[0], 128,
+		"Tempo Range: %.1f - %.1f BPM",
+		MAX_TEMPO, MIN_TEMPO
+	);
+	snprintf(
+		string[1], 128,
+		"Tempo: %.1f BPM",
+		beat_tracking.get_tempo()
+	);
+	snprintf(
+		string[2], 128,
+		"Beat Interval: %lu ODF Samples",
+		tau
+	);
+
+	for (int i = 0; i < 3; ++i)
+	{
+		S2D_Text *text = S2D_CreateText(FONT, string[i], 20);
+		if (text != nullptr)
+		{
+			text->x = ANALYSIS_FRAME_SIZE;
+			text->y = (int)top + 25 * i;
+			text->color.r = text->color.g = text->color.b = 1;
+			S2D_DrawText(text);
+			S2D_FreeText(text);
+		}
+	}
 }
 
 void render_audio_input(float top, float bottom)
@@ -369,8 +429,8 @@ void render()
 	render_audio_input(0, 200);
 	render_odf(200, 400);
 	render_modified_analysis_frame(400, 600);
-	render_acf(600, 800);
-	render_score_function(800, 1000);
+	render_score_function(600, 800);
+	render_acf(800, 1000);
 }
 
 void init()
@@ -403,7 +463,7 @@ void init()
 	window->vsync = false;
 
 	// text objects
-	text_acf = S2D_CreateText(FONT, "ACF of Modified Analysis Frame", 20);
+	text_acf = S2D_CreateText(FONT, "Weighted ACF of Modified Analysis Frame + Comb Filter", 20);
 	assert(text_acf != nullptr);
 	text_acf->x = text_acf->color.r = 0;
 	text_acf->color.g = text_acf->color.b = 1;
