@@ -86,6 +86,11 @@ const STFT *_2009_DaPlSt::get_stft() const
 	return this->stft;
 }
 
+const TempoInduction *_2009_DaPlSt::get_tempo_induction() const
+{
+	return &this->tempo_induction;
+}
+
 float _2009_DaPlSt::get_odf_sample() const
 {
 	return this->odf_sample;

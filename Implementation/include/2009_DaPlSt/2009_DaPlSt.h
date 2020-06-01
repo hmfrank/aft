@@ -47,6 +47,9 @@ class _2009_DaPlSt
 		/// Returns the current STFT object.
 		const STFT *get_stft() const;
 
+		/// Returns a pointer to the internal tempo induction object.
+		const TempoInduction *get_tempo_induction() const;
+
 		/// Returns the current onset detection function sample.
 		float get_odf_sample() const;
 

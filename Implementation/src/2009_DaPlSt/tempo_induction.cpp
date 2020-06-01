@@ -1,27 +1,12 @@
 #include "2009_DaPlSt/tempo_induction.h"
 
-#include "2009_DaPlSt/constants.h"
 #include <cmath>
 #include <cstring>
 #include "misc.h"
 
 
-// analysis frame size in seconds
-const float ANALYSIS_FRAME_SIZE_S = 5.94432;
-// analysis frame size in ODF-samples
-const size_t ANALYSIS_FRAME_SIZE = roundf(ANALYSIS_FRAME_SIZE_S / ODF_SAMPLE_INTERVAL); // = 512
-
-// after this many seconds a new tempo induction starts with the new analysis frame
-const float ANALYSIS_FRAME_SHIFT_S = 1.48608;
-// analysis frame shift in ODF-samples
-const size_t ANALYSIS_FRAME_SHIFT = roundf(ANALYSIS_FRAME_SHIFT_S / ODF_SAMPLE_INTERVAL); // = 128
-
-// inter-beat-interval of the preferred tempo in ODF samples
-// see equation (8) in [2007 Davies, Plumbey - Context-Dependent Beat Tracking of Musical Audio]
-const size_t BETA = roundf(60.0f / ODF_SAMPLE_INTERVAL / PREFERRED_TEMPO);
-
-
 const size_t TTM_SIZE = TAU_MAX - TAU_MIN + 1;
+
 // Tempo transition matrix from equation (8) in [2009 Davies, Plumbley, Stark - Real-time Beat-synchronous Analysis of Musical Audio].
 // This matrix is a square of side length `TTM_SIZE` and is allocated an initialized once, namely the first time the
 // constructor of `TempoInduction` is called.
@@ -58,12 +43,18 @@ TempoInduction::TempoInduction() : input_buffer(ANALYSIS_FRAME_SIZE)
 
 	this->current_tempo = PREFERRED_TEMPO;
 	this->n_new_samples = 0;
-	this->state_probabilities = new float [TTM_SIZE];
 
+	this->state_probabilities = new float [TTM_SIZE + ANALYSIS_FRAME_SIZE];
 	for (size_t i = 0; i < TTM_SIZE; ++i)
 	{
 		this->state_probabilities[i] = 1.0f;
 	}
+
+	this->modified_analysis_frame = this->state_probabilities + TTM_SIZE;
+	bzero(
+		this->modified_analysis_frame,
+		sizeof(*this->modified_analysis_frame) * ANALYSIS_FRAME_SIZE
+	);
 }
 
 TempoInduction::TempoInduction(const TempoInduction &that) : input_buffer(that.input_buffer)
@@ -71,8 +62,13 @@ TempoInduction::TempoInduction(const TempoInduction &that) : input_buffer(that.i
 	this->current_tempo = that.current_tempo;
 	this->n_new_samples = that.n_new_samples;
 
-	this->state_probabilities = new float[TTM_SIZE];
-	memcpy(this->state_probabilities, that.state_probabilities, sizeof(*this->state_probabilities) * TTM_SIZE);
+	this->state_probabilities = new float[TTM_SIZE + ANALYSIS_FRAME_SIZE];
+	this->modified_analysis_frame = this->state_probabilities + TTM_SIZE;
+	memcpy(
+		this->state_probabilities,
+		that.state_probabilities,
+		sizeof(float) * (TTM_SIZE + ANALYSIS_FRAME_SIZE)
+	);
 }
 
 TempoInduction &TempoInduction::operator=(const TempoInduction &that)
@@ -84,8 +80,13 @@ TempoInduction &TempoInduction::operator=(const TempoInduction &that)
 		this->input_buffer = that.input_buffer; // should call the copy assignment operator
 
 		delete [] this->state_probabilities;
-		this->state_probabilities = new float[TTM_SIZE];
-		memcpy(this->state_probabilities, that.state_probabilities, sizeof(*this->state_probabilities) * TTM_SIZE);
+		this->state_probabilities = new float[TTM_SIZE + ANALYSIS_FRAME_SIZE];
+		this->modified_analysis_frame = this->state_probabilities + TTM_SIZE;
+		memcpy(
+			this->state_probabilities,
+			that.state_probabilities,
+			sizeof(float) * (TTM_SIZE + ANALYSIS_FRAME_SIZE)
+		);
 	}
 
 	return *this;
@@ -96,6 +97,16 @@ TempoInduction::~TempoInduction()
 	delete [] this->state_probabilities;
 }
 
+
+const float *TempoInduction::get_modified_analysis_frame() const
+{
+	return this->modified_analysis_frame;
+}
+
+size_t TempoInduction::get_n_new_samples() const
+{
+	return this->n_new_samples;
+}
 
 float TempoInduction::get_tempo() const
 {
@@ -135,11 +146,10 @@ bool TempoInduction::next_sample(float odf_sample)
 	this->input_buffer.get_content(analysis_frame);
 
 	// subtract moving mean and set negative values to 0
-	float modified_analysis_frame[ANALYSIS_FRAME_SIZE];
 	for (size_t i = 0; i < ANALYSIS_FRAME_SIZE; ++i)
 	{
-		modified_analysis_frame[i] = analysis_frame[i] - avg(analysis_frame + i - 8, 17);
-		if (modified_analysis_frame[i] < 0) modified_analysis_frame[i] = 0;
+		this->modified_analysis_frame[i] = analysis_frame[i] - avg(analysis_frame + i - 8, 17);
+		if (this->modified_analysis_frame[i] < 0) modified_analysis_frame[i] = 0;
 	}
 
 	// compute auto correlation function

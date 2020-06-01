@@ -41,6 +41,7 @@ S2D_Window *window;
 
 // text objects
 S2D_Text *text_audio_input;
+S2D_Text *text_modified_af;
 S2D_Text *text_score_function;
 S2D_Text *text_spectrogram;
 S2D_Text *text_odf;
@@ -90,9 +91,8 @@ void update()
 {
 }
 
-void render_audio_input(float top, float bottom)
+void render_borders(float top, float bottom)
 {
-	// top and bottom line
 	S2D_DrawLine(
 		0, top, WIDTH - 1, top, 1,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
@@ -101,6 +101,11 @@ void render_audio_input(float top, float bottom)
 		0, bottom, WIDTH - 1, bottom, 1,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
 	);
+}
+
+void render_audio_input(float top, float bottom)
+{
+	render_borders(top, bottom);
 
 	// waveform
 	float height = bottom - top;
@@ -127,17 +132,31 @@ void render_audio_input(float top, float bottom)
 	S2D_DrawText(text_audio_input);
 }
 
+void render_modified_analysis_frame(float top, float bottom)
+{
+	render_borders(top, bottom);
+
+	const float *mod_af = beat_tracking.get_tempo_induction()->get_modified_analysis_frame();
+	float af_start = X_PRESENT - ANALYSIS_FRAME_SIZE - beat_tracking.get_tempo_induction()->get_n_new_samples();
+
+	for (size_t i = 0; i < ANALYSIS_FRAME_SIZE; ++i)
+	{
+		float x = i + af_start;
+
+		S2D_DrawLine(
+			x, bottom, x, bottom - mod_af[i] * (bottom - top), 1,
+			0, 0.5, 1.0, 1.0, 0, 0.5, 1.0, 1.0, 0, 0.5, 1.0, 1.0, 0, 0.5, 1.0, 1.0
+		);
+	}
+
+	// text
+	text_modified_af->y = top;
+	S2D_DrawText(text_modified_af);
+}
+
 void render_score_function(float top, float bottom)
 {
-	// top and bottom line
-	S2D_DrawLine(
-		0, top, WIDTH - 1, top, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-	);
-	S2D_DrawLine(
-		0, bottom, WIDTH - 1, bottom, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-	);
+	render_borders(top, bottom);
 
 	float scale = (float)(bottom - top) / (score_max > 0 ? score_max : 1);
 	score_max = 0;
@@ -188,15 +207,7 @@ void render_score_function(float top, float bottom)
 
 void render_spectrogram(float top, float bottom)
 {
-	// top and bottom line
-	S2D_DrawLine(
-		0, top, WIDTH - 1, top, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-	);
-	S2D_DrawLine(
-		0, bottom, WIDTH - 1, bottom, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-	);
+	render_borders(top, bottom);
 
 	size_t n_bins = beat_tracking.get_stft()->numBins();
 
@@ -253,25 +264,18 @@ void render_time_grid()
 
 void render_odf(float top, float bottom)
 {
-	// top and bottom line
-	S2D_DrawLine(
-		0, top, WIDTH - 1, top, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-	);
-	S2D_DrawLine(
-		0, bottom, WIDTH - 1, bottom, 1,
-		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
-	);
+	render_borders(top, bottom);
 
 	float height = bottom - top;
-	// after this x value, another color is used to highlight the 6s analysis
-	// frame of the tempo induction stage
-	float threshold = X_PRESENT - 6.0f / ODF_SAMPLE_INTERVAL;
+	// between `af_start` and `af_end`, another color is used to highlight the
+	// 6s analysis frame of the tempo induction stage
+	float af_start = X_PRESENT - ANALYSIS_FRAME_SIZE - beat_tracking.get_tempo_induction()->get_n_new_samples();
+	float af_end = X_PRESENT - beat_tracking.get_tempo_induction()->get_n_new_samples();
 	float green;
 
 	for (size_t x = 0; x < X_PRESENT; ++x)
 	{
-		green = x < threshold ? 0.5 : 1;
+		green = (x >= af_start) && (x < af_end) ? 0.5 : 1;
 
 		S2D_DrawLine(
 			x, bottom, x, bottom - odf_samples[x] * height / 2, 1,
@@ -289,9 +293,10 @@ void render()
 
 //	render_spectrogram(0, n_bins);
 	render_time_grid();
-	render_audio_input(0, 200);
-	render_odf(200, 400);
-	render_score_function(400, 600);
+	render_audio_input(0, 100);
+	render_odf(100, 300);
+	render_modified_analysis_frame(300, 500);
+	render_score_function(500, 700);
 }
 
 void init()
@@ -309,7 +314,7 @@ void init()
 	audio_input_thread = thread(stdin_input_loop);
 
 	// window
-	HEIGHT = 600;
+	HEIGHT = 700;
 	window = S2D_CreateWindow(
 		TITLE,
 		WIDTH,
@@ -328,6 +333,12 @@ void init()
 	assert(text_audio_input != nullptr);
 	text_audio_input->x = text_audio_input->color.r = text_audio_input->color.b = 0;
 	text_audio_input->color.g = 1;
+
+	text_modified_af = S2D_CreateText(FONT, "Modified Analysis Frame", 20);
+	assert(text_modified_af != nullptr);
+	text_modified_af->x = text_modified_af->color.r = 0;
+	text_modified_af->color.g = 0.5;
+	text_modified_af->color.b = 1;
 
 	text_score_function = S2D_CreateText(FONT, "Score Function", 20);
 	assert(text_score_function != nullptr);
@@ -349,6 +360,7 @@ void free()
 	halt = true;
 
 	S2D_FreeText(text_audio_input);
+	S2D_FreeText(text_modified_af);
 	S2D_FreeText(text_score_function);
 	S2D_FreeText(text_spectrogram);
 	S2D_FreeText(text_odf);
