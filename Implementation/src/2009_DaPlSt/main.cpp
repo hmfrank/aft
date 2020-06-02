@@ -1,5 +1,3 @@
-#include "2009_DaPlSt/demo.h"
-
 #include "2009_DaPlSt/2009_DaPlSt.h"
 #include <cassert>
 #include "misc.h"
@@ -527,7 +525,7 @@ void free()
 }
 
 
-int demo(int argc, char **argv)
+int main(int argc, char **argv)
 {
 	init();
 	S2D_Show(window);
