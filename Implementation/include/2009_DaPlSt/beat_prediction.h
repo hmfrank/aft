@@ -46,13 +46,25 @@ class BeatPrediction
 		float eq2rhs(ssize_t m);
 
 	public:
-		static BeatPrediction New();
-		static void Delete(BeatPrediction *self);
-
 		BeatPrediction();
 		BeatPrediction(const BeatPrediction&);
 		BeatPrediction& operator = (const BeatPrediction&);
 		~BeatPrediction();
+
+		/// Returns the inter beat interval of the current tempo estimate in
+		/// ODF samples.
+		float get_beat_period() const;
+
+		/// Returns the current value of the score function.
+		float get_current_score() const;
+
+		/// Returns a pointer to the future score function estimate.
+		///
+		/// The returned pointer points to memory that belongs to this object,
+		/// so don't free it or do anything else with it, other than reading.
+		/// The array has length `this->get_beat_period()` and the maximum
+		/// length is `TAU_MAX + 1`.
+		const float *get_future_score() const;
 
 		/// Updates the tempo used for beat prediction.
 		///

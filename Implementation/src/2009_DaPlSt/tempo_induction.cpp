@@ -1,31 +1,22 @@
 #include "2009_DaPlSt/tempo_induction.h"
 
-#include "2009_DaPlSt/constants.h"
 #include <cmath>
 #include <cstring>
 #include "misc.h"
 
 
-// analysis frame size in seconds
-const float ANALYSIS_FRAME_SIZE_S = 5.94432;
-// analysis frame size in ODF-samples
-const size_t ANALYSIS_FRAME_SIZE = roundf(ANALYSIS_FRAME_SIZE_S / ODF_SAMPLE_INTERVAL); // = 512
-
-// after this many seconds a new tempo induction starts with the new analysis frame
-const float ANALYSIS_FRAME_SHIFT_S = 1.48608;
-// analysis frame shift in ODF-samples
-const size_t ANALYSIS_FRAME_SHIFT = roundf(ANALYSIS_FRAME_SHIFT_S / ODF_SAMPLE_INTERVAL); // = 128
-
-// inter-beat-interval of the preferred tempo in ODF samples
-// see equation (8) in [2007 Davies, Plumbey - Context-Dependent Beat Tracking of Musical Audio]
-const size_t BETA = roundf(60.0f / ODF_SAMPLE_INTERVAL / PREFERRED_TEMPO);
-
-
 const size_t TTM_SIZE = TAU_MAX - TAU_MIN + 1;
+
 // Tempo transition matrix from equation (8) in [2009 Davies, Plumbley, Stark - Real-time Beat-synchronous Analysis of Musical Audio].
 // This matrix is a square of side length `TTM_SIZE` and is allocated an initialized once, namely the first time the
 // constructor of `TempoInduction` is called.
 float *TEMPO_TRANSITION_MATRIX = nullptr;
+
+// number of floats to allocate for one instance of the class
+const size_t ALLOCATION_SIZE = TTM_SIZE + 2 * ANALYSIS_FRAME_SIZE;
+const size_t SP_OFFSET = 0;
+const size_t MAF_OFFSET = TTM_SIZE;
+const size_t ACF_OFFSET = MAF_OFFSET + ANALYSIS_FRAME_SIZE;
 
 
 float *new_ttm()
@@ -58,12 +49,21 @@ TempoInduction::TempoInduction() : input_buffer(ANALYSIS_FRAME_SIZE)
 
 	this->current_tempo = PREFERRED_TEMPO;
 	this->n_new_samples = 0;
-	this->state_probabilities = new float [TTM_SIZE];
 
+	this->allocation_ptr = new float[ALLOCATION_SIZE];
+
+	this->state_probabilities = this->allocation_ptr + SP_OFFSET;
 	for (size_t i = 0; i < TTM_SIZE; ++i)
 	{
 		this->state_probabilities[i] = 1.0f;
 	}
+
+	this->modified_analysis_frame = this->allocation_ptr + MAF_OFFSET;
+	this->acf = this->allocation_ptr + ACF_OFFSET;
+	bzero(
+		this->modified_analysis_frame,
+		sizeof(*this->acf) * 2 * ANALYSIS_FRAME_SIZE
+	);
 }
 
 TempoInduction::TempoInduction(const TempoInduction &that) : input_buffer(that.input_buffer)
@@ -71,8 +71,22 @@ TempoInduction::TempoInduction(const TempoInduction &that) : input_buffer(that.i
 	this->current_tempo = that.current_tempo;
 	this->n_new_samples = that.n_new_samples;
 
-	this->state_probabilities = new float[TTM_SIZE];
-	memcpy(this->state_probabilities, that.state_probabilities, sizeof(*this->state_probabilities) * TTM_SIZE);
+	this->allocation_ptr = new float[ALLOCATION_SIZE];
+
+	this->state_probabilities = this->allocation_ptr + SP_OFFSET;
+	memcpy(
+		this->state_probabilities,
+		that.state_probabilities,
+		sizeof(*this->state_probabilities) * TTM_SIZE
+	);
+
+	this->modified_analysis_frame = this->allocation_ptr + MAF_OFFSET;
+	this->acf = this->allocation_ptr + ACF_OFFSET;
+	memcpy(
+		this->modified_analysis_frame,
+		that.modified_analysis_frame,
+		sizeof(*this->acf) * 2 * ANALYSIS_FRAME_SIZE
+	);
 }
 
 TempoInduction &TempoInduction::operator=(const TempoInduction &that)
@@ -83,9 +97,23 @@ TempoInduction &TempoInduction::operator=(const TempoInduction &that)
 		this->n_new_samples = that.n_new_samples;
 		this->input_buffer = that.input_buffer; // should call the copy assignment operator
 
-		delete [] this->state_probabilities;
-		this->state_probabilities = new float[TTM_SIZE];
-		memcpy(this->state_probabilities, that.state_probabilities, sizeof(*this->state_probabilities) * TTM_SIZE);
+		delete [] this->allocation_ptr;
+		this->allocation_ptr = new float[ALLOCATION_SIZE];
+
+		this->state_probabilities = this->allocation_ptr + SP_OFFSET;
+		memcpy(
+			this->state_probabilities,
+			that.state_probabilities,
+			sizeof(*this->state_probabilities) * TTM_SIZE
+		);
+
+		this->modified_analysis_frame = this->allocation_ptr + MAF_OFFSET;
+		this->acf = this->allocation_ptr + ACF_OFFSET;
+		memcpy(
+			this->modified_analysis_frame,
+			that.modified_analysis_frame,
+			sizeof(*this->acf) * 2 * ANALYSIS_FRAME_SIZE
+		);
 	}
 
 	return *this;
@@ -93,9 +121,24 @@ TempoInduction &TempoInduction::operator=(const TempoInduction &that)
 
 TempoInduction::~TempoInduction()
 {
-	delete [] this->state_probabilities;
+	delete [] this->allocation_ptr;
 }
 
+
+const float *TempoInduction::get_acf() const
+{
+	return this->acf;
+}
+
+const float *TempoInduction::get_modified_analysis_frame() const
+{
+	return this->modified_analysis_frame;
+}
+
+size_t TempoInduction::get_n_new_samples() const
+{
+	return this->n_new_samples;
+}
 
 float TempoInduction::get_tempo() const
 {
@@ -135,61 +178,61 @@ bool TempoInduction::next_sample(float odf_sample)
 	this->input_buffer.get_content(analysis_frame);
 
 	// subtract moving mean and set negative values to 0
-	float modified_analysis_frame[ANALYSIS_FRAME_SIZE];
 	for (size_t i = 0; i < ANALYSIS_FRAME_SIZE; ++i)
 	{
-		modified_analysis_frame[i] = analysis_frame[i] - avg(analysis_frame + i - 8, 17);
-		if (modified_analysis_frame[i] < 0) modified_analysis_frame[i] = 0;
+		this->modified_analysis_frame[i] = analysis_frame[i] - avg(analysis_frame + i - 8, 17);
+		if (this->modified_analysis_frame[i] < 0) modified_analysis_frame[i] = 0;
 	}
 
 	// compute auto correlation function
-	float acf[ANALYSIS_FRAME_SIZE];
-	autocorrelation(modified_analysis_frame, ANALYSIS_FRAME_SIZE, acf);
+	autocorrelation(modified_analysis_frame, ANALYSIS_FRAME_SIZE, this->acf);
 
-	// comb filter stuff
+	// find best tau
 	float max_sum = -INFINITY;
-	// Since we only need a portion of the entire comb filter-bank output, we store an excerpt of the entire
-	// output in `comb_filter_output`.
-	// This excerpt ranges from index `TAU_MIN` to `TAU_MAX` (inclusive).
-	// So index 0 of `comb_filter_output` would be index `TAU_MIN` of the actual entire comb filter-bank output.
-	float comb_filter_output[TTM_SIZE];
+	size_t best_tau = TAU_MIN;
 
 	for (size_t tau = TAU_MIN; tau <= TAU_MAX; ++tau) // tau = spacing of comb filter elements in ODF samples
 	{
-		float weight =
-				(float) tau / (float) (BETA * BETA) *
-				expf(-(float) (tau * tau) / (2 * (float) (BETA * BETA)));
+		float weight = comb_filter_weight(tau);
 		float sum = 0;
 
-		for (size_t p = 1; p <= 4; ++p)
+		for (ssize_t p = 1; p <= 4; ++p)
 		{
-			for (size_t v = 1 - p; v <= p - 1; ++v)
+			for (ssize_t v = 1 - p; v <= p - 1; ++v)
 			{
-				size_t lag = tau * p + v;
+				ssize_t lag = tau * p + v;
 
-				sum += acf[lag] * weight / (float) (2 * p - 1);
+				sum += this->acf[lag] * weight / (float) (2 * p - 1);
 			}
 		}
 
 		if (sum > max_sum)
 		{
 			max_sum = sum;
-
-			bzero(comb_filter_output, sizeof(*comb_filter_output) * TTM_SIZE);
-			for (size_t p = 1; p <= 4; ++p)
-			{
-				for (size_t v = 1 - p; v <= p - 1; ++v)
-				{
-					size_t lag = tau * p + v;
-					size_t i = lag - TAU_MIN;
-
-					comb_filter_output[i] = acf[lag] * weight / (float) (2 * p - 1);
-				}
-			}
+			best_tau = tau;
 		}
 	}
 
+	// We don't actually need this much memory for the comb filter output
+	// but it's easier this way.
+	float weight = comb_filter_weight(best_tau);
+	float comb_filter_output[ANALYSIS_FRAME_SIZE];
+	bzero(comb_filter_output, sizeof(*comb_filter_output) * ANALYSIS_FRAME_SIZE);
+
+	for (ssize_t p = 1; p <= 4; ++p)
+	{
+		for (ssize_t v = 1 - p; v <= p - 1; ++v)
+		{
+			ssize_t lag = best_tau * p + v;
+
+			comb_filter_output[lag] = this->acf[lag] * weight / (float) (2 * p - 1);
+		}
+	}
+	this->current_tempo = 60.0f / ODF_SAMPLE_INTERVAL / (float)best_tau;
+	return true;
+
 	// update stored state probabilities
+	float sp_total = 0;
 	float prev_sp[TTM_SIZE];
 	memcpy(prev_sp, this->state_probabilities, sizeof(float) * TTM_SIZE);
 
@@ -202,13 +245,8 @@ bool TempoInduction::next_sample(float odf_sample)
 			sum += TEMPO_TRANSITION_MATRIX[i * TTM_SIZE + j] * prev_sp[i];
 		}
 
-		this->state_probabilities[i] = sum;
-	}
-
-	float sum = 0;
-	for (size_t i = 0; i < TTM_SIZE; ++i)
-	{
-		sum += this->state_probabilities[i] *= comb_filter_output[i];
+		this->state_probabilities[i] = sum * comb_filter_output[i + TAU_MIN];
+		sp_total += this->state_probabilities[i];
 	}
 
 	// normalize and find maximum
@@ -217,7 +255,7 @@ bool TempoInduction::next_sample(float odf_sample)
 
 	for (size_t i = 0; i < TTM_SIZE; ++i)
 	{
-		this->state_probabilities[i] /= sum;
+		this->state_probabilities[i] /= sp_total;
 
 		if (this->state_probabilities[i] >= max)
 		{
@@ -229,4 +267,11 @@ bool TempoInduction::next_sample(float odf_sample)
 	this->current_tempo = 60.0f / ODF_SAMPLE_INTERVAL / (float)(index_max + TAU_MIN);
 
 	return true;
+}
+
+float TempoInduction::comb_filter_weight(size_t tau)
+{
+	return
+		(float) tau / (float) (BETA * BETA) *
+		expf(-(float) (tau * tau) / (2 * (float) (BETA * BETA)));
 }

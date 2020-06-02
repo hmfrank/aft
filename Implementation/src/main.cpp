@@ -1,3 +1,6 @@
-int main(int argc, char **argv)
+#include <iostream>
+
+int main()
 {
+	std::cout << "Ello Wurl!" << std::endl;
 }

@@ -87,7 +87,7 @@ float BeatPrediction::score_function(ssize_t index)
 {
 	if (index < 0)
 	{
-		return this->past_score[-index - 1];
+		return this->past_score[this->past_score.get_len() + index];
 	}
 	else if (index == 0)
 	{
@@ -96,29 +96,6 @@ float BeatPrediction::score_function(ssize_t index)
 	else
 	{
 		return this->future_score[index - 1];
-	}
-}
-
-void BeatPrediction::set_tempo(float tempo)
-{
-	this->beat_period = roundf(60.0f / ODF_SAMPLE_INTERVAL / tempo);
-
-	delete [] this->past_weighting;
-	delete [] this->future_weighting;
-
-	this->past_weighting = new float[2 * this->beat_period + 1];
-
-	for (size_t v = 0; v <= 2 * this->beat_period; ++v)
-	{
-		// note that this would be W_1(-v) in the paper but here we're using positive offsets even when referring to the past
-		this->past_weighting[v] = expf(-powf(ETA * logf((float)v / (float)this->beat_period), 2.0f) / 2.0f);
-	}
-
-	this->future_weighting = new float[this->beat_period + 1];
-
-	for (size_t v = 0; v <= this->beat_period; ++v)
-	{
-		this->future_weighting[v] = expf(-powf((float)v - (float)this->beat_period / 2.0f, 2.0f) / 2.0f / powf(this->beat_period / 2.0f, 2.0f));
 	}
 }
 
@@ -139,6 +116,45 @@ float BeatPrediction::eq2rhs(ssize_t m)
 	return max;
 }
 
+float BeatPrediction::get_beat_period() const
+{
+	return this->beat_period;
+}
+
+float BeatPrediction::get_current_score() const
+{
+	return this->current_score;
+}
+
+const float *BeatPrediction::get_future_score() const
+{
+	return this->future_score;
+}
+
+void BeatPrediction::set_tempo(float tempo)
+{
+	this->beat_period = roundf(60.0f / ODF_SAMPLE_INTERVAL / tempo);
+
+	delete [] this->past_weighting;
+	delete [] this->future_weighting;
+
+	this->past_weighting = new float[2 * this->beat_period + 1];
+
+	for (size_t v = 0; v <= 2 * this->beat_period; ++v)
+	{
+		// note that this would be W_1(-v) in the paper but here we're using positive offsets even when referring to the past
+		float value = expf(-powf(ETA * logf((float)v / (float)this->beat_period), 2.0f) / 2.0f);
+		this->past_weighting[v] = value;
+	}
+
+	this->future_weighting = new float[this->beat_period + 1];
+
+	for (size_t v = 0; v <= this->beat_period; ++v)
+	{
+		this->future_weighting[v] = expf(-powf((float)v - (float)this->beat_period / 2.0f, 2.0f) / 2.0f / powf(this->beat_period / 2.0f, 2.0f));
+	}
+}
+
 size_t BeatPrediction::next_prediction(float odf_sample)
 {
 	this->past_score.push(this->current_score);
@@ -149,7 +165,7 @@ size_t BeatPrediction::next_prediction(float odf_sample)
 	for (size_t m = 1; m <= this->beat_period; ++m)
 	{
 		float value = this->eq2rhs(m);
-		this->future_score[m] = value;
+		this->future_score[m - 1] = value;
 
 		if (value >= max)
 		{
