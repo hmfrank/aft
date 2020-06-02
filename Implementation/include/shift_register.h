@@ -25,6 +25,7 @@ class ShiftRegister
 		float *data;
 
 	public:
+		ShiftRegister();
 		explicit ShiftRegister(size_t len);
 		ShiftRegister(const ShiftRegister&);
 		ShiftRegister& operator = (const ShiftRegister&);

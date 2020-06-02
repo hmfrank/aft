@@ -9,7 +9,9 @@
 
 using namespace gam;
 
+// TODO: herrausfinden, warum er manchmal auf TAU_MIN hängen bleibt
 // TODO: unit test
+// TODO: next() -> operator()()
 
 
 /// Implementation of the algorithm described in
@@ -26,6 +28,7 @@ class _2009_DaPlSt
 		size_t time;
 		size_t next_beat;
 		float sample_rate;
+		float odf_sample;
 		STFT *stft;
 		OnsetDetection onset_detection;
 		TempoInduction tempo_induction;
@@ -38,6 +41,18 @@ class _2009_DaPlSt
 		_2009_DaPlSt(const _2009_DaPlSt&);
 		_2009_DaPlSt& operator = (const _2009_DaPlSt&);
 		~_2009_DaPlSt();
+
+		/// Returns a pointer to the internal beat prediction object.
+		const BeatPrediction *get_beat_prediction() const;
+
+		/// Returns the current STFT object.
+		const STFT *get_stft() const;
+
+		/// Returns a pointer to the internal tempo induction object.
+		const TempoInduction *get_tempo_induction() const;
+
+		/// Returns the current onset detection function sample.
+		float get_odf_sample() const;
 
 		/// Returns current stream time in onset detection function samples.
 		///

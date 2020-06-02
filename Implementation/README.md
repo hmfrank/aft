@@ -1,11 +1,15 @@
 # Build
 ```shell script
-$ make all
+$ make
 ```
 
 # Run
 ```shell script
-$ make run
+$ ./record.sh | ./2009_DaPlSt
+```
+alternatively:
+```shell script
+$ ./record.sh | make run
 ```
 
 # Delete All Build Files
