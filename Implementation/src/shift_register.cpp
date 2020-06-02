@@ -3,6 +3,13 @@
 #include <cstring>
 
 
+ShiftRegister::ShiftRegister()
+{
+	this->start = 0;
+	this->len = 0;
+	this->data = nullptr;
+}
+
 ShiftRegister::ShiftRegister(size_t len)
 {
 	this->start = 0;
@@ -103,7 +110,7 @@ void ShiftRegister::push_range(const float *buffer, size_t buffer_len)
 		{
 			// copy entire `buffer` to `this->start`
 			//
-		    //                         +-----+-----+-----+
+			//                         +-----+-----+-----+
 			// buffer:                 |     |     |     |
 			//                         +-----+-----+-----+
 			//                            |     |     |   memcpy
