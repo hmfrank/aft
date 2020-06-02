@@ -1,6 +1,6 @@
 [submodule "Implementation/libs/Gamma"]
-	path = Implementation/libs/Gamma
+	path = Implementierung/libs/Gamma
 	url = https://github.com/LancePutnam/Gamma.git
 [submodule "Implementation/libs/simple2d"]
-	path = Implementation/libs/simple2d
+	path = Implementierung/libs/simple2d
 	url = https://github.com/simple2d/simple2d.git
