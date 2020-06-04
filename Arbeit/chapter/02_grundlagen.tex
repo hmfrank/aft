@@ -1,3 +1,72 @@
-\chapter{Grundlagen}
+\chapter{Grundlagen und Begriffe}
 \label{grundlagen}
 
+\section{Musikalische Grundbegriffe}
+{
+	Um die in dieser Arbeit untersuchten Beaterkennungsalgorithmen zu verstehen,
+		wird etwas musikalisches Grundwissen benötigt.
+	In diesem Abschnitt werden deshalbt Grundbegriffe erklärt,
+		die in der restlichen Arbeit verwendet werden.
+
+	\paragraph{Takt}
+	{
+		Fast jedes Musikstück ist zeitlich in kurze und gleichlange Abschnitte unterteilt.
+		Diese Abschnitte nennt man Takte
+			und sie geben der Musik eine gewisse Struktur,
+			da sich oft bestimmte Muster, wie z.B. Schlagzeugrhythmen, in jedem oder jedem zweiten Takt wiederholen
+			und auch die Grenzen von Strophe, Refrain usw. an Taktgrenzen orientiert sind.
+		Die Länge eines Taktes hängt von der Taktart und dem Tempo des Stücks ab
+			und ist meist im einstelligen Sekundenbereich.
+	}
+
+	\paragraph{Schlag (Beat)}
+	{
+		Ein Schlag (engl. Beat) ist eine Unterteilung des Taktes.
+		Jeder Takt hat genau gleichviele Schläge (außer es gibt einen Taktartwechsel im Stück).
+		Die Abfolge von Schlägen in einem Lied ist oft dieselbe,
+			die ein Mensch beim Hören der Musik intuitiv mit dem Fuß mitklopfen würde.
+	}
+
+	\paragraph{Taktart}
+	{
+		Die Taktart besteht aus zwei Teilen
+			und wird deshalb oft als ungekürzter Bruch angegeben (z. B. 4/4).
+		Der Zähler gibt an aus wievielen Schlägen ein Takt besteht.
+		Der Nenner gibt an wie lange ein Schlag dauert,
+			jedoch nicht in einer Zeiteinheit sondern als Notenwert.
+		Ein Nenner von 4 bedeutet z. B., dass ein Schlag so lange wie eine Viertelnote dauert.
+		Das ist für die musikalische Notation relevant,
+			hat aber keine Bedeutung für diese Arbeit,
+			da dahinter kein Bezug zur tatsächen Dauer (in Sekunden) eines Schlages steckt.
+		Die meisten Lieder haben einen 4/4-Takt,
+			weshalb manche Algorithmen in dieser Arbeit speziell auf diese Taktart ausgelegt sind.
+			% TODO: sagen welche Algorithmen genau
+	}
+
+	\paragraph{Tempo}
+	{
+		Das Tempo eines Musikstückes gibt an wie schnell es gespielt wird
+			und bestimmt somit die tatsächliche Dauer (in Sekunden) eines Schlages.
+		Es wird in BPM (beats per minute) angegeben.
+		Üblicherweise befinden sich Tempi von Musikstücken in einem Bereich zwischen 60 und 180 BPM.
+	}
+}
+
+\section{Beaterkennung}
+{
+	Beaterkennung ist die Aufgabe aus rohen Audiodaten die Anfangszeitpunkte der einzelnen Schläge eines Musikstücks zu extrahieren.
+	Zusätzlich wird von manchen Algorithmen auch das Tempo berechnet.
+
+	Ein Problem dabei ist,
+		dass die Zuordnung von Audiodaten zu Beatzeitpunkten und Tempo nicht eindeutig ist.
+	Schläge und Takte sind lediglich eine gedankliche Einteilung des Stücks,
+		die man nicht direkt hören kann
+		sondern sich nur dadurch bemerkbar macht,
+		dass musikalische Ereignisse
+		(z. B. Anfang und Ende einer Note, Schlagzeugtöne oder Harmoniewechsel)
+		an deren Grenzen orientiert sind.
+	Man könnte also z. B. ein Stück mit 160 BPM auch als eines mit 80 BPM betrachten
+		(angenommen der Zähler der Taktart ist durch zwei teilbar),
+		indem man jeweils zwei Takte als einen interpretiert.
+	Das Audiosignal ist bei beiden Varianten das selbe.
+}
