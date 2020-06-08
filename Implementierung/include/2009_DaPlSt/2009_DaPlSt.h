@@ -1,9 +1,9 @@
 #ifndef IMPLEMENTIERUNG_2009_DAPLST_H
 #define IMPLEMENTIERUNG_2009_DAPLST_H
 
+#include "2004_BeDaDuSa/onset_detection.h"
 #include "2009_DaPlSt/beat_prediction.h"
 #include "2009_DaPlSt/constants.h"
-#include "2009_DaPlSt/onset_detection.h"
 #include "2009_DaPlSt/tempo_induction.h"
 #include <Gamma/DFT.h>
 
