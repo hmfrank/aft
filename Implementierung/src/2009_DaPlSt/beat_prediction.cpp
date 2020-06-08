@@ -3,7 +3,10 @@
 #include "2009_DaPlSt/constants.h"
 #include <cstring>
 
-// TODO: only allocate one block of memory for all 3 arrays
+const size_t PAST_WGHT_OFFSET = 0;
+const size_t FUTURE_WGHT_OFFSET = PAST_WGHT_OFFSET + 2 * TAU_MAX + 1;
+const size_t FUTURE_SCORE_OFFSET = FUTURE_WGHT_OFFSET + TAU_MAX + 1;
+const size_t ALLOCATION_SIZE = FUTURE_SCORE_OFFSET + TAU_MAX + 1;
 
 
 // see equation (2) in [2009 Davies, Plumbley, Stark - Real-time Beat-synchronous Analysis of Musical Audio].
@@ -13,63 +16,66 @@ const float ALPHA = 0.9;
 const float ETA = 5.0;
 
 
-BeatPrediction::BeatPrediction() : past_score(0)
+BeatPrediction::BeatPrediction() : past_score(2 * TAU_MAX)
 {
+	this->allocation_ptr = new float[ALLOCATION_SIZE];
+
+	this->past_weighting = this->allocation_ptr + PAST_WGHT_OFFSET;
+	this->future_weighting = this->allocation_ptr + FUTURE_WGHT_OFFSET;
+
+	// initialize score function with zeros
+	this->current_score = 0;
+	this->future_score = this->allocation_ptr + FUTURE_SCORE_OFFSET;
+	bzero(this->future_score, sizeof(*this->future_score) * (TAU_MAX + 1));
+
 	// `set_tempo()` initializes `beat_period`, `past_weighting`, and
 	// `future_weighting`.
-	this->past_weighting = nullptr;
-	this->future_weighting = nullptr;
 	this->set_tempo(PREFERRED_TEMPO);
-
-	this->past_score = ShiftRegister(2 * TAU_MAX);
-	this->current_score = 0;
-	this->future_score = new float[TAU_MAX + 1];
-	bzero(this->future_score, sizeof(*this->future_score) * (TAU_MAX + 1));
 }
 
 BeatPrediction::BeatPrediction(const BeatPrediction &that) : past_score(0)
 {
-	this->beat_period = that.beat_period;
+	this->allocation_ptr = new float[ALLOCATION_SIZE];
 
+	this->past_weighting = this->allocation_ptr + PAST_WGHT_OFFSET;
 	size_t size = 2 * this->beat_period + 1;
-	this->past_weighting = new float[size];
 	memcpy(this->past_weighting, that.past_weighting, sizeof(*this->past_weighting) * size);
 
+	this->future_weighting = this->allocation_ptr + FUTURE_WGHT_OFFSET;
 	size = this->beat_period + 1;
-	this->future_weighting = new float[size];
 	memcpy(this->future_weighting, that.future_weighting, sizeof(*this->future_weighting) * size);
 
 	this->past_score = that.past_score; // should call copy assignment operator
 	this->current_score = that.current_score;
-
+	this->future_score = this->allocation_ptr + FUTURE_SCORE_OFFSET;
 	size = TAU_MAX + 1;
-	this->future_score = new float[size];
 	memcpy(this->future_score, that.future_score, sizeof(*this->future_score) * size);
+
+	this->beat_period = that.beat_period;
 }
 
 BeatPrediction &BeatPrediction::operator=(const BeatPrediction &that)
 {
 	if (this != &that)
 	{
-		this->beat_period = that.beat_period;
+		delete [] this->allocation_ptr;
+		this->allocation_ptr = new float[ALLOCATION_SIZE];
 
-		delete [] this->past_weighting;
+		this->past_weighting = this->allocation_ptr + PAST_WGHT_OFFSET;
 		size_t size = 2 * this->beat_period + 1;
-		this->past_weighting = new float[size];
 		memcpy(this->past_weighting, that.past_weighting, sizeof(*this->past_weighting) * size);
 
-		delete [] this->future_weighting;
+		this->future_weighting = this->allocation_ptr + FUTURE_WGHT_OFFSET;
 		size = this->beat_period + 1;
-		this->future_weighting = new float[size];
 		memcpy(this->future_weighting, that.future_weighting, sizeof(*this->future_weighting) * size);
 
 		this->past_score = that.past_score; // should call copy assignment operator
 		this->current_score = that.current_score;
-
-		delete [] this->future_score;
+		this->future_score = this->allocation_ptr + FUTURE_SCORE_OFFSET;
 		size = TAU_MAX + 1;
-		this->future_score = new float[size];
 		memcpy(this->future_score, that.future_score, sizeof(*this->future_score) * size);
+
+		this->beat_period = that.beat_period;
 	}
 
 	return *this;
@@ -77,9 +83,7 @@ BeatPrediction &BeatPrediction::operator=(const BeatPrediction &that)
 
 BeatPrediction::~BeatPrediction()
 {
-	delete [] this->past_weighting;
-	delete [] this->future_weighting;
-	delete [] this->future_score;
+	delete [] this->allocation_ptr;
 }
 
 
@@ -135,19 +139,12 @@ void BeatPrediction::set_tempo(float tempo)
 {
 	this->beat_period = roundf(60.0f / ODF_SAMPLE_INTERVAL / tempo);
 
-	delete [] this->past_weighting;
-	delete [] this->future_weighting;
-
-	this->past_weighting = new float[2 * this->beat_period + 1];
-
 	for (size_t v = 0; v <= 2 * this->beat_period; ++v)
 	{
 		// note that this would be W_1(-v) in the paper but here we're using positive offsets even when referring to the past
 		float value = expf(-powf(ETA * logf((float)v / (float)this->beat_period), 2.0f) / 2.0f);
 		this->past_weighting[v] = value;
 	}
-
-	this->future_weighting = new float[this->beat_period + 1];
 
 	for (size_t v = 0; v <= this->beat_period; ++v)
 	{
