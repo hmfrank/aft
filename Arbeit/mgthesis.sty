@@ -1,0 +1,167 @@
+%
+%  Template
+%  Chair of MediaDesign
+%
+
+\NeedsTeXFormat{LaTeX2e}[1995/12/01]
+\ProvidesPackage{mgthesis}[FEB 2020, v.1]
+
+
+% Text Layout
+\usepackage{graphicx}
+\usepackage[T1]{fontenc}
+\usepackage[ngerman]{babel}
+\usepackage{enumitem}
+\usepackage[header]{appendix}
+\setlength{\parindent}{0pt} 
+\usepackage[singlespacing]{setspace} % Zeilenabstand
+\usepackage[table]{xcolor}
+\definecolor{mycolor}{gray}{0.2}
+\definecolor{mycolor_light}{gray}{0.45}
+\definecolor{enabled_false}{gray}{0.65}
+\definecolor{itemcolor}{gray}{0.3}
+\usepackage{ctable}
+\usepackage{longtable}
+\usepackage{float}
+\usepackage[all]{nowidow}
+\clubpenalty10000
+\widowpenalty10000
+
+% Zitierstil
+\usepackage[authoryear]{natbib} 		% square für eckige Klammern
+\bibliographystyle{mybibstyle}          % dinat-Abwandlung
+\setcitestyle{aysep={}}
+\setlength{\bibhang}{10mm}
+\renewcommand{\bibfont}{\small}
+
+% Schriftart außer Jahreszahlen
+\makeatletter
+\def\NAT@nmfmt#1{\textsc{#1}}
+\makeatother
+% bib Label alle Kapitälchen
+\makeatletter
+\def\@cite#1#2{[\textsc{#1\if@tempswa , #2\fi}]}
+  % Zusätze + Jahreszahlen
+%\def\@biblabel#1{[\textsc{#1}]}
+\makeatother
+\appto{\citesetup}{\textsc}
+% \citep Zitat indirekt
+\makeatletter					
+\DeclareRobustCommand\citep
+{\begingroup\footnotesize\NAT@swatrue\let\NAT@ctype\z@\NAT@partrue
+    \@ifstar{\NAT@fulltrue\NAT@citetp}{\NAT@fullfalse\NAT@citetp}}
+\makeatother
+% \citet Zitat direkt im Text
+\makeatletter					
+\DeclareRobustCommand\citet
+{\begingroup\NAT@swafalse\let\NAT@ctype\z@\NAT@partrue
+     \@ifstar{\NAT@fulltrue\NAT@citetp}{\NAT@fullfalse\NAT@citetp}}
+\makeatother
+% \cite Quellen bei Bildern
+\makeatletter							
+\DeclareRobustCommand\cite
+{\begingroup\footnotesize\NAT@swatrue\let\NAT@ctype\z@\NAT@partrue
+    \@ifstar{\NAT@fulltrue\NAT@citetp}{\NAT@fullfalse\NAT@citetp}}
+\makeatother
+
+% Ränder
+\usepackage{geometry}
+\geometry{a4paper,
+          left=25mm,right=35mm,top=35mm,bottom=40mm,
+          includehead=false, % Kopfzeile außerhalb des Textkörper, also im Rand
+          includefoot=false,
+          headheight = 0mm,
+          headsep = 0mm,   % Kopfzeile - Textanfang
+          footskip = 25.5mm, % Textende - Fußzeile
+          bindingoffset=5mm}
+
+% Schriftart mit XeLaTeX
+\usepackage[default,scale=0.95]{opensans}
+\usepackage[T1]{fontenc}
+%\usepackage{fontspec}
+%\setsansfont[
+%  SmallCapsFont={OpenSans}, % Univers-Ersatz
+%  SmallCapsFeatures={Letters=SmallCaps}]{OpenSans}
+%\setmonofont[
+%  SmallCapsFont={OpenSans}, % Univers-Ersatz
+%  SmallCapsFeatures={Letters=SmallCaps}]{OpenSans}
+%\setmainfont[%
+%  SmallCapsFont={OpenSans}, % Univers-Ersatz
+%  SmallCapsFeatures={Letters=SmallCaps}]{OpenSans}
+  
+% Überschriften vertikale Abstände
+\renewcommand*{\chapterheadstartvskip}{\vspace*{+75pt}}
+\renewcommand*{\chapterheadendvskip}{\vspace*{+58pt}}
+\RedeclareSectionCommand[
+  beforeskip=1.75\baselineskip,
+  afterskip=1.0\baselineskip]{section}
+\RedeclareSectionCommand[
+  beforeskip=-1.0\baselineskip,
+  afterskip=.5\baselineskip]{subsection}
+\RedeclareSectionCommand[
+  beforeskip=-.75\baselineskip,
+  afterskip=.125\baselineskip]{subsubsection}
+\RedeclareSectionCommand[
+  beforeskip=.5\baselineskip,
+  afterskip=-1em]{paragraph}
+\RedeclareSectionCommand[
+  beforeskip=-.5\baselineskip,
+  afterskip=-1em]{subparagraph}
+
+% Überschriften Font und horizontale Abstände
+\setkomafont{chapter}{\normalfont\sffamily\huge\mdseries}
+\renewcommand{\chapterformat}{\thechapter\hspace{7.5mm}}
+\setkomafont{section}{\normalfont\sffamily\LARGE\mdseries}
+\renewcommand{\sectionformat}{\thesection\hspace{5mm}}
+\setkomafont{subsection}{\normalfont\sffamily\Large\mdseries}
+\renewcommand{\subsectionformat}{\thesubsection\hspace{3mm}}
+\setkomafont{subsubsection}{\normalfont\sffamily\large\mdseries} % möglichst nicht benutzen
+\setkomafont{paragraph}{\normalfont\sffamily\large\mdseries}
+\setkomafont{subparagraph}{\normalfont\sffamily\normalsize\mdseries} % möglichst nicht benutzen
+
+% Blocksatz
+\usepackage{ragged2e}
+
+% Fußnoten
+\usepackage[hang]{footmisc}
+\renewcommand{\footnotemargin}{0.00001pt} % linker Rand
+\renewcommand{\footnotelayout}{\hspace{1em}}% Abstand
+\renewcommand{\hangfootparskip}{1em} % Abstand folgende
+
+% toc Style
+\usepackage[numbib,nottoc,section]{tocbibind} % Literaturverzeichnis positionieren
+\usepackage[colorlinks=false, hidelinks]{hyperref}
+\setcounter{tocdepth}{2}
+\setcounter{secnumdepth}{3}
+\usepackage[tocgraduated]{tocstyle}
+\usetocstyle{standard}
+
+% Glossar
+\usepackage[toc]{glossaries}
+\usepackage[nohyperlinks, printonlyused]{acronym}  % \ac erste Verwendung; \acs nur Abk.; \acf beides; \acl nur lang; Plural (s): +p 
+
+% Kopf-/Fußzeilen
+% für gesamte Zeile : \addtokomafont{pagefoot}{\color{mycolor}}
+\addtokomafont{pagenumber}{\color{mycolor_light}\sffamily\bfseries\large} % Schriftart Seitenzahlen
+\addtokomafont{pagehead}{\color{mycolor_light}\ffamily\mdseries\footnotesize} 
+\usepackage{scrpage2}
+\pagestyle{scrheadings}
+\setfootwidth[0pt]{text}
+\renewcommand{\chapterpagestyle}{scrheadings}
+\renewcommand*{\chaptermarkformat}{} % ohne Nummerierung
+\renewcommand*{\headfont}{\color{mycolor_light}\sffamily\small\mdseries} % Schriftart Alles
+\clearscrheadfoot
+\automark[chapter]{chapter} % rechts links
+\lefoot{\pagemark\qquad\headmark} % links / gerade
+\rofoot{\headmark\qquad\pagemark} % rechts / ungerade
+\color{mycolor}
+
+% Abbildungen
+\usepackage[indention=-2.125cm, 
+			font={tt, color=itemcolor},
+			labelfont={footnotesize, bf},
+			labelsep=quad,
+			textfont={footnotesize},
+			justification=justified]{caption}
+\usepackage{color} 
+\usepackage{float}

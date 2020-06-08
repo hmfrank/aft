@@ -1,0 +1,104 @@
+% --------------------------------------------------
+% MG-Template for thesis, FEB 2020 v.1
+% Das Dokument muss mit XeLaTeX kompiliert werden.
+% --------------------------------------------------
+
+% TODO: Paragraphüberschrift fett drucken
+% TODO: ß soll nicht als SS sondern als ß angezeigt werden 
+% TODO: komplette Rechtschreibprüfung
+
+\documentclass[openright, twoside, utf8, 11.5pt]{scrbook}
+
+% \usepackage[german]{babel}
+% \usepackage[utf-8]{inputenc}
+\usepackage{lipsum}
+\usepackage{mgthesis}
+
+\newcommand{\thesistype}{Projektarbeit}
+\newcommand{\degreetype}{Bachelor/Master of Science (M./B.\,Sc.)}
+
+\title{Qualitativer Vergleich von Beaterkennungsalgorithmen}
+\author{Hannes Frank}
+\date{19. Juli 2020}
+
+\newcommand{\matnr}{4501110}
+\newcommand{\gutachter}{Prof. Dr.-Ing. habil. Rainer Groh}
+\newcommand{\betreuer}{M. Sc. Lars Engeln}
+
+
+\begin{document}
+	\color{mycolor}
+	% Abkürzungen (für Verzeichnis: \acro statt \acrodef und mit begin/end{acronym} vor das Inhaltsverzeichnis bauen)
+	\acrodef{RS}{Recommender Systems}
+	\acrodef{CF}{Collaborative Filtering}
+	\acrodef{DAW}{Digital Audio Workstation}
+	\acrodef{IR}{Information Retrieval}
+	\acrodef{ML}{Machine Learning}
+	\acrodef{MCI}{Mensch-Computer-Interaktion}
+	\acrodef{UX}{User Experience}
+	\acrodef{UI}{User Interface}
+	\acrodef{GUI}{grafische Benutzeroberfläche}
+	\acrodefplural{GUI}[GUI]{grafischen Benutzeroberfläche}
+	\acrodef{SUI}{Suchinterface}
+
+	% Titelseite
+	\input{Titel.tex}
+
+	\cleardoublepage
+	\begingroup
+		\renewcommand*{\chapterpagestyle}{empty}
+		\pagestyle{empty}
+		\include{Selbststaendigkeitserklaerung}
+			\newpage
+			\pagestyle{empty}
+			\null\newpage
+		\include{Abstract}
+		\newpage
+			\pagestyle{empty}
+			\null\newpage
+		\tableofcontents
+		\cleardoublepage
+	\endgroup
+
+	% Inhalt
+	% include = newpage; input = samepage
+	\mainmatter
+	\include{chapter/01_einleitung}
+	\include{chapter/02_grundlagen}
+	\include{chapter/03_relatedwork}
+	\include{chapter/04_analyse}
+	\include{chapter/05_konzept}
+	\include{chapter/06_ergebnisse}
+	\include{chapter/07_diskussion}
+	\include{chapter/08_fazit}
+
+	% Anhang
+	\renewcommand{\appendixtocname}{Anhang}
+	\renewcommand{\appendixname}{Anhang}
+	\renewcommand{\appendixpagename}{Anhang}
+	\renewcommand\thesection{\Alph{section}}
+	\renewcommand{\setthesection}{\Alph{section}}
+	\setcounter{chapter}{0}
+
+	\cleardoublepage
+	\addappheadtotoc
+	\let\appendixpagenameorig\appendixpagename
+	\renewcommand{\appendixpagename}{\normalfont\sffamily\Huge\mdseries\appendixpagenameorig}
+	\appendixpage
+
+	\begin{appendices}
+		\begin{subappendices}
+			\chaptermark{Literaturverzeichnis}
+			\bibliography{references}
+			\renewcommand{\listfigurename}{B \hspace{2.25mm} Abbildungsverzeichnis}
+			\newpage
+			\markboth{Abbildungsverzeichnis}{Abbildungsverzeichnis}
+			\listoffigures
+			\renewcommand{\listtablename}{C \hspace{2.25mm} Tabellenverzeichnis}
+			\newpage
+			\listoftables
+			\markboth{Tabellenverzeichnis}{Tabellenverzeichnis}
+		\end{subappendices}
+	\end{appendices}
+\end{document}
+\backmatter
