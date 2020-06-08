@@ -57,16 +57,57 @@
 	Beaterkennung ist die Aufgabe aus rohen Audiodaten die Anfangszeitpunkte der einzelnen Schläge eines Musikstücks zu extrahieren.
 	Zusätzlich wird von manchen Algorithmen auch das Tempo berechnet.
 
-	Ein Problem dabei ist,
-		dass die Zuordnung von Audiodaten zu Beatzeitpunkten und Tempo nicht eindeutig ist.
-	Schläge und Takte sind lediglich eine gedankliche Einteilung des Stücks,
-		die man nicht direkt hören kann
-		sondern sich nur dadurch bemerkbar macht,
-		dass musikalische Ereignisse
-		(z. B. Anfang und Ende einer Note, Schlagzeugtöne oder Harmoniewechsel)
-		an deren Grenzen orientiert sind.
-	Man könnte also z. B. ein Stück mit 160 BPM auch als eines mit 80 BPM betrachten
-		(angenommen der Zähler der Taktart ist durch zwei teilbar),
-		indem man jeweils zwei Takte als einen interpretiert.
-	Das Audiosignal ist bei beiden Varianten das selbe.
+	\paragraph{}
+	{
+		Das Beaterkennungsproblem bringt folgende Herausforderungen mit sich:
+	}
+
+	\paragraph{1} % kein eindeutiges Beatgeräusch
+	{
+		Es gibt nicht immer ein bestimmtes Geräusch,
+			dass die Anfangszeitpunkte der Schläge marktiert.
+		Es kann sogar sein, dass auf einen Beat gar kein Signal kommt.
+	}
+
+	\paragraph{2} % Onsetungenauigkeit
+	{
+		Da oft viele Instrumente, mit sehr unterschiedlichen Klängen, in einem Lied speielen,
+			ist es schwierig besonders genaue Onset-Zeitpunkte von Noten zu bestimmen.
+	}
+
+	\paragraph{3} % Echtzeit
+	{
+		Um die Beaterkennung in Echtzeit zu berechnen,
+			können aus dem Eingangssignal nur Samples aus der Vergangenheit genutzt werden,
+			statt das komplette Signal bei nicht-Echtzeit-Algorithmen.
+	}
+
+	\paragraph{4} % nicht trivial
+	{
+		Es ist nicht nützlich einfach die Lautstärkemaxima eines Audiosignals zur Beaterkennung zu nutzen,
+			da es auch viele Peaks gibt,
+			die nicht auf den Beat passen.
+	}
+
+	\paragraph{5}  % Nichteindeutigkeit
+	{
+		Die Zuordnung von Audiodaten zu Beatzeitpunkten und Tempo ist nicht eindeutig.
+		Schläge und Takte sind lediglich eine gedankliche Einteilung des Stücks,
+			die man nicht direkt hören kann
+			sondern sich nur dadurch bemerkbar macht,
+			dass musikalische Ereignisse
+			(z. B. Anfang und Ende einer Note, Schlagzeugtöne oder Harmoniewechsel)
+			an deren Grenzen orientiert sind.
+		Man könnte also z. B. ein Stück mit 160 BPM auch als eines mit 80 BPM betrachten
+			(angenommen der Zähler der Taktart ist durch zwei teilbar),
+			indem man jeweils zwei Takte als einen interpretiert.
+		Das Audiosignal ist bei beiden Varianten das selbe.
+	}
+
+
+	% difficulties
+	% * viele instrumente --> schwierig genaue Onsets zu bestimmen
+	% * man kann nicht einfach den Peak picken um beats zu finden, weil da es auch viele Energy-Peaks an Stellen wo kein Beat is gibt
+	% * ...
+	% * ...
 }
