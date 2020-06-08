@@ -44,7 +44,7 @@ class TempoInduction
 
 		ShiftRegister input_buffer;
 
-		// Points to the block of memory that is allocated by this class/
+		// Points to the block of memory that is allocated by this class
 		float *allocation_ptr;
 
 		// Points to an array of size `TTM_SIZE` that's allocated and freed in the constructor and destructor

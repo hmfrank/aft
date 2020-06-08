@@ -4,22 +4,20 @@
 #include <cstdlib>
 #include <cstring>
 
-// TODO: nur einen Block Speicher reservieren
-
 
 OnsetDetection::OnsetDetection(size_t n_bins)
 {
 	this->n_bins = n_bins;
-	this->p_frame = new Complex<float>[n_bins];
-	this->pp_frame = new Complex<float>[n_bins];
+	this->p_frame = new Complex<float>[2 * n_bins];
+	this->pp_frame = this->p_frame + n_bins;
 }
 
 OnsetDetection::OnsetDetection(const OnsetDetection &that)
 {
 	this->n_bins = that.n_bins;
 
-	this->p_frame = new Complex<float>[n_bins];
-	this->pp_frame = new Complex<float>[n_bins];
+	this->p_frame = new Complex<float>[2 * n_bins];
+	this->pp_frame = this->p_frame + n_bins;
 
 	for (size_t i = 0; i < n_bins; ++i)
 	{
@@ -35,9 +33,8 @@ OnsetDetection &OnsetDetection::operator=(const OnsetDetection &that)
 		this->n_bins = that.n_bins;
 
 		delete [] this->p_frame;
-		delete [] this->pp_frame;
-		this->p_frame = new Complex<float>[n_bins];
-		this->pp_frame = new Complex<float>[n_bins];
+		this->p_frame = new Complex<float>[2 * n_bins];
+		this->pp_frame = this->p_frame + n_bins;
 
 		for (size_t i = 0; i < n_bins; ++i)
 		{
@@ -51,8 +48,10 @@ OnsetDetection &OnsetDetection::operator=(const OnsetDetection &that)
 
 OnsetDetection::~OnsetDetection()
 {
-	delete [] this->p_frame;
-	delete [] this->pp_frame;
+	delete [] (
+		(size_t)this->p_frame < (size_t)this->pp_frame ?
+		this->p_frame : this->pp_frame
+	);
 }
 
 
@@ -65,7 +64,8 @@ float OnsetDetection::next_sample(Complex<float> const *stft_frame)
 	float result = 0.0;
 
 	// for each frequency bin
-	for (size_t bin = 0; bin < this->n_bins; ++bin) {
+	for (size_t bin = 0; bin < this->n_bins; ++bin)
+	{
 		Complex<float> target = Complex<float>(Polar<float>(
 			this->p_frame[bin].mag(),
 			2 * this->p_frame[bin].phase() - this->pp_frame[bin].phase() //

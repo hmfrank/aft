@@ -16,8 +16,8 @@
 class BeatPrediction
 {
 	private:
-		// inter beat interval of the current tempo estimate in ODF samples
-		size_t beat_period;
+		// points to the block of memory that is allocated by this class
+		float *allocation_ptr;
 
 		// weighting function (in the form of a lookup table) for past score function samples
 		// equation (3) in [2009 Davies, Plumbley, Stark - Real-time Beat-synchronous Analysis of Musical Audio]
@@ -35,6 +35,9 @@ class BeatPrediction
 
 		// future score function samples
 		float *future_score;
+
+		// inter beat interval of the current tempo estimate in ODF samples
+		size_t beat_period;
 
 
 		// returns the score function at the given index, where 0 is the present moment and negative value are the past
