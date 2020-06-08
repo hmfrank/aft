@@ -78,7 +78,7 @@ class BeatPrediction
 		///
 		/// \param odf_sample next sample of the onset detection function
 		/// \return predicted position of the next beat in "number of ODF samples into the future"
-		size_t next_prediction(float odf_sample);
+		size_t operator ()(float odf_sample);
 };
 
 #endif //IMPLEMENTIERUNG_BEAT_PREDICTION_H

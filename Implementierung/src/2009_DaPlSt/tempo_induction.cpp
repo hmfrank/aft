@@ -160,7 +160,7 @@ void autocorrelation(float const *input, size_t input_len, float *output)
 	}
 }
 
-bool TempoInduction::next_sample(float odf_sample)
+bool TempoInduction::operator()(float odf_sample)
 {
 	this->input_buffer.push(odf_sample);
 

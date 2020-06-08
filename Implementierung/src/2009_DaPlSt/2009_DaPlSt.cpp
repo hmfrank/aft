@@ -111,7 +111,7 @@ float _2009_DaPlSt::get_tempo() const
 	return this->tempo_induction.get_tempo();
 }
 
-int _2009_DaPlSt::next(float sample)
+int _2009_DaPlSt::operator()(float sample)
 {
 	if (!(*this->stft)(sample))
 	{
@@ -127,10 +127,10 @@ int _2009_DaPlSt::next(float sample)
 		stft_frame[k] = stft->bin(k);
 	}
 
-	this->odf_sample = this->onset_detection.next_sample(stft_frame);
+	this->odf_sample = this->onset_detection(stft_frame);
 	int result = 1;
 
-	if (this->tempo_induction.next_sample(this->odf_sample))
+	if (this->tempo_induction(this->odf_sample))
 	{
 		// new tempo estimate is available
 		float tempo = this->tempo_induction.get_tempo();
@@ -138,7 +138,7 @@ int _2009_DaPlSt::next(float sample)
 		++result;
 	}
 
-	this->next_beat = this->time + this->beat_prediction.next_prediction(this->odf_sample);
+	this->next_beat = this->time + this->beat_prediction(this->odf_sample);
 
 	return result;
 }

@@ -11,7 +11,6 @@ using namespace gam;
 
 // TODO: herrausfinden, warum er manchmal auf TAU_MIN hängen bleibt
 // TODO: unit test
-// TODO: next() -> operator()()
 
 
 /// Implementation of the algorithm described in
@@ -74,7 +73,7 @@ class _2009_DaPlSt
 		///     0: no updates
 		///     1: next beat prediction got updated (check with `get_next_beat_time()`)
 		///     2: next beat prediction and tempo estimate got updated (check with `get_next_beat_time()` and `get_tempo()`)
-		int next(float sample);
+		int operator()(float sample);
 };
 
 #endif //IMPLEMENTIERUNG_2009_DAPLST_H

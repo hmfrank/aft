@@ -54,7 +54,7 @@ OnsetDetection::~OnsetDetection()
 }
 
 
-float OnsetDetection::next_sample(Complex<float> const *stft_frame)
+float OnsetDetection::operator()(Complex<float> const *stft_frame)
 {
 	if (stft_frame == nullptr) {
 		return NAN;

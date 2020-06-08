@@ -65,7 +65,7 @@ void stdin_input_loop()
 	{
 		current_stft_frame.push(sample);
 
-		if (beat_tracking.next(sample) > 0)
+		if (beat_tracking(sample) > 0)
 		{
 			float samples[current_stft_frame.get_len()];
 			current_stft_frame.get_content(samples);

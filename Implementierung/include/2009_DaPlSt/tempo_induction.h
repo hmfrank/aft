@@ -96,7 +96,7 @@ class TempoInduction
 		///
 		/// \param odf_sample next sample of the onset detection function
 		/// \return true, iff the tempo estimate was updated
-		bool next_sample(float odf_sample);
+		bool operator ()(float odf_sample);
 
 		/// Weighing function 'w_G' in
 		/// [2007 Davies, Plumbey - Context-Dependent Beat Tracking of Musical Audio].
