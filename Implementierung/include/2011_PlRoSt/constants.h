@@ -39,6 +39,7 @@ const size_t TAU_MIN = floorf(60.0f / ODF_SAMPLE_INTERVAL / MAX_TEMPO);
 // maximum inter-beat-interval in ODF-samples
 const size_t TAU_MAX = ceilf(60.0f / ODF_SAMPLE_INTERVAL / MIN_TEMPO);
 
+
 // comb filter matrix width in ODF samples (= matrix pixels)
 const size_t MATRIX_WIDTH = TAU_MAX;
 
@@ -46,7 +47,11 @@ const size_t MATRIX_WIDTH = TAU_MAX;
 const size_t MATRIX_HEIGHT = TAU_MAX - TAU_MIN + 1;
 
 
+// see equation (4) in the paper
 const float ALPHA = 0.1;
 
+// inter-beat-interval of the preferred tempo in ODF samples
+// see equation (6) in the paper
+const size_t BETA = roundf(60.0f / ODF_SAMPLE_INTERVAL / PREFERRED_TEMPO);
 
 #endif //IMPLEMENTIERUNG_CONSTANTS_H

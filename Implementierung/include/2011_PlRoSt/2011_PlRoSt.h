@@ -32,6 +32,12 @@ class _2011_PlRoSt
 		// elapsed time in ODF samples
 		size_t time;
 
+		// inter beat interval of the current tempo estimate in ODF samples
+		size_t current_tau;
+
+		// current phase estimate in ODF samples
+		size_t current_x;
+
 		// points to the block of memory that was allocated for this instance
 		void *allocation_ptr;
 
@@ -41,10 +47,14 @@ class _2011_PlRoSt
 		// latest STFT frame (length: `stft->numBins()`)
 		Complex<float> *stft_frame;
 
-		// current comb filter matrix
+		// current comb filter matrix - X(tau, phi) in the paper
 		// array length: MATRIX_WIDTH * MATRIX_HEGIHT
-		// access to coordinate x, y: matrix[y * MATRIX_WIDTH + x];
-		float *matrix;
+		// access to coordinate x, y: x_matrix[y * MATRIX_WIDTH + x];
+		float *x_matrix;
+
+		// processed matrix after entropy and rayleigh weighting
+		// - Y(tau, phi) in the paper
+		float *y_matrix;
 
 		// helper functions for the constructors
 		void allocate_memory();
@@ -56,9 +66,7 @@ class _2011_PlRoSt
 		_2011_PlRoSt &operator = (const _2011_PlRoSt &);
 		~_2011_PlRoSt();
 
-		size_t get_n_bins() const;
-
-		const Complex<float> *get_stft_frame() const;
+		// TODO: add getter functions
 
 		int operator ()(float sample);
 };
