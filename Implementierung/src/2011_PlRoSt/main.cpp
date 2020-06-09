@@ -27,6 +27,7 @@ struct Color { float r, g, b, a; };
 
 const Color C_GREEN = Color{ .r = 0, .g = 1, .b = 0, .a = 1 };
 const Color C_YELLOW = Color{ .r = 1, .g = 1, .b = 0, .a = 1 };
+const Color C_ORANGE = Color{ .r = 1, .g = 0.5, .b = 0, .a = 1 };
 const Color C_GRID_LINES = Color{ .r = 1, .g = 1, .b = 1, .a = 0.25 };
 
 // ========== APP CLASS ========== //
@@ -59,7 +60,7 @@ class MyApp
 
 		void render_audio_input(Bounds b, Color c);
 
-		void render_odf(Bounds b, Color c);
+		void render_odf(Bounds b, Color c, Color c_af);
 
 		static void render_grid_lines(Bounds b, Color c);
 
@@ -113,7 +114,7 @@ void MyApp::render_audio_input(Bounds b, Color c)
 	S2D_DrawText(app.text_audio_input);
 }
 
-void MyApp::render_odf(Bounds b, Color c)
+void MyApp::render_odf(Bounds b, Color c, Color c_af)
 {
 	// grid lines
 	MyApp::render_grid_lines(b, C_GRID_LINES);
@@ -124,19 +125,25 @@ void MyApp::render_odf(Bounds b, Color c)
 
 	for (int i = n - (int)b.width(); i < n; ++i)
 	{
+		Color color = i <= n - ANALYSIS_FRAME_SIZE ? c : c_af;
+
 		float x = (float)(i - n) + b.right;
 		float y = b.bottom - odf_samples[i] * height;
 
 		S2D_DrawLine(
 			x, b.bottom, x, y, 1,
-			COMMA_SPLIT_COLOR_4(c)
+			COMMA_SPLIT_COLOR_4(color)
 		);
 	}
 
 	// zero line
 	S2D_DrawLine(
-		b.left, b.bottom, b.right, b.bottom, 1,
+		b.left, b.bottom, b.right - ANALYSIS_FRAME_SIZE, b.bottom, 1,
 		COMMA_SPLIT_COLOR_4(c)
+	);
+	S2D_DrawLine(
+		b.right - ANALYSIS_FRAME_SIZE, b.bottom, b.right, b.bottom, 1,
+		COMMA_SPLIT_COLOR_4(c_af)
 	);
 
 	// text
@@ -169,7 +176,7 @@ void MyApp::render_grid_lines(Bounds b, Color c)
 void MyApp::render()
 {
 	app.render_audio_input(Bounds {0, 0, WIDTH, 200}, C_GREEN);
-	app.render_odf(Bounds {0, 200, WIDTH, 400}, C_YELLOW);
+	app.render_odf(Bounds {0, 200, WIDTH, 400}, C_YELLOW, C_ORANGE);
 }
 
 void MyApp::input_thread_main()

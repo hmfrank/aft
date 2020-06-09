@@ -69,6 +69,8 @@ class _2011_PlRoSt
 		_2011_PlRoSt &operator = (const _2011_PlRoSt &);
 		~_2011_PlRoSt();
 
+		float get_analysis_frame_median() const;
+		
 		float get_odf_sample() const;
 
 		bool operator ()(float sample);

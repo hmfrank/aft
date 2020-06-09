@@ -140,6 +140,11 @@ _2011_PlRoSt::~_2011_PlRoSt()
 	delete this->stft;
 }
 
+float _2011_PlRoSt::get_analysis_frame_median() const
+{
+	return this->af_median;
+}
+
 float _2011_PlRoSt::get_odf_sample() const
 {
 	return this->odf_sample;
