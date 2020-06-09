@@ -68,7 +68,7 @@ class _2011_PlRoSt
 
 		// TODO: add getter functions
 
-		int operator ()(float sample);
+		bool operator ()(float sample);
 };
 
 #endif //IMPLEMENTIERUNG_2011_PLROST_H

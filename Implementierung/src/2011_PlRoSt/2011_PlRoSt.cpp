@@ -20,20 +20,18 @@ size_t get_num_bins()
 
 void _2011_PlRoSt::allocate_memory()
 {
-	size_t stft_size = sizeof(*this->stft);
 	size_t stft_frame_size = sizeof(*this->stft_frame) * get_num_bins();
 	size_t matrix_size = sizeof(*this->x_matrix) * MATRIX_WIDTH * MATRIX_HEIGHT;
 
 	this->allocation_ptr = ::operator new(
-		stft_size + stft_frame_size + 2 * matrix_size
+		stft_frame_size + 2 * matrix_size
 	);
 
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wpointer-arith"
 
-	this->stft = static_cast<STFT*>(this->allocation_ptr);
 	this->stft_frame = static_cast<Complex<float>*>(
-		this->allocation_ptr + stft_size
+		this->allocation_ptr
 	);
 	this->x_matrix = static_cast<float*>(
 		static_cast<void*>(this->stft_frame) + stft_frame_size
@@ -47,7 +45,7 @@ void _2011_PlRoSt::allocate_memory()
 
 void _2011_PlRoSt::initialize_stft()
 {
-	*this->stft = STFT(
+	this->stft = new STFT(
 		STFT_WINDOW_SIZE,
 		STFT_HOP_SIZE,
 		0,
@@ -59,7 +57,7 @@ void _2011_PlRoSt::initialize_stft()
 _2011_PlRoSt::_2011_PlRoSt() :
 	onset_detection(0), analysis_frame(ANALYSIS_FRAME_SIZE)
 {
-	this->onset_detection = OnsetDetection(this->stft->numBins());
+	this->onset_detection = OnsetDetection(get_num_bins());
 	this->af_median = 0;
 	this->time = -1;
 	this->current_tau = BETA;
@@ -136,6 +134,7 @@ _2011_PlRoSt &_2011_PlRoSt::operator=(const _2011_PlRoSt &that)
 _2011_PlRoSt::~_2011_PlRoSt()
 {
 	::operator delete(this->allocation_ptr);
+	delete this->stft;
 }
 
 float entropy(const float *buffer, size_t buffer_len)
@@ -240,11 +239,11 @@ float tempo_update_weight(size_t tau, size_t tau_new, size_t x, size_t x_new)
 	return gaussian(tau, tau_new, 4) * gaussian(x, x_new, 10);
 }
 
-int _2011_PlRoSt::operator()(float sample)
+bool _2011_PlRoSt::operator()(float sample)
 {
 	if (!(*this->stft)(sample))
 	{
-		return 0;
+		return false;
 	}
 
 	++this->time;
@@ -322,5 +321,5 @@ int _2011_PlRoSt::operator()(float sample)
 		this->current_x = x_new;
 	}
 
-	return 1;
+	return true;
 }
