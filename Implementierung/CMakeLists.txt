@@ -25,6 +25,8 @@ set(
     src/2009_DaPlSt/beat_prediction.cpp include/2009_DaPlSt/beat_prediction.h
     src/2004_BeDaDuSa/onset_detection.cpp include/2004_BeDaDuSa/onset_detection.h
     src/2009_DaPlSt/tempo_induction.cpp include/2009_DaPlSt/tempo_induction.h
+    src/2011_PlRoSt/2011_PlRoSt.cpp include/2011_PlRoSt/2011_PlRoSt.h
+    include/2011_PlRoSt/constants.h
     src/misc.cpp include/misc.h
     src/shift_register.cpp include/shift_register.h
 )

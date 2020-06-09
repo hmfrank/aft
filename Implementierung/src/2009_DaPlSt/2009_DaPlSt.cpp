@@ -120,11 +120,11 @@ int _2009_DaPlSt::operator()(float sample)
 
 	++this->time;
 
-	Complex<float> stft_frame[stft->numBins()];
+	Complex<float> stft_frame[this->stft->numBins()];
 
-	for (size_t k = 0; k < stft->numBins(); ++k)
+	for (size_t k = 0; k < this->stft->numBins(); ++k)
 	{
-		stft_frame[k] = stft->bin(k);
+		stft_frame[k] = this->stft->bin(k);
 	}
 
 	this->odf_sample = this->onset_detection(stft_frame);
