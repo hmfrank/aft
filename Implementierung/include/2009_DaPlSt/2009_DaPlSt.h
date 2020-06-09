@@ -10,6 +10,7 @@
 using namespace gam;
 
 // TODO: herrausfinden, warum er manchmal auf TAU_MIN hängen bleibt
+// TODO: move smaple rate from constructor parameter to constants
 // TODO: unit test
 
 
@@ -19,8 +20,8 @@ using namespace gam;
 /// How to use this class:
 /// 1. initialize an instance with the sample rate of your audio stream
 /// 2. for each sample in your audio stream:
-/// 2.1. call `next(sample)`
-/// 2.2. check the return value of `next()` and read the next beat prediction and tempo estimate
+/// 2.1. call `your_2009_DaPlSt_instance(sample)`
+/// 2.2. check the return value and read the next beat prediction and tempo estimate
 class _2009_DaPlSt
 {
 	private:

@@ -34,6 +34,11 @@ float max(float const *buffer, size_t buffer_len)
 	return max;
 }
 
+float max(float a, float b)
+{
+	return a > b ? a : b;
+}
+
 float min(float const *buffer, size_t buffer_len)
 {
 	if (buffer_len == 0)
@@ -52,4 +57,9 @@ float min(float const *buffer, size_t buffer_len)
 	}
 
 	return min;
+}
+
+float min(float a, float b)
+{
+	return a < b ? a : b;
 }
