@@ -17,7 +17,7 @@ const char *FONT = "res/roboto.ttf";
 
 // window size in pixels
 const int WIDTH = 1000;
-const int HEIGHT = 300;
+const int HEIGHT = 400;
 
 // colors
 struct Color { float r, g, b, a; };
@@ -26,7 +26,7 @@ struct Color { float r, g, b, a; };
 #define SET_TEXT_COL(textptr, col) ((textptr)->color.r = col.r, (textptr)->color.g = col.g, (textptr)->color.b = col.b, (textptr)->color.a = col.a)
 
 const Color C_GREEN = Color{ .r = 0, .g = 1, .b = 0, .a = 1 };
-const Color C_WHITE = Color{ .r = 1, .g = 1, .b = 1, .a = 1 };
+const Color C_YELLOW = Color{ .r = 1, .g = 1, .b = 0, .a = 1 };
 const Color C_GRID_LINES = Color{ .r = 1, .g = 1, .b = 1, .a = 0.25 };
 
 // ========== APP CLASS ========== //
@@ -48,7 +48,9 @@ class MyApp
 		// RENDER DATA
 		ShiftRegister input_samples_min;
 		ShiftRegister input_samples_max;
+		ShiftRegister odf_samples;
 		S2D_Text *text_audio_input;
+		S2D_Text *text_odf;
 
 		// GUI
 		bool halt;
@@ -56,6 +58,8 @@ class MyApp
 		thread input_thread;
 
 		void render_audio_input(Bounds b, Color c);
+
+		void render_odf(Bounds b, Color c);
 
 		static void render_grid_lines(Bounds b, Color c);
 
@@ -75,15 +79,15 @@ MyApp app;
 
 void MyApp::render_audio_input(Bounds b, Color c)
 {
-	float height = b.height();
-	float y_miggle = b.y_miggle();
-
-	int n = this->input_samples_min.get_len();
 
 	// grid lines
 	MyApp::render_grid_lines(b, C_GRID_LINES);
 
 	// waveform
+	float height = b.height();
+	float y_miggle = b.y_miggle();
+	int n = this->input_samples_min.get_len();
+
 	for (int i = n - (int)b.width(); i < n; ++i)
 	{
 		float x = (float)(i - n) + b.right;
@@ -109,6 +113,39 @@ void MyApp::render_audio_input(Bounds b, Color c)
 	S2D_DrawText(app.text_audio_input);
 }
 
+void MyApp::render_odf(Bounds b, Color c)
+{
+	// grid lines
+	MyApp::render_grid_lines(b, C_GRID_LINES);
+
+	//waveform
+	float height = b.height();
+	int n = this->odf_samples.get_len();
+
+	for (int i = n - (int)b.width(); i < n; ++i)
+	{
+		float x = (float)(i - n) + b.right;
+		float y = b.bottom - odf_samples[i] * height;
+
+		S2D_DrawLine(
+			x, b.bottom, x, y, 1,
+			COMMA_SPLIT_COLOR_4(c)
+		);
+	}
+
+	// zero line
+	S2D_DrawLine(
+		b.left, b.bottom, b.right, b.bottom, 1,
+		COMMA_SPLIT_COLOR_4(c)
+	);
+
+	// text
+	SET_TEXT_COL(app.text_odf, c);
+	app.text_odf->x = b.left;
+	app.text_odf->y = b.top;
+	S2D_DrawText(app.text_odf);
+}
+
 void MyApp::render_grid_lines(Bounds b, Color c)
 {
 	float spacing = 1.0f / ODF_SAMPLE_INTERVAL;
@@ -131,7 +168,8 @@ void MyApp::render_grid_lines(Bounds b, Color c)
 
 void MyApp::render()
 {
-	app.render_audio_input(Bounds {0, 0, WIDTH, HEIGHT}, C_GREEN);
+	app.render_audio_input(Bounds {0, 0, WIDTH, 200}, C_GREEN);
+	app.render_odf(Bounds {0, 200, WIDTH, 400}, C_YELLOW);
 }
 
 void MyApp::input_thread_main()
@@ -150,6 +188,7 @@ void MyApp::input_thread_main()
 
 			app.input_samples_max.push(max(samples, input_samples.get_len()));
 			app.input_samples_min.push(min(samples, input_samples.get_len()));
+			app.odf_samples.push(app.beat_tracking.get_odf_sample());
 		}
 	}
 }
@@ -159,8 +198,12 @@ void MyApp::init()
 	app.beat_tracking = _2011_PlRoSt();
 	app.input_samples_min = ShiftRegister(WIDTH);
 	app.input_samples_max = ShiftRegister(WIDTH);
+	app.odf_samples = ShiftRegister(WIDTH);
 	app.text_audio_input = S2D_CreateText(
 		FONT, "Audio Input", 20
+	);
+	app.text_odf = S2D_CreateText(
+		FONT, "Onset Detection Function", 20
 	);
 	app.halt = false;
 	app.window = S2D_CreateWindow(
@@ -175,6 +218,7 @@ void MyApp::free()
 	app.input_thread.join();
 
 	S2D_FreeText(app.text_audio_input);
+	S2D_FreeText(app.text_odf);
 	S2D_FreeWindow(app.window);
 }
 

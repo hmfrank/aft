@@ -29,6 +29,9 @@ class _2011_PlRoSt
 		// median of `analysis_frame`
 		float af_median;
 
+		// last new onset detection function sample
+		float odf_sample;
+
 		// elapsed time in ODF samples
 		size_t time;
 
@@ -66,7 +69,7 @@ class _2011_PlRoSt
 		_2011_PlRoSt &operator = (const _2011_PlRoSt &);
 		~_2011_PlRoSt();
 
-		// TODO: add getter functions
+		float get_odf_sample() const;
 
 		bool operator ()(float sample);
 };

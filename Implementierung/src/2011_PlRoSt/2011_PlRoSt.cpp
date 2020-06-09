@@ -59,6 +59,7 @@ _2011_PlRoSt::_2011_PlRoSt() :
 {
 	this->onset_detection = OnsetDetection(get_num_bins());
 	this->af_median = 0;
+	this->odf_sample = 0;
 	this->time = -1;
 	this->current_tau = BETA;
 	this->current_x = 0;
@@ -79,6 +80,7 @@ _2011_PlRoSt::_2011_PlRoSt(const _2011_PlRoSt &that) :
 {
 	this->onset_detection = that.onset_detection;
 	this->af_median = that.af_median;
+	this->odf_sample = that.odf_sample;
 	this->time = that.time;
 	this->current_tau = that.current_tau;
 	this->current_x = that.current_x;
@@ -107,6 +109,7 @@ _2011_PlRoSt &_2011_PlRoSt::operator=(const _2011_PlRoSt &that)
 	this->onset_detection = that.onset_detection;
 	this->analysis_frame = that.analysis_frame;
 	this->af_median = that.af_median;
+	this->odf_sample = that.odf_sample;
 	this->time = that.time;
 	this->current_tau = that.current_tau;
 	this->current_x = that.current_x;
@@ -135,6 +138,11 @@ _2011_PlRoSt::~_2011_PlRoSt()
 {
 	::operator delete(this->allocation_ptr);
 	delete this->stft;
+}
+
+float _2011_PlRoSt::get_odf_sample() const
+{
+	return this->odf_sample;
 }
 
 float entropy(const float *buffer, size_t buffer_len)
@@ -255,11 +263,11 @@ bool _2011_PlRoSt::operator()(float sample)
 	}
 
 	// get next ODF sample
-	float odf_sample = this->onset_detection(this->stft_frame);
-	this->analysis_frame.push(odf_sample);
+	this->odf_sample = this->onset_detection(this->stft_frame);
+	this->analysis_frame.push(this->odf_sample);
 	this->af_median = median(&this->analysis_frame);
 	// pre-processed ODF sample
-	float pp_odf_sample = max(0.0f, odf_sample - this->af_median);
+	float pp_odf_sample = max(0.0f, this->odf_sample - this->af_median);
 
 	// update X-Matrix
 	float updates[MATRIX_HEIGHT];
