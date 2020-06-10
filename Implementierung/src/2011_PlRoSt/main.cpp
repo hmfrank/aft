@@ -15,9 +15,12 @@ const char *TITLE = "2011 Plumbley, Robertson, Stark - Real-Time Visual Beat Tra
 // font for text inside the window
 const char *FONT = "res/roboto.ttf";
 
+// size of the matrix pixels in screen pixels
+const int MATRIX_PX_SIZE = 10;
+
 // window size in pixels
 const int WIDTH = 1000;
-const int HEIGHT = 400;
+const int HEIGHT = 400 + MATRIX_HEIGHT * MATRIX_PX_SIZE;
 
 // colors
 struct Color { float r, g, b, a; };
@@ -63,6 +66,8 @@ class MyApp
 		void render_audio_input(Bounds b, Color c);
 
 		void render_odf(Bounds b, Color c, Color c_af, Color c_paf);
+
+		void render_x_matrix(Bounds b, Color c, Color c_now);
 
 		static void render_grid_lines(Bounds b, Color c);
 
@@ -202,10 +207,50 @@ void MyApp::render_grid_lines(Bounds b, Color c)
 	}
 }
 
+void MyApp::render_x_matrix(Bounds b, Color c, Color c_now)
+{
+	const float *matrix = this->beat_tracking.get_x_matrix();
+	float x_px_size = b.width() / MATRIX_WIDTH;
+	float y_px_size = b.height() / MATRIX_HEIGHT;
+
+	for (size_t ym = 0; ym < MATRIX_HEIGHT; ++ym)
+	{
+		size_t tau = ym + TAU_MIN;
+		size_t current_xm = this->beat_tracking.get_time() % tau;
+
+		for (size_t xm = 0; xm < tau; ++xm)
+		{
+			float value = matrix[ym * MATRIX_WIDTH + xm];
+			float x0 = b.left + x_px_size * (float)xm;
+			float y0 = b.top + y_px_size * (float)ym;
+			float x1 = x0 + x_px_size;
+			float y1 = y0 + y_px_size;
+			Color col = xm == current_xm ? c_now : c;
+
+			col.a = value;
+
+			S2D_DrawQuad(
+				x0, y0, COMMA_SPLIT_COLOR(col),
+				x1, y0, COMMA_SPLIT_COLOR(col),
+				x1, y1, COMMA_SPLIT_COLOR(col),
+				x0, y1, COMMA_SPLIT_COLOR(col)
+			);
+		}
+	}
+}
+
 void MyApp::render()
 {
 	app.render_audio_input(Bounds {0, 0, WIDTH, 200}, C_GREEN);
 	app.render_odf(Bounds {0, 200, WIDTH, 400}, C_YELLOW, C_ORANGE, C_WHITE);
+	app.render_x_matrix(
+		Bounds{
+			0, 400,
+			(float)(MATRIX_WIDTH * MATRIX_PX_SIZE),
+			(float)(400 + MATRIX_HEIGHT * MATRIX_PX_SIZE)
+		},
+		C_WHITE, C_YELLOW
+	);
 }
 
 void MyApp::input_thread_main()

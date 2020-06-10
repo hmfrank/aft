@@ -145,9 +145,19 @@ float _2011_PlRoSt::get_analysis_frame_median() const
 	return this->af_median;
 }
 
+size_t _2011_PlRoSt::get_time() const
+{
+	return this->time;
+}
+
 float _2011_PlRoSt::get_odf_sample() const
 {
 	return this->odf_sample;
+}
+
+const float *_2011_PlRoSt::get_x_matrix() const
+{
+	return this->x_matrix;
 }
 
 float entropy(const float *buffer, size_t buffer_len)
