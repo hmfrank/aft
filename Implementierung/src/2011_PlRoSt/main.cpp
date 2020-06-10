@@ -34,6 +34,7 @@ const Color C_RED = Color{ .r = 1, .g = 0, .b = 0, .a = 1 };
 const Color C_ORANGE = Color{ .r = 1, .g = 0.5, .b = 0, .a = 1 };
 const Color C_YELLOW = Color{ .r = 1, .g = 1, .b = 0, .a = 1 };
 const Color C_GREEN = Color{ .r = 0, .g = 1, .b = 0, .a = 1 };
+const Color C_CYAN = Color{ .r = 0, .g = 1, .b = 1, .a = 1};
 const Color C_WHITE = Color{ .r = 1, .g = 1, .b = 1, .a = 1 };
 const Color C_GRID_LINES = Color{ .r = 1, .g = 1, .b = 1, .a = 0.25 };
 
@@ -71,13 +72,13 @@ class MyApp
 
 		void render_info_box(Bounds b, Color c);
 
-		void render_matrix(bool x, Bounds b, Color c, Color c_now);
+		void render_matrix(bool x, Bounds b, Color c, Color c_now, Color *c_current, Color *c_new);
 
 		void render_odf(Bounds b, Color c, Color c_af, Color c_paf);
 
 		void render_x_matrix(Bounds b, Color c, Color c_now);
 
-		void render_y_matrix(Bounds b, Color c, Color c_now);
+		void render_y_matrix(Bounds b, Color c, Color c_now, Color c_current, Color c_new);
 
 		static void render_grid_lines(Bounds b, Color c);
 
@@ -143,21 +144,20 @@ void MyApp::render_info_box(Bounds b, Color c)
 
 	char text_buffer[4][1024];
 
-	// TODO: try format %g
 	snprintf(
-		text_buffer[0], 1024, "Current Tau: %lu (IBI = %.0f ms, Tempo = %.1f BPM)",
+		text_buffer[0], 1024, "Current Tau: %lu (IBI = %.4g ms, Tempo = %.4g BPM)",
 		current_tau, 60000.0f / current_tempo, current_tempo
 	);
 	snprintf(
-		text_buffer[1], 1024, "Current X: %lu (Phase = %.0f deg.)",
+		text_buffer[1], 1024, "Current X: %lu (Phase = %.4g deg.)",
 		current_x, current_phi
 	);
 	snprintf(
-		text_buffer[2], 1024, "New Tau: %lu (IBI = %.0f ms, Tempo = %.1f BPM)",
+		text_buffer[2], 1024, "New Tau: %lu (IBI = %.4g ms, Tempo = %.4g BPM)",
 		new_tau, 60000.0f / new_tempo, new_tempo
 	);
 	snprintf(
-		text_buffer[3], 1024, "New X: %lu (Phase = %.0f deg.)",
+		text_buffer[3], 1024, "New X: %lu (Phase = %.4g deg.)",
 		new_x, new_phi
 	);
 
@@ -245,7 +245,7 @@ void MyApp::render_odf(Bounds b, Color c, Color c_af, Color c_paf)
 	S2D_DrawText(app.text_odf);
 }
 
-void MyApp::render_matrix(bool x, Bounds b, Color c, Color c_now)
+void MyApp::render_matrix(bool x, Bounds b, Color c, Color c_now, Color *c_current, Color *c_new)
 {
 	const float *matrix = x ?
 						  this->beat_tracking.get_x_matrix() :
@@ -257,7 +257,7 @@ void MyApp::render_matrix(bool x, Bounds b, Color c, Color c_now)
 	for (size_t ym = 0; ym < MATRIX_HEIGHT; ++ym)
 	{
 		size_t tau = ym + TAU_MIN;
-		size_t current_xm = this->beat_tracking.get_time() % tau;
+		size_t xm_now = this->beat_tracking.get_time() % tau;
 
 		for (size_t xm = 0; xm < tau; ++xm)
 		{
@@ -266,12 +266,35 @@ void MyApp::render_matrix(bool x, Bounds b, Color c, Color c_now)
 			float y0 = b.top + y_px_size * (float)ym;
 			float x1 = x0 + x_px_size;
 			float y1 = y0 + y_px_size;
-			Color col = xm == current_xm ? c_now : c;
 
-			if (xm != current_xm)
+			// find the right color for this pixel
+			Color col;
+			if (
+				c_current != nullptr &&
+				tau == this->beat_tracking.get_current_tau() &&
+				xm == this->beat_tracking.get_current_x()
+			)
 			{
+				col = *c_current;
+			}
+			else if (
+				c_new != nullptr &&
+				tau == this->beat_tracking.get_new_tau() &&
+				xm == this->beat_tracking.get_new_x()
+			)
+			{
+				col = *c_new;
+			}
+			else if (xm == xm_now)
+			{
+				col = c_now;
+			}
+			else
+			{
+				col = c;
 				col.a = value;
 			}
+
 
 			S2D_DrawQuad(
 				x0, y0, COMMA_SPLIT_COLOR(col),
@@ -293,10 +316,10 @@ void MyApp::render_x_matrix(Bounds b, Color c, Color c_now)
 
 	// matrix
 	b.top += 30;
-	this->render_matrix(true, b, c, c_now);
+	this->render_matrix(true, b, c, c_now, nullptr, nullptr);
 }
 
-void MyApp::render_y_matrix(Bounds b, Color c, Color c_now)
+void MyApp::render_y_matrix(Bounds b, Color c, Color c_now, Color c_current, Color c_new)
 {
 	// text
 	SET_TEXT_COL(app.text_y_matrix, c);
@@ -306,7 +329,7 @@ void MyApp::render_y_matrix(Bounds b, Color c, Color c_now)
 
 	// matrix
 	b.top += 30;
-	this->render_matrix(false, b, c, c_now);
+	this->render_matrix(false, b, c, c_now, &c_current, &c_new);
 }
 
 void MyApp::render_grid_lines(Bounds b, Color c)
@@ -349,7 +372,7 @@ void MyApp::render()
 			(float)(MATRIX_WIDTH * MATRIX_PX_SIZE * 2),
 			(float)(y += MATRIX_HEIGHT * MATRIX_PX_SIZE + 30)
 		},
-		C_WHITE, C_WHITE
+		C_WHITE, C_WHITE, C_GREEN, C_CYAN
 	);
 	app.render_info_box(Bounds {0, y, WIDTH, y += 200}, C_WHITE);
 }
