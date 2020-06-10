@@ -70,6 +70,8 @@ class MyApp
 
 		void render_audio_input(Bounds b, Color c);
 
+		void render_beat_indicator(Bounds b, Color c);
+
 		void render_info_box(Bounds b, Color c);
 
 		void render_matrix(bool x, Bounds b, Color c, Color c_now, Color *c_current, Color *c_new);
@@ -129,6 +131,24 @@ void MyApp::render_audio_input(Bounds b, Color c)
 	app.text_audio_input->x = b.left;
 	app.text_audio_input->y = b.top;
 	S2D_DrawText(app.text_audio_input);
+}
+
+void MyApp::render_beat_indicator(Bounds b, Color c)
+{
+	size_t dif =
+		this->beat_tracking.get_time() % this->beat_tracking.get_current_tau() -
+		this->beat_tracking.get_current_x();
+	dif = dif < 0 ? -dif : dif; // abs
+
+	if (dif < 10)
+	{
+		S2D_DrawQuad(
+			b.left, b.top, COMMA_SPLIT_COLOR(c),
+			b.right, b.top, COMMA_SPLIT_COLOR(c),
+			b.right, b.bottom, COMMA_SPLIT_COLOR(c),
+			b.left, b.bottom, COMMA_SPLIT_COLOR(c)
+		);
+	}
 }
 
 void MyApp::render_info_box(Bounds b, Color c)
@@ -374,7 +394,8 @@ void MyApp::render()
 		},
 		C_WHITE, C_WHITE, C_GREEN, C_CYAN
 	);
-	app.render_info_box(Bounds {0, y, WIDTH, y += 200}, C_WHITE);
+	app.render_info_box(Bounds {0, y, WIDTH - 200, y + 200}, C_WHITE);
+	app.render_beat_indicator(Bounds {WIDTH - 200, y, WIDTH, y+= 200}, C_RED);
 }
 
 void MyApp::input_thread_main()
