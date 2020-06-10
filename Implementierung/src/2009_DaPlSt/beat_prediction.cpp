@@ -152,7 +152,7 @@ void BeatPrediction::set_tempo(float tempo)
 	}
 }
 
-size_t BeatPrediction::next_prediction(float odf_sample)
+size_t BeatPrediction::operator()(float odf_sample)
 {
 	this->past_score.push(this->current_score);
 	this->current_score = ((1 - ALPHA) * odf_sample + ALPHA * this->eq2rhs(0));

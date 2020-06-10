@@ -1,5 +1,5 @@
 # all executables
-ALL = 2009_DaPlSt playground
+ALL = 2009_DaPlSt 2011_PlRoSt playground
 # all .cpp source files
 SRC = $(wildcard src/*.cpp src/*/*.cpp)
 # all .cpp files with a main function
@@ -29,11 +29,12 @@ all: $(ALL)
 clean:
 	rm -rf $(ALL) dep/ obj/
 
-run: 2009_DaPlSt
-	./2009_DaPlSt
+run: 2011_PlRoSt
+	./2011_PlRoSt
 
 # executables
 2009_DaPlSt: obj/2009_DaPlSt/main.o
+2011_PlRoSt: obj/2011_PlRoSt/main.o
 playground: obj/main.o
 
 $(ALL): $(OBJ)

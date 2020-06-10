@@ -33,7 +33,7 @@ class OnsetDetection
 		///
 		/// \param stft_frame pointer to the input STFT frame
 		/// \return said sample or NAN if `stft_frame` is null
-		float next_sample(Complex<float> const *stft_frame);
+		float operator ()(Complex<float> const *stft_frame);
 };
 
 #endif //IMPLEMENTIERUNG_ONSET_DETECTION_H
