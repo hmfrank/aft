@@ -232,7 +232,7 @@ float median(const ShiftRegister *sr)
 	float buffer[sr->get_len()];
 	sr->get_content(buffer);
 
-	qsort(buffer, sizeof(*buffer), sr->get_len(), float_compare);
+	qsort(buffer, sr->get_len(), sizeof(*buffer), float_compare);
 
 	return buffer[sr->get_len() / 2];
 }
