@@ -369,8 +369,18 @@ bool _2011_PlRoSt::operator()(float sample)
 		this->current_tau, this->new_tau,
 		this->current_x, this->new_x
 	);
-	float y_matrix_value = this->y_matrix[this->current_tau * MATRIX_WIDTH + this->current_x];
-	float y_matrix_value_new = this->y_matrix[this->new_tau * MATRIX_WIDTH + this->new_x];
+	size_t current_y = this->current_tau - TAU_MIN;
+	size_t new_y = this->new_tau - TAU_MIN;
+	float y_matrix_value = this->y_matrix[current_y * MATRIX_WIDTH + this->current_x];
+	float y_matrix_value_new = this->y_matrix[new_y * MATRIX_WIDTH + this->new_x];
+
+//	// debug output
+//	printf(
+//		"%6.4f * %6.4f %c %6.4f\n",
+//		weight, y_matrix_value_new,
+//		weight * y_matrix_value_new > y_matrix_value ? '>' : '<',
+//		y_matrix_value
+//	);
 
 	if (weight * y_matrix_value_new > y_matrix_value)
 	{
