@@ -29,6 +29,9 @@ class _2011_PlRoSt
 		// median of `analysis_frame`
 		float af_median;
 
+		// last new onset detection function sample
+		float odf_sample;
+
 		// elapsed time in ODF samples
 		size_t time;
 
@@ -37,6 +40,14 @@ class _2011_PlRoSt
 
 		// current phase estimate in ODF samples
 		size_t current_x;
+
+		// Inter beat interval of the maximum value in the y-matrix.
+		// This can differ from `current_tau` because of the update rule.
+		size_t new_tau;
+
+		// Phase of the maximum value in the y-matrix.
+		// This can differ from `current_x` because of the update rule.
+		size_t new_x;
 
 		// points to the block of memory that was allocated for this instance
 		void *allocation_ptr;
@@ -66,9 +77,28 @@ class _2011_PlRoSt
 		_2011_PlRoSt &operator = (const _2011_PlRoSt &);
 		~_2011_PlRoSt();
 
-		// TODO: add getter functions
+		float get_analysis_frame_median() const;
 
-		int operator ()(float sample);
+		size_t get_current_tau() const;
+
+		size_t get_current_x() const;
+
+		size_t get_new_tau() const;
+
+		size_t get_new_x() const;
+		
+		float get_odf_sample() const;
+
+		size_t get_time() const;
+
+		const float *get_x_matrix() const;
+
+		const float *get_y_matrix() const;
+
+		// sets current tau and x to new tau and x
+		void reset();
+
+		bool operator ()(float sample);
 };
 
 #endif //IMPLEMENTIERUNG_2011_PLROST_H

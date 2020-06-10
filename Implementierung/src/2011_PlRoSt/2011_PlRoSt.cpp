@@ -20,20 +20,18 @@ size_t get_num_bins()
 
 void _2011_PlRoSt::allocate_memory()
 {
-	size_t stft_size = sizeof(*this->stft);
 	size_t stft_frame_size = sizeof(*this->stft_frame) * get_num_bins();
 	size_t matrix_size = sizeof(*this->x_matrix) * MATRIX_WIDTH * MATRIX_HEIGHT;
 
 	this->allocation_ptr = ::operator new(
-		stft_size + stft_frame_size + 2 * matrix_size
+		stft_frame_size + 2 * matrix_size
 	);
 
 	#pragma GCC diagnostic push
 	#pragma GCC diagnostic ignored "-Wpointer-arith"
 
-	this->stft = static_cast<STFT*>(this->allocation_ptr);
 	this->stft_frame = static_cast<Complex<float>*>(
-		this->allocation_ptr + stft_size
+		this->allocation_ptr
 	);
 	this->x_matrix = static_cast<float*>(
 		static_cast<void*>(this->stft_frame) + stft_frame_size
@@ -47,7 +45,7 @@ void _2011_PlRoSt::allocate_memory()
 
 void _2011_PlRoSt::initialize_stft()
 {
-	*this->stft = STFT(
+	this->stft = new STFT(
 		STFT_WINDOW_SIZE,
 		STFT_HOP_SIZE,
 		0,
@@ -59,11 +57,14 @@ void _2011_PlRoSt::initialize_stft()
 _2011_PlRoSt::_2011_PlRoSt() :
 	onset_detection(0), analysis_frame(ANALYSIS_FRAME_SIZE)
 {
-	this->onset_detection = OnsetDetection(this->stft->numBins());
+	this->onset_detection = OnsetDetection(get_num_bins());
 	this->af_median = 0;
+	this->odf_sample = 0;
 	this->time = -1;
 	this->current_tau = BETA;
 	this->current_x = 0;
+	this->new_tau = BETA;
+	this->new_x = 0;
 
 	this->allocate_memory();
 	this->initialize_stft();
@@ -81,9 +82,12 @@ _2011_PlRoSt::_2011_PlRoSt(const _2011_PlRoSt &that) :
 {
 	this->onset_detection = that.onset_detection;
 	this->af_median = that.af_median;
+	this->odf_sample = that.odf_sample;
 	this->time = that.time;
 	this->current_tau = that.current_tau;
 	this->current_x = that.current_x;
+	this->new_tau = that.new_tau;
+	this->new_x = that.new_x;
 
 	this->allocate_memory();
 	this->initialize_stft();
@@ -109,9 +113,12 @@ _2011_PlRoSt &_2011_PlRoSt::operator=(const _2011_PlRoSt &that)
 	this->onset_detection = that.onset_detection;
 	this->analysis_frame = that.analysis_frame;
 	this->af_median = that.af_median;
+	this->odf_sample = that.odf_sample;
 	this->time = that.time;
 	this->current_tau = that.current_tau;
 	this->current_x = that.current_x;
+	this->new_tau = that.new_tau;
+	this->new_x = that.new_x;
 
 	::operator delete(this->allocation_ptr);
 	this->allocate_memory();
@@ -136,6 +143,58 @@ _2011_PlRoSt &_2011_PlRoSt::operator=(const _2011_PlRoSt &that)
 _2011_PlRoSt::~_2011_PlRoSt()
 {
 	::operator delete(this->allocation_ptr);
+	delete this->stft;
+}
+
+float _2011_PlRoSt::get_analysis_frame_median() const
+{
+	return this->af_median;
+}
+
+size_t _2011_PlRoSt::get_current_tau() const
+{
+	return this->current_tau;
+}
+
+size_t _2011_PlRoSt::get_current_x() const
+{
+	return this->current_x;
+}
+
+size_t _2011_PlRoSt::get_new_tau() const
+{
+	return this->new_tau;
+}
+
+size_t _2011_PlRoSt::get_new_x() const
+{
+	return this->new_x;
+}
+
+float _2011_PlRoSt::get_odf_sample() const
+{
+	return this->odf_sample;
+}
+
+size_t _2011_PlRoSt::get_time() const
+{
+	return this->time;
+}
+
+const float *_2011_PlRoSt::get_x_matrix() const
+{
+	return this->x_matrix;
+}
+
+const float *_2011_PlRoSt::get_y_matrix() const
+{
+	return this->y_matrix;
+}
+
+void _2011_PlRoSt::reset()
+{
+	this->current_tau = this->new_tau;
+	this->current_x = this->new_x;
 }
 
 float entropy(const float *buffer, size_t buffer_len)
@@ -220,7 +279,7 @@ float median(const ShiftRegister *sr)
 	float buffer[sr->get_len()];
 	sr->get_content(buffer);
 
-	qsort(buffer, sizeof(*buffer), sr->get_len(), float_compare);
+	qsort(buffer, sr->get_len(), sizeof(*buffer), float_compare);
 
 	return buffer[sr->get_len() / 2];
 }
@@ -240,11 +299,11 @@ float tempo_update_weight(size_t tau, size_t tau_new, size_t x, size_t x_new)
 	return gaussian(tau, tau_new, 4) * gaussian(x, x_new, 10);
 }
 
-int _2011_PlRoSt::operator()(float sample)
+bool _2011_PlRoSt::operator()(float sample)
 {
 	if (!(*this->stft)(sample))
 	{
-		return 0;
+		return false;
 	}
 
 	++this->time;
@@ -256,11 +315,11 @@ int _2011_PlRoSt::operator()(float sample)
 	}
 
 	// get next ODF sample
-	float odf_sample = this->onset_detection(this->stft_frame);
-	this->analysis_frame.push(odf_sample);
+	this->odf_sample = this->onset_detection(this->stft_frame);
+	this->analysis_frame.push(this->odf_sample);
 	this->af_median = median(&this->analysis_frame);
 	// pre-processed ODF sample
-	float pp_odf_sample = max(0.0f, odf_sample - this->af_median);
+	float pp_odf_sample = max(0.0f, this->odf_sample - this->af_median);
 
 	// update X-Matrix
 	float updates[MATRIX_HEIGHT];
@@ -285,7 +344,7 @@ int _2011_PlRoSt::operator()(float sample)
 
 	// compute Y-Matrix
 	float max = -INFINITY;
-	size_t tau_new = 0;
+	size_t tau_new = TAU_MIN;
 	size_t x_new = 0;
 
 	for (size_t y = 0; y < MATRIX_HEIGHT; ++y)
@@ -308,19 +367,32 @@ int _2011_PlRoSt::operator()(float sample)
 		}
 	}
 
+	this->new_tau = tau_new;
+	this->new_x = x_new;
+
 	// update tempo and phase estimates
 	float weight = tempo_update_weight(
-		this->current_tau, tau_new,
-		this->current_x, x_new
+		this->current_tau, this->new_tau,
+		this->current_x, this->new_x
 	);
-	float y_matrix_value = this->y_matrix[this->current_tau * MATRIX_WIDTH + this->current_x];
-	float y_matrix_value_new = this->y_matrix[tau_new * MATRIX_WIDTH + x_new];
+	size_t current_y = this->current_tau - TAU_MIN;
+	size_t new_y = this->new_tau - TAU_MIN;
+	float y_matrix_value = this->y_matrix[current_y * MATRIX_WIDTH + this->current_x];
+	float y_matrix_value_new = this->y_matrix[new_y * MATRIX_WIDTH + this->new_x];
+
+//	// debug output
+//	printf(
+//		"%6.4f * %6.4f %c %6.4f\n",
+//		weight, y_matrix_value_new,
+//		weight * y_matrix_value_new > y_matrix_value ? '>' : '<',
+//		y_matrix_value
+//	);
 
 	if (weight * y_matrix_value_new > y_matrix_value)
 	{
-		this->current_tau = tau_new;
-		this->current_x = x_new;
+		this->current_tau = this->new_tau;
+		this->current_x = this->new_x;
 	}
 
-	return 1;
+	return true;
 }

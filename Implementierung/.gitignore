@@ -3,4 +3,7 @@
 *.d
 *.o
 2009_DaPlSt
+!src/2009_DaPlSt
+2011_PlRoSt
+!src/2011_PlRoSt
 playground
