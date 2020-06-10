@@ -82,11 +82,11 @@ class MyApp
 
 		void render_y_matrix(Bounds b, Color c, Color c_now, Color c_current, Color c_new);
 
-		static void render_grid_lines(Bounds b, Color c);
+		static void input_thread_main();
 
 		static void render();
 
-		static void input_thread_main();
+		static void render_grid_lines(Bounds b, Color c);
 
 	public:
 		static void init();
@@ -352,23 +352,24 @@ void MyApp::render_y_matrix(Bounds b, Color c, Color c_now, Color c_current, Col
 	this->render_matrix(false, b, c, c_now, &c_current, &c_new);
 }
 
-void MyApp::render_grid_lines(Bounds b, Color c)
+void MyApp::input_thread_main()
 {
-	float spacing = 1.0f / ODF_SAMPLE_INTERVAL;
+	ShiftRegister input_samples(STFT_HOP_SIZE);
+	float sample;
 
-	for (int i = 0;; ++i)
+	while (!app.halt && (read(0, &sample, sizeof(sample)) == sizeof(sample)))
 	{
-		float x = b.right - (float)i * spacing;
+		input_samples.push(sample);
 
-		if (x < b.left)
+		if (app.beat_tracking(sample))
 		{
-			break;
-		}
+			float samples[input_samples.get_len()];
+			input_samples.get_content(samples);
 
-		S2D_DrawLine(
-			x, b.top, x, b.bottom, 1,
-			COMMA_SPLIT_COLOR_4(c)
-		);
+			app.input_samples_max.push(max(samples, input_samples.get_len()));
+			app.input_samples_min.push(min(samples, input_samples.get_len()));
+			app.odf_samples.push(app.beat_tracking.get_odf_sample());
+		}
 	}
 }
 
@@ -398,24 +399,23 @@ void MyApp::render()
 	app.render_beat_indicator(Bounds {WIDTH - 200, y, WIDTH, y+= 200}, C_RED);
 }
 
-void MyApp::input_thread_main()
+void MyApp::render_grid_lines(Bounds b, Color c)
 {
-	ShiftRegister input_samples(STFT_HOP_SIZE);
-	float sample;
+	float spacing = 1.0f / ODF_SAMPLE_INTERVAL;
 
-	while (!app.halt && (read(0, &sample, sizeof(sample)) == sizeof(sample)))
+	for (int i = 0;; ++i)
 	{
-		input_samples.push(sample);
+		float x = b.right - (float)i * spacing;
 
-		if (app.beat_tracking(sample))
+		if (x < b.left)
 		{
-			float samples[input_samples.get_len()];
-			input_samples.get_content(samples);
-
-			app.input_samples_max.push(max(samples, input_samples.get_len()));
-			app.input_samples_min.push(min(samples, input_samples.get_len()));
-			app.odf_samples.push(app.beat_tracking.get_odf_sample());
+			break;
 		}
+
+		S2D_DrawLine(
+			x, b.top, x, b.bottom, 1,
+			COMMA_SPLIT_COLOR_4(c)
+		);
 	}
 }
 
