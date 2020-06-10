@@ -191,6 +191,12 @@ const float *_2011_PlRoSt::get_y_matrix() const
 	return this->y_matrix;
 }
 
+void _2011_PlRoSt::reset()
+{
+	this->current_tau = this->new_tau;
+	this->current_x = this->new_x;
+}
+
 float entropy(const float *buffer, size_t buffer_len)
 {
 	float total = 0;
@@ -338,7 +344,7 @@ bool _2011_PlRoSt::operator()(float sample)
 
 	// compute Y-Matrix
 	float max = -INFINITY;
-	size_t tau_new = 0;
+	size_t tau_new = TAU_MIN;
 	size_t x_new = 0;
 
 	for (size_t y = 0; y < MATRIX_HEIGHT; ++y)

@@ -95,6 +95,9 @@ class _2011_PlRoSt
 
 		const float *get_y_matrix() const;
 
+		// sets current tau and x to new tau and x
+		void reset();
+
 		bool operator ()(float sample);
 };
 

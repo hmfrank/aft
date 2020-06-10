@@ -22,13 +22,13 @@ const int MATRIX_PX_SIZE = 7;
 
 // window size in pixels
 const int WIDTH = 1000;
-const int HEIGHT = 600 + MATRIX_HEIGHT * MATRIX_PX_SIZE + 30;
+const int HEIGHT = 630 + MATRIX_HEIGHT * MATRIX_PX_SIZE + 30;
 
 // colors
 struct Color { float r, g, b, a; };
-#define COMMA_SPLIT_COLOR(col) col.r, col.g, col.b, col.a
+#define COMMA_SPLIT_COLOR(col) (col).r, (col).g, (col).b, (col).a
 #define COMMA_SPLIT_COLOR_4(col) COMMA_SPLIT_COLOR(col), COMMA_SPLIT_COLOR(col), COMMA_SPLIT_COLOR(col), COMMA_SPLIT_COLOR(col)
-#define SET_TEXT_COL(textptr, col) ((textptr)->color.r = col.r, (textptr)->color.g = col.g, (textptr)->color.b = col.b, (textptr)->color.a = col.a)
+#define SET_TEXT_COL(textptr, col) ((textptr)->color.r = (col).r, (textptr)->color.g = (col).g, (textptr)->color.b = (col).b, (textptr)->color.a = (col).a)
 
 const Color C_RED = Color{ .r = 1, .g = 0, .b = 0, .a = 1 };
 const Color C_ORANGE = Color{ .r = 1, .g = 0.5, .b = 0, .a = 1 };
@@ -59,6 +59,7 @@ class MyApp
 		ShiftRegister input_samples_max;
 		ShiftRegister odf_samples;
 		S2D_Text *text_audio_input;
+		S2D_Text *text_help;
 		S2D_Text *text_odf;
 		S2D_Text *text_x_matrix;
 		S2D_Text *text_y_matrix;
@@ -72,7 +73,9 @@ class MyApp
 
 		void render_beat_indicator(Bounds b, Color c);
 
-		void render_info_box(Bounds b, Color c);
+		void render_help(Bounds b, Color c);
+
+		void render_info_box(Bounds b, Color c_current, Color c_new);
 
 		void render_matrix(bool x, Bounds b, Color c, Color c_now, Color *c_current, Color *c_new);
 
@@ -83,6 +86,8 @@ class MyApp
 		void render_y_matrix(Bounds b, Color c, Color c_now, Color c_current, Color c_new);
 
 		static void input_thread_main();
+
+		static void on_key(S2D_Event e);
 
 		static void render();
 
@@ -138,9 +143,8 @@ void MyApp::render_beat_indicator(Bounds b, Color c)
 	size_t dif =
 		this->beat_tracking.get_time() % this->beat_tracking.get_current_tau() -
 		this->beat_tracking.get_current_x();
-	dif = dif < 0 ? -dif : dif; // abs
 
-	if (dif < 10)
+	if (dif >= 0 && dif <= 10)
 	{
 		S2D_DrawQuad(
 			b.left, b.top, COMMA_SPLIT_COLOR(c),
@@ -151,7 +155,15 @@ void MyApp::render_beat_indicator(Bounds b, Color c)
 	}
 }
 
-void MyApp::render_info_box(Bounds b, Color c)
+void MyApp::render_help(Bounds b, Color c)
+{
+	this->text_help->x = b.left;
+	this->text_help->y = b.top;
+	SET_TEXT_COL(this->text_help, c);
+	S2D_DrawText(this->text_help);
+}
+
+void MyApp::render_info_box(Bounds b, Color c_current, Color c_new)
 {
 	size_t current_tau = this->beat_tracking.get_current_tau();
 	float current_tempo = 60.0f / ODF_SAMPLE_INTERVAL / (float)current_tau;
@@ -191,7 +203,7 @@ void MyApp::render_info_box(Bounds b, Color c)
 		{
 			text->x = b.left;
 			text->y = b.top + 30.0f * (float)i;
-			SET_TEXT_COL(text, c);
+			SET_TEXT_COL(text, i < 2 ? c_current : c_new);
 
 			S2D_DrawText(text);
 			S2D_FreeText(text);
@@ -373,6 +385,14 @@ void MyApp::input_thread_main()
 	}
 }
 
+void MyApp::on_key(S2D_Event e)
+{
+	if (e.type == S2D_KEY_DOWN && strcmp(e.key, "Space") == 0)
+	{
+		app.beat_tracking.reset();
+	}
+}
+
 void MyApp::render()
 {
 	float y = 0;
@@ -395,8 +415,9 @@ void MyApp::render()
 		},
 		C_WHITE, C_WHITE, C_GREEN, C_CYAN
 	);
-	app.render_info_box(Bounds {0, y, WIDTH - 200, y + 200}, C_WHITE);
+	app.render_info_box(Bounds {0, y, WIDTH - 200, y + 200}, C_GREEN, C_CYAN);
 	app.render_beat_indicator(Bounds {WIDTH - 200, y, WIDTH, y+= 200}, C_RED);
+	app.render_help(Bounds {0, y, WIDTH, y += 30}, C_WHITE);
 }
 
 void MyApp::render_grid_lines(Bounds b, Color c)
@@ -429,6 +450,10 @@ void MyApp::init()
 		FONT, "Audio Input", 20
 	);
 	assert(app.text_audio_input != nullptr);
+	app.text_help = S2D_CreateText(
+		FONT, "SPACE = set current tau and x to new tau and x", 20
+	);
+	assert(app.text_help != nullptr);
 	app.text_odf = S2D_CreateText(
 		FONT, "Onset Detection Function", 20
 	);
@@ -446,6 +471,7 @@ void MyApp::init()
 		TITLE, WIDTH, HEIGHT, nullptr, MyApp::render, 0
 	);
 	assert(app.window != nullptr);
+	app.window->on_key = MyApp::on_key;
 	app.input_thread = thread(MyApp::input_thread_main);
 }
 
@@ -455,6 +481,7 @@ void MyApp::free()
 	app.input_thread.join();
 
 	S2D_FreeText(app.text_audio_input);
+	S2D_FreeText(app.text_help);
 	S2D_FreeText(app.text_odf);
 	S2D_FreeText(app.text_x_matrix);
 	S2D_FreeText(app.text_y_matrix);
