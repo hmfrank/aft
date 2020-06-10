@@ -41,6 +41,14 @@ class _2011_PlRoSt
 		// current phase estimate in ODF samples
 		size_t current_x;
 
+		// Inter beat interval of the maximum value in the y-matrix.
+		// This can differ from `current_tau` because of the update rule.
+		size_t new_tau;
+
+		// Phase of the maximum value in the y-matrix.
+		// This can differ from `current_x` because of the update rule.
+		size_t new_x;
+
 		// points to the block of memory that was allocated for this instance
 		void *allocation_ptr;
 
@@ -71,9 +79,17 @@ class _2011_PlRoSt
 
 		float get_analysis_frame_median() const;
 
-		size_t get_time() const;
+		size_t get_current_tau() const;
+
+		size_t get_current_x() const;
+
+		size_t get_new_tau() const;
+
+		size_t get_new_x() const;
 		
 		float get_odf_sample() const;
+
+		size_t get_time() const;
 
 		const float *get_x_matrix() const;
 

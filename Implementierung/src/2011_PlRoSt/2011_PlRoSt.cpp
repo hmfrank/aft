@@ -63,6 +63,8 @@ _2011_PlRoSt::_2011_PlRoSt() :
 	this->time = -1;
 	this->current_tau = BETA;
 	this->current_x = 0;
+	this->new_tau = BETA;
+	this->new_x = 0;
 
 	this->allocate_memory();
 	this->initialize_stft();
@@ -84,6 +86,8 @@ _2011_PlRoSt::_2011_PlRoSt(const _2011_PlRoSt &that) :
 	this->time = that.time;
 	this->current_tau = that.current_tau;
 	this->current_x = that.current_x;
+	this->new_tau = that.new_tau;
+	this->new_x = that.new_x;
 
 	this->allocate_memory();
 	this->initialize_stft();
@@ -113,6 +117,8 @@ _2011_PlRoSt &_2011_PlRoSt::operator=(const _2011_PlRoSt &that)
 	this->time = that.time;
 	this->current_tau = that.current_tau;
 	this->current_x = that.current_x;
+	this->new_tau = that.new_tau;
+	this->new_x = that.new_x;
 
 	::operator delete(this->allocation_ptr);
 	this->allocate_memory();
@@ -145,14 +151,34 @@ float _2011_PlRoSt::get_analysis_frame_median() const
 	return this->af_median;
 }
 
-size_t _2011_PlRoSt::get_time() const
+size_t _2011_PlRoSt::get_current_tau() const
 {
-	return this->time;
+	return this->current_tau;
+}
+
+size_t _2011_PlRoSt::get_current_x() const
+{
+	return this->current_x;
+}
+
+size_t _2011_PlRoSt::get_new_tau() const
+{
+	return this->new_tau;
+}
+
+size_t _2011_PlRoSt::get_new_x() const
+{
+	return this->new_x;
 }
 
 float _2011_PlRoSt::get_odf_sample() const
 {
 	return this->odf_sample;
+}
+
+size_t _2011_PlRoSt::get_time() const
+{
+	return this->time;
 }
 
 const float *_2011_PlRoSt::get_x_matrix() const
@@ -335,18 +361,21 @@ bool _2011_PlRoSt::operator()(float sample)
 		}
 	}
 
+	this->new_tau = tau_new;
+	this->new_x = x_new;
+
 	// update tempo and phase estimates
 	float weight = tempo_update_weight(
-		this->current_tau, tau_new,
-		this->current_x, x_new
+		this->current_tau, this->new_tau,
+		this->current_x, this->new_x
 	);
 	float y_matrix_value = this->y_matrix[this->current_tau * MATRIX_WIDTH + this->current_x];
-	float y_matrix_value_new = this->y_matrix[tau_new * MATRIX_WIDTH + x_new];
+	float y_matrix_value_new = this->y_matrix[this->new_tau * MATRIX_WIDTH + this->new_x];
 
 	if (weight * y_matrix_value_new > y_matrix_value)
 	{
-		this->current_tau = tau_new;
-		this->current_x = x_new;
+		this->current_tau = this->new_tau;
+		this->current_x = this->new_x;
 	}
 
 	return true;

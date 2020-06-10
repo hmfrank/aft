@@ -1,5 +1,7 @@
 #include "2011_PlRoSt/2011_PlRoSt.h"
 #include "2011_PlRoSt/constants.h"
+#include <cassert>
+#include <cstdio>
 #include "misc.h"
 #include <simple2d.h>
 #include "shift_register.h"
@@ -20,7 +22,7 @@ const int MATRIX_PX_SIZE = 7;
 
 // window size in pixels
 const int WIDTH = 1000;
-const int HEIGHT = 400 + MATRIX_HEIGHT * MATRIX_PX_SIZE + 30;
+const int HEIGHT = 600 + MATRIX_HEIGHT * MATRIX_PX_SIZE + 30;
 
 // colors
 struct Color { float r, g, b, a; };
@@ -66,6 +68,8 @@ class MyApp
 		thread input_thread;
 
 		void render_audio_input(Bounds b, Color c);
+
+		void render_info_box(Bounds b, Color c);
 
 		void render_matrix(bool x, Bounds b, Color c, Color c_now);
 
@@ -124,6 +128,55 @@ void MyApp::render_audio_input(Bounds b, Color c)
 	app.text_audio_input->x = b.left;
 	app.text_audio_input->y = b.top;
 	S2D_DrawText(app.text_audio_input);
+}
+
+void MyApp::render_info_box(Bounds b, Color c)
+{
+	size_t current_tau = this->beat_tracking.get_current_tau();
+	float current_tempo = 60.0f / ODF_SAMPLE_INTERVAL / (float)current_tau;
+	size_t current_x = this->beat_tracking.get_current_x();
+	float current_phi = (float)current_x / current_tau * 360.0f;
+	size_t new_tau = this->beat_tracking.get_new_tau();
+	float new_tempo = 60.0f / ODF_SAMPLE_INTERVAL / (float)new_tau;
+	size_t new_x = this->beat_tracking.get_new_x();
+	float new_phi = (float)new_x / new_tau * 360.0f;
+
+	char text_buffer[4][1024];
+
+	// TODO: try format %g
+	snprintf(
+		text_buffer[0], 1024, "Current Tau: %lu (IBI = %.0f ms, Tempo = %.1f BPM)",
+		current_tau, 60000.0f / current_tempo, current_tempo
+	);
+	snprintf(
+		text_buffer[1], 1024, "Current X: %lu (Phase = %.0f deg.)",
+		current_x, current_phi
+	);
+	snprintf(
+		text_buffer[2], 1024, "New Tau: %lu (IBI = %.0f ms, Tempo = %.1f BPM)",
+		new_tau, 60000.0f / new_tempo, new_tempo
+	);
+	snprintf(
+		text_buffer[3], 1024, "New X: %lu (Phase = %.0f deg.)",
+		new_x, new_phi
+	);
+
+	S2D_Text *text;
+
+	for (int i = 0; i < 4; ++i)
+	{
+		text = S2D_CreateText(FONT, text_buffer[i], 20);
+
+		if (text != nullptr)
+		{
+			text->x = b.left;
+			text->y = b.top + 30.0f * (float)i;
+			SET_TEXT_COL(text, c);
+
+			S2D_DrawText(text);
+			S2D_FreeText(text);
+		}
+	}
 }
 
 void MyApp::render_odf(Bounds b, Color c, Color c_af, Color c_paf)
@@ -278,24 +331,27 @@ void MyApp::render_grid_lines(Bounds b, Color c)
 
 void MyApp::render()
 {
-	app.render_audio_input(Bounds {0, 0, WIDTH, 200}, C_GREEN);
-	app.render_odf(Bounds {0, 200, WIDTH, 400}, C_YELLOW, C_ORANGE, C_WHITE);
+	float y = 0;
+
+	app.render_audio_input(Bounds {0, y, WIDTH, y += 200}, C_GREEN);
+	app.render_odf(Bounds {0, y, WIDTH, y += 200}, C_YELLOW, C_ORANGE, C_WHITE);
 	app.render_x_matrix(
 		Bounds{
-			0, 400,
-			(float) (MATRIX_WIDTH * MATRIX_PX_SIZE),
-			(float) (400 + MATRIX_HEIGHT * MATRIX_PX_SIZE + 30)
+			0, y,
+			(float)(MATRIX_WIDTH * MATRIX_PX_SIZE),
+			(float)(y + MATRIX_HEIGHT * MATRIX_PX_SIZE + 30)
 		},
 		C_WHITE, C_WHITE
 	);
 	app.render_y_matrix(
 		Bounds{
-			(float)(MATRIX_WIDTH * MATRIX_PX_SIZE), 400,
+			(float)(MATRIX_WIDTH * MATRIX_PX_SIZE), y,
 			(float)(MATRIX_WIDTH * MATRIX_PX_SIZE * 2),
-			(float)(400 + MATRIX_HEIGHT * MATRIX_PX_SIZE + 30)
+			(float)(y += MATRIX_HEIGHT * MATRIX_PX_SIZE + 30)
 		},
 		C_WHITE, C_WHITE
 	);
+	app.render_info_box(Bounds {0, y, WIDTH, y += 200}, C_WHITE);
 }
 
 void MyApp::input_thread_main()
@@ -328,19 +384,24 @@ void MyApp::init()
 	app.text_audio_input = S2D_CreateText(
 		FONT, "Audio Input", 20
 	);
+	assert(app.text_audio_input != nullptr);
 	app.text_odf = S2D_CreateText(
 		FONT, "Onset Detection Function", 20
 	);
+	assert(app.text_odf != nullptr);
 	app.text_x_matrix = S2D_CreateText(
 		FONT, "X(tau, phi)", 20
 	);
+	assert(app.text_x_matrix != nullptr);
 	app.text_y_matrix = S2D_CreateText(
 		FONT, "Y(tau, phi)", 20
 	);
+	assert(app.text_y_matrix != nullptr);
 	app.halt = false;
 	app.window = S2D_CreateWindow(
 		TITLE, WIDTH, HEIGHT, nullptr, MyApp::render, 0
 	);
+	assert(app.window != nullptr);
 	app.input_thread = thread(MyApp::input_thread_main);
 }
 
