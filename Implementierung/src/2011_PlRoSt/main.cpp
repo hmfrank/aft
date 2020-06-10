@@ -16,11 +16,11 @@ const char *TITLE = "2011 Plumbley, Robertson, Stark - Real-Time Visual Beat Tra
 const char *FONT = "res/roboto.ttf";
 
 // size of the matrix pixels in screen pixels
-const int MATRIX_PX_SIZE = 10;
+const int MATRIX_PX_SIZE = 7;
 
 // window size in pixels
 const int WIDTH = 1000;
-const int HEIGHT = 400 + MATRIX_HEIGHT * MATRIX_PX_SIZE;
+const int HEIGHT = 400 + MATRIX_HEIGHT * MATRIX_PX_SIZE + 30;
 
 // colors
 struct Color { float r, g, b, a; };
@@ -57,6 +57,8 @@ class MyApp
 		ShiftRegister odf_samples;
 		S2D_Text *text_audio_input;
 		S2D_Text *text_odf;
+		S2D_Text *text_x_matrix;
+		S2D_Text *text_y_matrix;
 
 		// GUI
 		bool halt;
@@ -65,9 +67,13 @@ class MyApp
 
 		void render_audio_input(Bounds b, Color c);
 
+		void render_matrix(bool x, Bounds b, Color c, Color c_now);
+
 		void render_odf(Bounds b, Color c, Color c_af, Color c_paf);
 
 		void render_x_matrix(Bounds b, Color c, Color c_now);
+
+		void render_y_matrix(Bounds b, Color c, Color c_now);
 
 		static void render_grid_lines(Bounds b, Color c);
 
@@ -87,7 +93,6 @@ MyApp app;
 
 void MyApp::render_audio_input(Bounds b, Color c)
 {
-
 	// grid lines
 	MyApp::render_grid_lines(b, C_GRID_LINES);
 
@@ -187,6 +192,70 @@ void MyApp::render_odf(Bounds b, Color c, Color c_af, Color c_paf)
 	S2D_DrawText(app.text_odf);
 }
 
+void MyApp::render_matrix(bool x, Bounds b, Color c, Color c_now)
+{
+	const float *matrix = x ?
+						  this->beat_tracking.get_x_matrix() :
+						  this->beat_tracking.get_y_matrix();
+	const float scaling = x ? 1 : 333;
+	float x_px_size = b.width() / MATRIX_WIDTH;
+	float y_px_size = b.height() / MATRIX_HEIGHT;
+
+	for (size_t ym = 0; ym < MATRIX_HEIGHT; ++ym)
+	{
+		size_t tau = ym + TAU_MIN;
+		size_t current_xm = this->beat_tracking.get_time() % tau;
+
+		for (size_t xm = 0; xm < tau; ++xm)
+		{
+			float value = matrix[ym * MATRIX_WIDTH + xm] * scaling;
+			float x0 = b.left + x_px_size * (float)xm;
+			float y0 = b.top + y_px_size * (float)ym;
+			float x1 = x0 + x_px_size;
+			float y1 = y0 + y_px_size;
+			Color col = xm == current_xm ? c_now : c;
+
+			if (xm != current_xm)
+			{
+				col.a = value;
+			}
+
+			S2D_DrawQuad(
+				x0, y0, COMMA_SPLIT_COLOR(col),
+				x1, y0, COMMA_SPLIT_COLOR(col),
+				x1, y1, COMMA_SPLIT_COLOR(col),
+				x0, y1, COMMA_SPLIT_COLOR(col)
+			);
+		}
+	}
+}
+
+void MyApp::render_x_matrix(Bounds b, Color c, Color c_now)
+{
+	// text
+	SET_TEXT_COL(app.text_x_matrix, c);
+	app.text_x_matrix->x = b.left;
+	app.text_x_matrix->y = b.top;
+	S2D_DrawText(app.text_x_matrix);
+
+	// matrix
+	b.top += 30;
+	this->render_matrix(true, b, c, c_now);
+}
+
+void MyApp::render_y_matrix(Bounds b, Color c, Color c_now)
+{
+	// text
+	SET_TEXT_COL(app.text_y_matrix, c);
+	app.text_y_matrix->x = b.left;
+	app.text_y_matrix->y = b.top;
+	S2D_DrawText(app.text_y_matrix);
+
+	// matrix
+	b.top += 30;
+	this->render_matrix(false, b, c, c_now);
+}
+
 void MyApp::render_grid_lines(Bounds b, Color c)
 {
 	float spacing = 1.0f / ODF_SAMPLE_INTERVAL;
@@ -207,38 +276,6 @@ void MyApp::render_grid_lines(Bounds b, Color c)
 	}
 }
 
-void MyApp::render_x_matrix(Bounds b, Color c, Color c_now)
-{
-	const float *matrix = this->beat_tracking.get_x_matrix();
-	float x_px_size = b.width() / MATRIX_WIDTH;
-	float y_px_size = b.height() / MATRIX_HEIGHT;
-
-	for (size_t ym = 0; ym < MATRIX_HEIGHT; ++ym)
-	{
-		size_t tau = ym + TAU_MIN;
-		size_t current_xm = this->beat_tracking.get_time() % tau;
-
-		for (size_t xm = 0; xm < tau; ++xm)
-		{
-			float value = matrix[ym * MATRIX_WIDTH + xm];
-			float x0 = b.left + x_px_size * (float)xm;
-			float y0 = b.top + y_px_size * (float)ym;
-			float x1 = x0 + x_px_size;
-			float y1 = y0 + y_px_size;
-			Color col = xm == current_xm ? c_now : c;
-
-			col.a = value;
-
-			S2D_DrawQuad(
-				x0, y0, COMMA_SPLIT_COLOR(col),
-				x1, y0, COMMA_SPLIT_COLOR(col),
-				x1, y1, COMMA_SPLIT_COLOR(col),
-				x0, y1, COMMA_SPLIT_COLOR(col)
-			);
-		}
-	}
-}
-
 void MyApp::render()
 {
 	app.render_audio_input(Bounds {0, 0, WIDTH, 200}, C_GREEN);
@@ -246,10 +283,18 @@ void MyApp::render()
 	app.render_x_matrix(
 		Bounds{
 			0, 400,
-			(float)(MATRIX_WIDTH * MATRIX_PX_SIZE),
-			(float)(400 + MATRIX_HEIGHT * MATRIX_PX_SIZE)
+			(float) (MATRIX_WIDTH * MATRIX_PX_SIZE),
+			(float) (400 + MATRIX_HEIGHT * MATRIX_PX_SIZE + 30)
 		},
-		C_WHITE, C_YELLOW
+		C_WHITE, C_WHITE
+	);
+	app.render_y_matrix(
+		Bounds{
+			(float)(MATRIX_WIDTH * MATRIX_PX_SIZE), 400,
+			(float)(MATRIX_WIDTH * MATRIX_PX_SIZE * 2),
+			(float)(400 + MATRIX_HEIGHT * MATRIX_PX_SIZE + 30)
+		},
+		C_WHITE, C_WHITE
 	);
 }
 
@@ -286,6 +331,12 @@ void MyApp::init()
 	app.text_odf = S2D_CreateText(
 		FONT, "Onset Detection Function", 20
 	);
+	app.text_x_matrix = S2D_CreateText(
+		FONT, "X(tau, phi)", 20
+	);
+	app.text_y_matrix = S2D_CreateText(
+		FONT, "Y(tau, phi)", 20
+	);
 	app.halt = false;
 	app.window = S2D_CreateWindow(
 		TITLE, WIDTH, HEIGHT, nullptr, MyApp::render, 0
@@ -300,6 +351,8 @@ void MyApp::free()
 
 	S2D_FreeText(app.text_audio_input);
 	S2D_FreeText(app.text_odf);
+	S2D_FreeText(app.text_x_matrix);
+	S2D_FreeText(app.text_y_matrix);
 	S2D_FreeWindow(app.window);
 }
 

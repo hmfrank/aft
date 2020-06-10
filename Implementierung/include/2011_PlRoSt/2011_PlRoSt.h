@@ -77,6 +77,8 @@ class _2011_PlRoSt
 
 		const float *get_x_matrix() const;
 
+		const float *get_y_matrix() const;
+
 		bool operator ()(float sample);
 };
 

@@ -160,6 +160,11 @@ const float *_2011_PlRoSt::get_x_matrix() const
 	return this->x_matrix;
 }
 
+const float *_2011_PlRoSt::get_y_matrix() const
+{
+	return this->y_matrix;
+}
+
 float entropy(const float *buffer, size_t buffer_len)
 {
 	float total = 0;
