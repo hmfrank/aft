@@ -1,2 +1,192 @@
-\chapter{Analyse}
+\chapter{Analyse der Algorithmen}
 \label{analyse}
+
+\section{Selektion}
+{
+}
+
+\section{Vergleich}
+{
+}
+
+\section{Funktionsweise}
+{
+	% TODO: sagen, dass ich hier meine eigenen Implementierung beschreibe, welche aber dem Paper entsprechen sollte und wenn nicht schreib ichs dazu
+	% TODO: vielleicht ein Wort zur Notation verlieren wegen Subscript und Klammern
+	% TODO: irgendwo erklären was ne ODF ist
+
+	\subsection{2011 Plumbley, Robertson, Stark - Real-Time Visual Beat Tracking Using a Comb Filter Matrix}
+	{
+		\subsubsection*{Ein- und Ausgabe}
+		{
+			Der Algorithmus von \cite{2011_PlRoSt} bekommt als Eingabe ein rohes, PCM-kodiertes Audiosignal mit einer Abtastfrequenz von \SI{44.1}{\kilo\hertz}.
+			Die Samples sind als 32-Bit Gleitkommazahlen kodiert.
+			Die Ausgabe besteht aus Tempo $\gamma$ und Phase $\theta$ der erkannten Beatfolge
+				und wird alle \num{11.61} Millisekunden aktualisiert.
+			Aus dem Tempo ergibt sich die Beatperiode $T = 1 / \gamma$.
+			Um die genaue Bedeutung der Phase zu verstehen,
+				kann man die komplette Laufzeit des Algorithmus in $T$ lange Abschnitte unterteilen.
+			So sollte sich in jedem Abschnitt ein Schlag befinden.
+			Die Phase $\theta$ gibt an,
+				wann innerhalb dieser Abschnitte der Schlag kommt (\SIrange{0}{360}{\degree}).
+			Das ist zum Einen Hilfreich,
+				um den genauen Zeitpunkt des nächsten Schlags zu bestimmen.
+			Zum Anderen kann man an langsamen Drifts der Phase erkennen,
+				ob das geschätzte Tempo ein bischen zu langsam oder zu schnell ist.
+		}
+
+		\subsubsection*{Funktionsweise}
+		{
+			% STFT und ODF
+			Der Algorithmus  arbeitet ebenfalls mit einer Einsatzdetektionsfunktion (Abk.: ODF von engl. onset detection function).
+			Tatsächlich verwent er sogar dieselbe komplexe Spektraldifferenzfunktion $d$ aus~\cite{2004_BeDaDuSa},
+				die auch in \cite{2009_DaPlSt} verwendet wurde.
+			Diese ODF bekommt einen STFT-Frame $p_{t, f}$ als Eingabe und gibt ein ODF-Sample $d_t$ zurück.
+			\begin{equation}
+				d_t = d(p_{t, f})
+			\end{equation}
+			Für die Kurzzeit-Fouriertransformation wurde ein Von-Hann-Fenster mit einer Breite von \num{1024} und eine Schrittweite von \num{512} verwendet.
+			Bei einer Abtastfrequenz von \SI{44.1}{\kilo\hertz} entsteht so ein neuer STFT-Frame,
+				und somit auch ein neues ODF-Sample,
+				alle $512 / \SI{44.1}{\kilo\hertz} = \SI{11.61}{\milli\second}$.
+
+			% vorverarbeitete ODF
+			Im nächsten Schritt werden die ODF-Samples vorverarbeitet.
+			Dazu wird zuerst der Median der Einsatzdetektionsfunktion berechnet.
+			Da aus~\cite{2011_PlRoSt} nicht hervorgeht, über welchen Zeitraum der Median berechnet wird,
+				wird in meiner Implementierung,
+				wie in~\cite{2009_DaPlSt},
+				ein \num{6} Sekunden langer Analyserahmen der Einsatzdetektionsfunktion gespeichert
+				und dieser zur Berechung des Medians genutzt.
+			Anders als bei~\cite{2009_DaPlSt} wird hier der Analyserahmen nicht alle \num{1.5} Sekunden,
+				sondern nach jedem neuen ODF-Sample weitergeschoben,
+				sodass er immer die letzten \num{6} Sekunden (\num{517} Samples) der Einsatzdetektionsfunktion enthält.
+			So wird aus jedem neuen ODF-Sample $d_t$ sofort das nächste Sample $v_t$ der vorverarbeiteten ODF berechnet.
+			\begin{equation}
+				v_t = v(d_t) =
+				\begin{cases}
+					d_t & \text{falls } d_t > \text{median} \\
+					0    & \text{sonst}
+				\end{cases}
+			\end{equation}
+			Diese vorverarbeitete Einsatzdetektionsfunktion wird im nächsten Schritt genutzt,
+				um die Kammfiltermatrix zu aktualisieren.
+
+			% Beschreibung Kammfiltermatrix
+			Die Kammfiltermatrix $X_{\tau, x}$ enthält eine Zeile für jede mögliche Temposchätzung, die der Algorithmus abgeben kann.
+			Diese werden mit der entsprechenden Beatperiode in ODF-Sample-Dauern adressiert.
+			Da der Algorithmus auf einen Tempobereich von \SIrange{80}{160}{BPM} beschränkt ist,
+				ergibt sich ein minimaler Zeilenindex von
+				$\tau_{min} = \lfloor(\SI{11.61}{\milli\second} \cdot \SI{160}{\per\minute})^{-1}\rfloor = 32$
+				und ein maximaler Zeilenindex von
+				$\tau_{max} = \lceil(\SI{11.61}{\milli\second} \cdot \SI{80}{\per\minute})^{-1}\rceil = 65$.
+			Jede Zeile entählt eine Zelle für jeden diskreten Zeitpunkt innerhalb der entsprechenden Beatperiode.
+			Diese haben auch jeweils einen Abstand von einer ODF-Sample-Dauer
+				und werden deshalb ebenfalls in dieser Einheit adressiert.
+			So ergibt sich für eine bestimmte Zeile $\tau$ ein Zellenindexbereich von $x = 0, ..., \tau - 1$.
+			Der Zellenindex $x$ ist direkt mit der Phase $\theta$ korreliert,
+				jedoch wird hier eine andere Variable verwendet,
+				da $x$ in ODF-Sample-Dauern von $0$ bis $\tau - 1$ ist
+				und $\theta$ einen Phasenwinkel in von \SIrange{0}{359}{\degree} ist
+				und die Umrechnung der beiden Größen von der Beatperiode $\tau$ abhängt.
+
+			% Kammfiltermatrixaktuelisierung
+			Die Kammfiltermatrix wird mit jedem neuen vorverarbeiteten ODF-Sample $v_t$ zum Zeitpunkt $t$ aktualisiert.
+			Dabei wird für jede Zeile $\tau$ die Zelle,
+				die den aktuellen Zeitpunkt entspricht $x = t \bmod \tau$,
+				mit der Updateregel
+				\begin{equation}
+					X_{\tau, x} \leftarrow
+						\alpha v_t +
+						(1 - \alpha) \max_{\substack{\tau_m = 32, ..., 65 \\ x_m = 0, ..., \tau - 1}}(g(\tau, \tau_m, 3.5) g(x, x_m, 6) X_{\tau, x})
+				\end{equation}
+				aktualisiert.
+			Die Konstante $\alpha$ ist \num{0.1}
+				und $g$ ist eine Gewichtsfunktion,
+				die die Form einer gaußschen Normalverteilung annimmt,
+				jedoch immer ein Maximum von \num{1} hat.
+			$\sigma$ bestimmt also nur die Breite der Glockenkurve,
+				aber nicht die Höhe,
+				wie bei einer gewöhnlichen Normalverteilung.
+			\begin{equation}
+				g(c, m, \sigma) = e^{-\frac{(c - m)^2}{2\sigma^2}}
+			\end{equation}
+
+			% Idee dahinter
+			Die Idee hinter dieser Updateregel ist,
+				dass sich,
+				in der zum richtigen Tempo gehörenden Zeile,
+				die Peaks der vorverarbeiteten ODF immer wieder an der gleichen Stelle überlagern
+				und somit eine Zelle in dieser Zeile einen sehr hohen Wert annimmt,
+				während in anderen Zeilen,
+				wegen des unpassenden Tempos dieser Zeilen,
+				die Peaks immer auf eine andere Stelle treffen
+				und es so nicht schaffen eine einzelne Zelle hochzudrücken.
+			Um das geschätzte Tempo und die Phase zu bestimmen,
+				kann man nach dem Maximum in der Matrix suchen.
+			Bevor das geschiet,
+				durchläuft diese jedoch erst einen weiteren Verarbeitungsschritt.
+
+			% Y-Matrix
+			Zunächst wird jede Zeile mit einem Rayleigh-Gewicht multipliziert.
+			Diese Gewichtsfunktion hat ihr Maximum bei \SI{120}{BPM} und flacht nach außen hin ab.
+			So werden häufiger vorkommende Tempi, bevorzugt.
+			Die Rayleigh-Funktion ist wie folgt definiert:
+			\begin{equation}
+				r(\tau) = \frac{\tau}{\beta^2}e^{\frac{-\tau^2}{2\beta^2}}
+			\end{equation}
+			wobei die Konstante $\beta$ den höchsten Punkt der Gewichtsfunktion bestimmt.
+			Ein Wert von $\beta = 43$ ODF-Samples entspricht hier einem Tempo von
+				$(43 \cdot \SI{11.61}{\milli\second})^{-1} = \SI{120}{\per\minute}$.
+			Die Zeile des rightigen Tempos hat wahrscheinlich eine starke Konzentration an hohen Werten um den Punkt der richtigen Phase herum.
+			Das bedeutet,
+				dass diese Zeile eine niedrigere Entropie hat als andere Zeilen,
+				deren Werte gleichmäßiger über die gesamte Zeile verteilt sind.
+			Die Entropie einer Matrixzeile ist durch
+				\begin{equation}
+					h(\tau) = \sum_{x = 0}^{\tau - 1} -p(\tau, x) log(p(\tau, x))
+				\end{equation}
+				definiert, wobei
+				\begin{equation}
+					p(\tau, x) = \frac{X_{\tau, x}}{\sum_{x_i = 0}^{\tau - 1}X_{\tau, x_i}}
+				\end{equation}
+				als Häufigkeitsverteilung einer Zeile interpretiert werden kann.
+			Als nächstes wird in der resultierenden Matrix
+				\begin{equation}
+					Y_{\tau, x} = \frac{r(\tau)}{h(\tau)}X_{\tau, x}
+				\end{equation}
+				nach dem Maximum gesucht.
+			Der Matrixindex $(\tau_{\text{neu}}, x_{\text{neu}})$ des Maximums gibt das wahrscheinlichste Tempo und die wahrscheinlichste Phase an.
+
+			% Tempoübergänge
+			Da das so ermittelte Tempo-Phase-Paar  z. B. bei Unregelmäßigkeiten in der Musik etwas hin und her springen kann,
+				gibt es noch eine Tempoupdateregel,
+				die dafür sorgt,
+				dass sich das Tempo und die Phase nur dann ändern können,
+				wenn entweder die neue Hypothese sich in der Matrix relativ nah an der alten befindet,
+				oder sie viel stärker ist als die alte.
+			Hierfür definieren wir eine Gewichtsfunktion,
+				welche Werte in der Nähe der aktuellen Hypothese $(\tau_f, x_f)$ bevorzugt.
+			\begin{equation}
+				w(\tau_{\text{neu}}, x_{\text{neu}}) =
+					g(\tau_f, \tau_{\text{neu}}, 4)
+					g(x_f, x_{\text{neu}}, 10)
+			\end{equation}
+			Die Standartabweichungen von \num{4} und \num{10} wurden durch~\cite{2011_PlRoSt} experimentell ermittelt.
+			Die aktuelle Hypothese wird mit folgender Updateregel aktuelisiert:
+			\begin{equation}
+				(\tau_f, x_f) \leftarrow
+				\begin{cases}
+					(\tau_{\text{neu}}, x_{\text{neu}}) &
+						\text{falls } w(\tau_{\text{neu}}, x_{\text{neu}}) Y_{\tau_{\text{neu}}, x_{\text{neu}}} > Y_{\tau_f, x_f} \\
+					(\tau_f, x_f) &
+						\text{sonst}
+				\end{cases}
+			\end{equation}
+
+			% Schlusssatz
+			All diese Berechnungen werden für jedes neue Sample der Einsatzdetektionsfunktion durchgeführt.
+			So gibt der Algorithmus alle \SI{11.61}{\milli\second} eine neue Tempo-Phase-Hypothese aus.
+		}
+	}
+}

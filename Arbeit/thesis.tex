@@ -4,15 +4,20 @@
 % --------------------------------------------------
 
 % TODO: Paragraphüberschrift fett drucken
-% TODO: ß soll nicht als SS sondern als ß angezeigt werden 
+% TODO: Sprache auf Deutsch stellen
+% TODO: ß soll nicht als SS sondern als ß angezeigt werden
 % TODO: komplette Rechtschreibprüfung
 
 \documentclass[openright, twoside, utf8, 11.5pt]{scrbook}
 
 % \usepackage[german]{babel}
 % \usepackage[utf-8]{inputenc}
+\usepackage{amsmath}
 \usepackage{lipsum}
 \usepackage{mgthesis}
+\usepackage{siunitx}
+
+\sisetup{locale = DE}
 
 \newcommand{\thesistype}{Projektarbeit}
 \newcommand{\degreetype}{Bachelor/Master of Science (M./B.\,Sc.)}
