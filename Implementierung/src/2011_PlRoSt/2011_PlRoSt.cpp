@@ -253,6 +253,16 @@ float gaussian(float center, float current, float sigma)
 	);
 }
 
+size_t x_diff(ssize_t x, ssize_t x_new, ssize_t tau)
+{
+	size_t d_0 = labs(x - x_new);
+	size_t d_1 = labs(x - x_new - tau);
+	size_t d_2 = labs(x - x_new + tau);
+
+	d_0 = d_0 < d_1 ? d_0 : d_1;
+	return d_0 < d_2 ? d_0 : d_2;
+}
+
 /// Computes the maximum weighted value in the given matrix.
 /// In other words: This function copmutes the max of equation (4) in the paper.
 float max_weighted_value(const float *matrix, size_t tau, size_t x)
@@ -266,7 +276,7 @@ float max_weighted_value(const float *matrix, size_t tau, size_t x)
 		for (size_t x_m = 0; x_m < tau_m; ++x_m)
 		{
 			float tempo_weight = gaussian(tau, tau_m, 3.5f);
-			float phase_weight = gaussian(x, x_m, 6.0f);
+			float phase_weight = gaussian(0, x_diff(x, x_m, tau), 6.0f);
 			float value =
 				tempo_weight * phase_weight *
 				matrix[y_m * MATRIX_WIDTH + x_m];
@@ -300,11 +310,10 @@ float rayleigh_weight(size_t tau)
 
 	return t * expf(-t * t / 2.0f / b / b) / b / b;
 }
-
 /// Returns the tempo update weight described in equation (10) in the paper.
 float tempo_update_weight(size_t tau, size_t tau_new, size_t x, size_t x_new)
 {
-	return gaussian(tau, tau_new, 4) * gaussian(x, x_new, 10);
+	return gaussian(tau, tau_new, 4) * gaussian(0, x_diff(x, x_new, tau), 10);
 }
 
 bool _2011_PlRoSt::operator()(float sample)
