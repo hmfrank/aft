@@ -319,7 +319,7 @@ bool _2011_PlRoSt::operator()(float sample)
 	this->analysis_frame.push(this->odf_sample);
 	this->af_median = median(&this->analysis_frame);
 	// pre-processed ODF sample
-	float pp_odf_sample = max(0.0f, this->odf_sample - this->af_median);
+	float pp_odf_sample = this->odf_sample > this->af_median ? this->odf_sample : 0;
 
 	// update X-Matrix
 	float updates[MATRIX_HEIGHT];

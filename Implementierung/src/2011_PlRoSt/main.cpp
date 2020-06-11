@@ -238,18 +238,11 @@ void MyApp::render_odf(Bounds b, Color c, Color c_af, Color c_paf)
 		// part of the ODF that is the analysis frame
 		else
 		{
+			Color col = this->odf_samples[i] > median ? c_paf : c_af;
 			S2D_DrawLine(
-				x, b.bottom, x, max(y, y_median), 1,
-				COMMA_SPLIT_COLOR_4(c_af)
+				x, b.bottom, x, y, 1,
+				COMMA_SPLIT_COLOR_4(col)
 			);
-
-			if (y < y_median)
-			{
-				S2D_DrawLine(
-					x, y_median, x, y, 1,
-					COMMA_SPLIT_COLOR_4(c_paf)
-				);
-			}
 		}
 	}
 
@@ -267,7 +260,7 @@ void MyApp::render_odf(Bounds b, Color c, Color c_af, Color c_paf)
 	float y = b.bottom - height * median;
 	S2D_DrawLine(
 		b.right - ANALYSIS_FRAME_SIZE, y, b.right, y, 1,
-		COMMA_SPLIT_COLOR_4(c_paf)
+		COMMA_SPLIT_COLOR_4(c_af)
 	);
 
 	// text
@@ -282,7 +275,7 @@ void MyApp::render_matrix(bool x, Bounds b, Color c, Color c_now, Color *c_curre
 	const float *matrix = x ?
 						  this->beat_tracking.get_x_matrix() :
 						  this->beat_tracking.get_y_matrix();
-	const float scaling = x ? 1 : 333;
+	const float scaling = x ? 0.75 : 250;
 	float x_px_size = b.width() / MATRIX_WIDTH;
 	float y_px_size = b.height() / MATRIX_HEIGHT;
 
@@ -398,7 +391,7 @@ void MyApp::render()
 	float y = 0;
 
 	app.render_audio_input(Bounds {0, y, WIDTH, y += 200}, C_GREEN);
-	app.render_odf(Bounds {0, y, WIDTH, y += 200}, C_YELLOW, C_ORANGE, C_WHITE);
+	app.render_odf(Bounds {0, y, WIDTH, y += 200}, C_YELLOW, C_RED, C_ORANGE);
 	app.render_x_matrix(
 		Bounds{
 			0, y,
