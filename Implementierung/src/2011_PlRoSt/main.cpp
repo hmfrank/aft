@@ -22,7 +22,7 @@ const int MATRIX_PX_SIZE = 7;
 
 // window size in pixels
 const int WIDTH = 1000;
-const int HEIGHT = 630 + MATRIX_HEIGHT * MATRIX_PX_SIZE + 30;
+const int HEIGHT = 830 + MATRIX_HEIGHT * MATRIX_PX_SIZE + 30;
 
 // colors
 struct Color { float r, g, b, a; };
@@ -58,9 +58,11 @@ class MyApp
 		ShiftRegister input_samples_min;
 		ShiftRegister input_samples_max;
 		ShiftRegister odf_samples;
+		ShiftRegister pp_odf_samples;
 		S2D_Text *text_audio_input;
 		S2D_Text *text_help;
 		S2D_Text *text_odf;
+		S2D_Text *text_pp_odf;
 		S2D_Text *text_x_matrix;
 		S2D_Text *text_y_matrix;
 
@@ -79,7 +81,9 @@ class MyApp
 
 		void render_matrix(bool x, Bounds b, Color c, Color c_now, Color *c_current, Color *c_new);
 
-		void render_odf(Bounds b, Color c, Color c_af, Color c_paf);
+		void render_odf(Bounds b, Color c, Color c_af);
+
+		void render_pp_odf(Bounds b, Color c);
 
 		void render_x_matrix(Bounds b, Color c, Color c_now);
 
@@ -211,7 +215,7 @@ void MyApp::render_info_box(Bounds b, Color c_current, Color c_new)
 	}
 }
 
-void MyApp::render_odf(Bounds b, Color c, Color c_af, Color c_paf)
+void MyApp::render_odf(Bounds b, Color c, Color c_af)
 {
 	// grid lines
 	MyApp::render_grid_lines(b, C_GRID_LINES);
@@ -226,24 +230,12 @@ void MyApp::render_odf(Bounds b, Color c, Color c_af, Color c_paf)
 		float x = (float)(i - n) + b.right;
 		float y = b.bottom - this->odf_samples[i] * height;
 		float y_median = b.bottom - median * height;
+		Color col = i <= n - ANALYSIS_FRAME_SIZE ? c : c_af;
 
-		// old ODF samples that are no longer in the AF
-		if (i <= n - ANALYSIS_FRAME_SIZE)
-		{
-			S2D_DrawLine(
-				x, b.bottom, x, y, 1,
-				COMMA_SPLIT_COLOR_4(c)
-			);
-		}
-		// part of the ODF that is the analysis frame
-		else
-		{
-			Color col = this->odf_samples[i] > median ? c_paf : c_af;
-			S2D_DrawLine(
-				x, b.bottom, x, y, 1,
-				COMMA_SPLIT_COLOR_4(col)
-			);
-		}
+		S2D_DrawLine(
+			x, b.bottom, x, y, 1,
+			COMMA_SPLIT_COLOR_4(col)
+		);
 	}
 
 	// zero line
@@ -260,7 +252,7 @@ void MyApp::render_odf(Bounds b, Color c, Color c_af, Color c_paf)
 	float y = b.bottom - height * median;
 	S2D_DrawLine(
 		b.right - ANALYSIS_FRAME_SIZE, y, b.right, y, 1,
-		COMMA_SPLIT_COLOR_4(c_af)
+		COMMA_SPLIT_COLOR_4(C_WHITE)
 	);
 
 	// text
@@ -270,12 +262,46 @@ void MyApp::render_odf(Bounds b, Color c, Color c_af, Color c_paf)
 	S2D_DrawText(app.text_odf);
 }
 
+void MyApp::render_pp_odf(Bounds b, Color c)
+{
+
+	// grid lines
+	MyApp::render_grid_lines(b, C_GRID_LINES);
+
+	//waveform
+	float height = b.height();
+	int n = this->pp_odf_samples.get_len();
+
+	for (int i = n - (int)b.width(); i < n; ++i)
+	{
+		float x = (float)(i - n) + b.right;
+		float y = b.bottom - this->pp_odf_samples[i] * height;
+
+		S2D_DrawLine(
+			x, b.bottom, x, y, 1,
+			COMMA_SPLIT_COLOR_4(c)
+		);
+	}
+
+	// zero line
+	S2D_DrawLine(
+		b.left, b.bottom, b.right, b.bottom, 1,
+		COMMA_SPLIT_COLOR_4(c)
+	);
+
+	// text
+	SET_TEXT_COL(app.text_pp_odf, c);
+	app.text_pp_odf->x = b.left;
+	app.text_pp_odf->y = b.top;
+	S2D_DrawText(app.text_pp_odf);
+}
+
 void MyApp::render_matrix(bool x, Bounds b, Color c, Color c_now, Color *c_current, Color *c_new)
 {
 	const float *matrix = x ?
 						  this->beat_tracking.get_x_matrix() :
 						  this->beat_tracking.get_y_matrix();
-	const float scaling = x ? 0.75 : 250;
+	const float scaling = x ? 1 : 200;
 	float x_px_size = b.width() / MATRIX_WIDTH;
 	float y_px_size = b.height() / MATRIX_HEIGHT;
 
@@ -374,6 +400,7 @@ void MyApp::input_thread_main()
 			app.input_samples_max.push(max(samples, input_samples.get_len()));
 			app.input_samples_min.push(min(samples, input_samples.get_len()));
 			app.odf_samples.push(app.beat_tracking.get_odf_sample());
+			app.pp_odf_samples.push(app.beat_tracking.get_pp_odf_sample());
 		}
 	}
 }
@@ -391,7 +418,8 @@ void MyApp::render()
 	float y = 0;
 
 	app.render_audio_input(Bounds {0, y, WIDTH, y += 200}, C_GREEN);
-	app.render_odf(Bounds {0, y, WIDTH, y += 200}, C_YELLOW, C_RED, C_ORANGE);
+	app.render_odf(Bounds {0, y, WIDTH, y += 200}, C_YELLOW, C_ORANGE);
+	app.render_pp_odf(Bounds {0, y, WIDTH, y += 200}, C_RED);
 	app.render_x_matrix(
 		Bounds{
 			0, y,
@@ -439,6 +467,7 @@ void MyApp::init()
 	app.input_samples_min = ShiftRegister(WIDTH);
 	app.input_samples_max = ShiftRegister(WIDTH);
 	app.odf_samples = ShiftRegister(WIDTH);
+	app.pp_odf_samples = ShiftRegister(WIDTH);
 	app.text_audio_input = S2D_CreateText(
 		FONT, "Audio Input", 20
 	);
@@ -449,6 +478,10 @@ void MyApp::init()
 	assert(app.text_help != nullptr);
 	app.text_odf = S2D_CreateText(
 		FONT, "Onset Detection Function", 20
+	);
+	assert(app.text_odf != nullptr);
+	app.text_pp_odf = S2D_CreateText(
+		FONT, "Pre-Precessed Onset Detection Function", 20
 	);
 	assert(app.text_odf != nullptr);
 	app.text_x_matrix = S2D_CreateText(
@@ -476,6 +509,7 @@ void MyApp::free()
 	S2D_FreeText(app.text_audio_input);
 	S2D_FreeText(app.text_help);
 	S2D_FreeText(app.text_odf);
+	S2D_FreeText(app.text_pp_odf);
 	S2D_FreeText(app.text_x_matrix);
 	S2D_FreeText(app.text_y_matrix);
 	S2D_FreeWindow(app.window);
