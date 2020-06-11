@@ -32,6 +32,9 @@ class _2011_PlRoSt
 		// last new onset detection function sample
 		float odf_sample;
 
+		// last pre-processed onset detection function sample
+		float pp_odf_sample;
+
 		// elapsed time in ODF samples
 		size_t time;
 
@@ -88,6 +91,8 @@ class _2011_PlRoSt
 		size_t get_new_x() const;
 		
 		float get_odf_sample() const;
+
+		float get_pp_odf_sample() const;
 
 		size_t get_time() const;
 

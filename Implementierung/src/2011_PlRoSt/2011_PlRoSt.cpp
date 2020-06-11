@@ -60,6 +60,7 @@ _2011_PlRoSt::_2011_PlRoSt() :
 	this->onset_detection = OnsetDetection(get_num_bins());
 	this->af_median = 0;
 	this->odf_sample = 0;
+	this->pp_odf_sample = 0;
 	this->time = -1;
 	this->current_tau = BETA;
 	this->current_x = 0;
@@ -83,6 +84,7 @@ _2011_PlRoSt::_2011_PlRoSt(const _2011_PlRoSt &that) :
 	this->onset_detection = that.onset_detection;
 	this->af_median = that.af_median;
 	this->odf_sample = that.odf_sample;
+	this->pp_odf_sample = that.pp_odf_sample;
 	this->time = that.time;
 	this->current_tau = that.current_tau;
 	this->current_x = that.current_x;
@@ -114,6 +116,7 @@ _2011_PlRoSt &_2011_PlRoSt::operator=(const _2011_PlRoSt &that)
 	this->analysis_frame = that.analysis_frame;
 	this->af_median = that.af_median;
 	this->odf_sample = that.odf_sample;
+	this->pp_odf_sample = that.pp_odf_sample;
 	this->time = that.time;
 	this->current_tau = that.current_tau;
 	this->current_x = that.current_x;
@@ -174,6 +177,11 @@ size_t _2011_PlRoSt::get_new_x() const
 float _2011_PlRoSt::get_odf_sample() const
 {
 	return this->odf_sample;
+}
+
+float _2011_PlRoSt::get_pp_odf_sample() const
+{
+	return this->pp_odf_sample;
 }
 
 size_t _2011_PlRoSt::get_time() const
@@ -245,6 +253,16 @@ float gaussian(float center, float current, float sigma)
 	);
 }
 
+size_t x_diff(ssize_t x, ssize_t x_new, ssize_t tau)
+{
+	size_t d_0 = labs(x - x_new);
+	size_t d_1 = labs(x - x_new - tau);
+	size_t d_2 = labs(x - x_new + tau);
+
+	d_0 = d_0 < d_1 ? d_0 : d_1;
+	return d_0 < d_2 ? d_0 : d_2;
+}
+
 /// Computes the maximum weighted value in the given matrix.
 /// In other words: This function copmutes the max of equation (4) in the paper.
 float max_weighted_value(const float *matrix, size_t tau, size_t x)
@@ -258,7 +276,7 @@ float max_weighted_value(const float *matrix, size_t tau, size_t x)
 		for (size_t x_m = 0; x_m < tau_m; ++x_m)
 		{
 			float tempo_weight = gaussian(tau, tau_m, 3.5f);
-			float phase_weight = gaussian(x, x_m, 6.0f);
+			float phase_weight = gaussian(0, x_diff(x, x_m, tau), 6.0f);
 			float value =
 				tempo_weight * phase_weight *
 				matrix[y_m * MATRIX_WIDTH + x_m];
@@ -292,11 +310,10 @@ float rayleigh_weight(size_t tau)
 
 	return t * expf(-t * t / 2.0f / b / b) / b / b;
 }
-
 /// Returns the tempo update weight described in equation (10) in the paper.
 float tempo_update_weight(size_t tau, size_t tau_new, size_t x, size_t x_new)
 {
-	return gaussian(tau, tau_new, 4) * gaussian(x, x_new, 10);
+	return gaussian(tau, tau_new, 4) * gaussian(0, x_diff(x, x_new, tau), 10);
 }
 
 bool _2011_PlRoSt::operator()(float sample)
@@ -318,8 +335,7 @@ bool _2011_PlRoSt::operator()(float sample)
 	this->odf_sample = this->onset_detection(this->stft_frame);
 	this->analysis_frame.push(this->odf_sample);
 	this->af_median = median(&this->analysis_frame);
-	// pre-processed ODF sample
-	float pp_odf_sample = max(0.0f, this->odf_sample - this->af_median);
+	this->pp_odf_sample = this->odf_sample > this->af_median ? this->odf_sample : 0;
 
 	// update X-Matrix
 	float updates[MATRIX_HEIGHT];
@@ -330,7 +346,7 @@ bool _2011_PlRoSt::operator()(float sample)
 		size_t x = this->time % tau;
 
 		updates[y] =
-			ALPHA * pp_odf_sample +
+			ALPHA * this->pp_odf_sample +
 			(1 - ALPHA) * max_weighted_value(this->x_matrix, tau, x);
 	}
 
