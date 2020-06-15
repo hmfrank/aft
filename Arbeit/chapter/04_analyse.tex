@@ -13,6 +13,11 @@
 {
 	% TODO: sagen, dass ich hier meine eigenen Implementierung beschreibe, welche aber dem Paper entsprechen sollte und wenn nicht schreib ichs dazu
 	% TODO: vielleicht ein Wort zur Notation verlieren wegen Subscript und Klammern
+	% * Subsxript t ist meistens Zeitreihenindex
+	% * Subscripte sind meistens Indices für Zeitreihen, Arrays oder Matrizen
+	% * manchmal werden Subscripte auch benutzt um verschiedene Versionen einer Variable zu differenzieren
+	%   z. B. tau_f und tau_neu --> dann wern sa aber als Wörter geschrieben mit ner Text-Schriftart
+	% * Zahlen in Klammern sind Parameter einer Funktion, die iwas mit diesen Zahlen macht
 	% TODO: irgendwo erklären was ne ODF ist
 
 	\subsection{2011 Plumbley, Robertson, Stark - Real-Time Visual Beat Tracking Using a Comb Filter Matrix}
@@ -41,9 +46,9 @@
 			Der Algorithmus  arbeitet ebenfalls mit einer Einsatzdetektionsfunktion (Abk.: ODF von engl. onset detection function).
 			Tatsächlich verwent er sogar dieselbe komplexe Spektraldifferenzfunktion $d$ aus~\cite{2004_BeDaDuSa},
 				die auch in \cite{2009_DaPlSt} verwendet wurde.
-			Diese ODF bekommt einen STFT-Frame $p_{t, f}$ als Eingabe und gibt ein ODF-Sample $d_t$ zurück.
+			Diese ODF bekommt einen STFT-Frame $p_t$ als Eingabe und gibt ein ODF-Sample $d_t$ zurück.
 			\begin{equation}
-				d_t = d(p_{t, f})
+				d_t = d(p_t)
 			\end{equation}
 			Für die Kurzzeit-Fouriertransformation wurde ein Von-Hann-Fenster mit einer Breite von \num{1024} und eine Schrittweite von \num{512} verwendet.
 			Bei einer Abtastfrequenz von \SI{44.1}{\kilo\hertz} entsteht so ein neuer STFT-Frame,
@@ -77,9 +82,9 @@
 			Diese werden mit der entsprechenden Beatperiode in ODF-Sample-Dauern adressiert.
 			Da der Algorithmus auf einen Tempobereich von \SIrange{80}{160}{BPM} beschränkt ist,
 				ergibt sich ein minimaler Zeilenindex von
-				$\tau_{min} = \lfloor(\SI{11.61}{\milli\second} \cdot \SI{160}{\per\minute})^{-1}\rfloor = 32$
+				$\tau_{\text{min}} = \lfloor(\SI{11.61}{\milli\second} \cdot \SI{160}{\per\minute})^{-1}\rfloor = 32$
 				und ein maximaler Zeilenindex von
-				$\tau_{max} = \lceil(\SI{11.61}{\milli\second} \cdot \SI{80}{\per\minute})^{-1}\rceil = 65$.
+				$\tau_{\text{max}} = \lceil(\SI{11.61}{\milli\second} \cdot \SI{80}{\per\minute})^{-1}\rceil = 65$.
 			Jede Zeile entählt eine Zelle für jeden diskreten Zeitpunkt innerhalb der entsprechenden Beatperiode.
 			Diese haben auch jeweils einen Abstand von einer ODF-Sample-Dauer
 				und werden deshalb ebenfalls in dieser Einheit adressiert.
@@ -98,7 +103,8 @@
 				\begin{equation}
 					X_{\tau, x} \leftarrow
 						\alpha v_t +
-						(1 - \alpha) \max_{\substack{\tau_m = 32, ..., 65 \\ x_m = 0, ..., \tau - 1}}(g(\tau, \tau_m, 3.5) g(x, x_m, 6) X_{\tau, x})
+						(1 - \alpha) \max_{\substack{\tau_m = \tau_{\text{min}}, ..., \tau_{\text{max}} \\ x_m = 0, ..., \tau - 1}}
+							(g(\tau, \tau_m, 3.5) g(x, x_m, 6) X_{\tau, x})
 				\end{equation}
 				aktualisiert.
 			Die Konstante $\alpha$ ist \num{0.1}
@@ -166,20 +172,21 @@
 				wenn entweder die neue Hypothese sich in der Matrix relativ nah an der alten befindet,
 				oder sie viel stärker ist als die alte.
 			Hierfür definieren wir eine Gewichtsfunktion,
-				welche Werte in der Nähe der aktuellen Hypothese $(\tau_f, x_f)$ bevorzugt.
+				welche Werte in der Nähe der aktuellen Hypothese $(\tau_\text{f}, x_\text{f})$ bevorzugt.
 			\begin{equation}
 				w(\tau_{\text{neu}}, x_{\text{neu}}) =
-					g(\tau_f, \tau_{\text{neu}}, 4)
-					g(x_f, x_{\text{neu}}, 10)
+					g(\tau_\text{f}, \tau_{\text{neu}}, 4)
+					g(x_\text{f}, x_{\text{neu}}, 10)
 			\end{equation}
 			Die Standartabweichungen von \num{4} und \num{10} wurden durch~\cite{2011_PlRoSt} experimentell ermittelt.
 			Die aktuelle Hypothese wird mit folgender Updateregel aktuelisiert:
 			\begin{equation}
-				(\tau_f, x_f) \leftarrow
+				(\tau_\text{f}, x_\text{f}) \leftarrow
 				\begin{cases}
 					(\tau_{\text{neu}}, x_{\text{neu}}) &
-						\text{falls } w(\tau_{\text{neu}}, x_{\text{neu}}) Y_{\tau_{\text{neu}}, x_{\text{neu}}} > Y_{\tau_f, x_f} \\
-					(\tau_f, x_f) &
+						\text{falls } w(\tau_{\text{neu}}, x_{\text{neu}}) Y_{\tau_{\text{neu}}, x_{\text{neu}}} >
+							Y_{\tau_\text{f}, x_\text{f}} \\
+					(\tau_\text{f}, x_\text{f}) &
 						\text{sonst}
 				\end{cases}
 			\end{equation}
