@@ -39,6 +39,12 @@ class BeatPrediction
 		// inter beat interval of the current tempo estimate in ODF samples
 		size_t beat_period;
 
+		// current time in ODF samples
+		size_t time;
+
+		// time of the current beat prediction
+		// (can be in both the future or the past)
+		size_t current_beat_time;
 
 		// returns the score function at the given index, where 0 is the present moment and negative value are the past
 		float score_function(ssize_t index);
@@ -58,6 +64,9 @@ class BeatPrediction
 		/// ODF samples.
 		float get_beat_period() const;
 
+		/// Returns the time of the current beat prediction
+		size_t get_current_beat_time() const;
+
 		/// Returns the current value of the score function.
 		float get_current_score() const;
 
@@ -69,16 +78,19 @@ class BeatPrediction
 		/// length is `TAU_MAX + 1`.
 		const float *get_future_score() const;
 
+		/// Returns the current time in ODF samples
+		size_t get_time() const;
+
 		/// Updates the tempo used for beat prediction.
 		///
 		/// \param tempo new tempo in BPM
 		void set_tempo(float tempo);
 
-		/// Consumes a sample of the onset detection function and returns a prediction of the next beat location.
+		/// Consumes a sample of the onset detection function and returns true
+		/// iff the current beat time was updated.
 		///
 		/// \param odf_sample next sample of the onset detection function
-		/// \return predicted position of the next beat in "number of ODF samples into the future"
-		size_t operator ()(float odf_sample);
+		bool operator ()(float odf_sample);
 };
 
 #endif //IMPLEMENTIERUNG_BEAT_PREDICTION_H

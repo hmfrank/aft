@@ -25,8 +25,6 @@ using namespace gam;
 class _2009_DaPlSt
 {
 	private:
-		size_t time;
-		size_t next_beat;
 		float sample_rate;
 		float odf_sample;
 		STFT *stft;
@@ -45,6 +43,11 @@ class _2009_DaPlSt
 		/// Returns a pointer to the internal beat prediction object.
 		const BeatPrediction *get_beat_prediction() const;
 
+		/// Returns the time of the current predicted beat in ODF samples.
+		///
+		/// One unit is worth `ODF_SAMPLE_INTERVAL` seconds.
+		size_t get_current_beat_time() const;
+
 		/// Returns the current STFT object.
 		const STFT *get_stft() const;
 
@@ -59,21 +62,18 @@ class _2009_DaPlSt
 		/// One unit is worth `ODF_SAMPLE_INTERVAL` seconds.
 		size_t get_time() const;
 
-		/// Returns the predicted time of the next beat in ODF samples.
-		///
-		/// One unit is worth `ODF_SAMPLE_INTERVAL` seconds.
-		size_t get_next_beat_time() const;
-
 		/// Returns the current tempo estimate in BPM.
 		float get_tempo() const;
 
 		/// Consumes and processes the next audio sample of the input stream and updates the predicted beat time and
 		/// tempo estimate if enough samples are consumed.
 		///
-		/// \return There are three return codes with different meanings:
+		/// \return
 		///     0: no updates
-		///     1: next beat prediction got updated (check with `get_next_beat_time()`)
-		///     2: next beat prediction and tempo estimate got updated (check with `get_next_beat_time()` and `get_tempo()`)
+		///     1: new ODF sample available (check with `get_odf_sample()`)
+		///     2: current beat prediction got updated (check with `get_current_beat_time()`)
+		///     4: tempo estimate got updated (check with `get_tempo()`)
+		///     Or any combination of the above.
 		int operator()(float sample);
 };
 

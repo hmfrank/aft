@@ -357,9 +357,12 @@ void render_score_function(float top, float bottom)
 		1, 0, 0.5, 1
 	);
 
-	// next beat prediction
-	float relative_next_beat_time = beat_tracking.get_next_beat_time() - beat_tracking.get_time();
-	float x = X_PRESENT - 1 + relative_next_beat_time;
+	// beat prediction
+	float relative_current_beat_time = (float)(
+		(ssize_t)beat_tracking.get_current_beat_time() -
+		(ssize_t)beat_tracking.get_time()
+	);
+	float x = X_PRESENT - 1 + relative_current_beat_time;
 	S2D_DrawLine(
 		x, bottom, x, top, 1,
 		1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1

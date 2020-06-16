@@ -31,6 +31,9 @@ BeatPrediction::BeatPrediction() : past_score(2 * TAU_MAX)
 	// `set_tempo()` initializes `beat_period`, `past_weighting`, and
 	// `future_weighting`.
 	this->set_tempo(PREFERRED_TEMPO);
+
+	this->time = -1;
+	this->current_beat_time = BETA;
 }
 
 BeatPrediction::BeatPrediction(const BeatPrediction &that) : past_score(0)
@@ -52,6 +55,8 @@ BeatPrediction::BeatPrediction(const BeatPrediction &that) : past_score(0)
 	memcpy(this->future_score, that.future_score, sizeof(*this->future_score) * size);
 
 	this->beat_period = that.beat_period;
+	this->time = that.time;
+	this->current_beat_time = that.current_beat_time;
 }
 
 BeatPrediction &BeatPrediction::operator=(const BeatPrediction &that)
@@ -76,6 +81,8 @@ BeatPrediction &BeatPrediction::operator=(const BeatPrediction &that)
 		memcpy(this->future_score, that.future_score, sizeof(*this->future_score) * size);
 
 		this->beat_period = that.beat_period;
+		this->time = that.time;
+		this->current_beat_time = that.current_beat_time;
 	}
 
 	return *this;
@@ -125,6 +132,11 @@ float BeatPrediction::get_beat_period() const
 	return this->beat_period;
 }
 
+size_t BeatPrediction::get_current_beat_time() const
+{
+	return this->current_beat_time;
+}
+
 float BeatPrediction::get_current_score() const
 {
 	return this->current_score;
@@ -133,6 +145,11 @@ float BeatPrediction::get_current_score() const
 const float *BeatPrediction::get_future_score() const
 {
 	return this->future_score;
+}
+
+size_t BeatPrediction::get_time() const
+{
+	return this->time;
 }
 
 void BeatPrediction::set_tempo(float tempo)
@@ -152,17 +169,25 @@ void BeatPrediction::set_tempo(float tempo)
 	}
 }
 
-size_t BeatPrediction::operator()(float odf_sample)
+bool BeatPrediction::operator()(float odf_sample)
 {
 	this->past_score.push(this->current_score);
 	this->current_score = ((1 - ALPHA) * odf_sample + ALPHA * this->eq2rhs(0));
+	++this->time;
+
+	if (this->time < this->current_beat_time + this->beat_period / 2)
+	{
+		return false;
+	}
 
 	float max = 0;
 	size_t argmax = 0;
+
 	for (size_t m = 1; m <= this->beat_period; ++m)
 	{
 		float value = this->eq2rhs(m);
 		this->future_score[m - 1] = value;
+		value *= this->future_weighting[m];
 
 		if (value >= max)
 		{
@@ -171,5 +196,7 @@ size_t BeatPrediction::operator()(float odf_sample)
 		}
 	}
 
-	return argmax;
+	this->current_beat_time = this->time + argmax;
+
+	return true;
 }
