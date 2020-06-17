@@ -20,11 +20,187 @@
 	% * Zahlen in Klammern sind Parameter einer Funktion, die iwas mit diesen Zahlen macht
 	% TODO: irgendwo erklären was ne ODF ist
 
-	\subsection{2011 Plumbley, Robertson, Stark - Real-Time Visual Beat Tracking Using a Comb Filter Matrix}
+	% Man könnte, wenn man noch Wörter braucht, noch viel mehr auf Implementierungsdetails eingehen, wie bestimmte Sachen umgesetzt wurden
+
+	\subsection{2009 Stark, Davies, Plumbley - Real-Time Beat-Synchronous Analysis of Musical Audio}
 	{
 		\subsubsection*{Ein- und Ausgabe}
 		{
-			Der Algorithmus von \cite{2011_PlRoSt} bekommt als Eingabe ein rohes, PCM-kodiertes Audiosignal mit einer Abtastfrequenz von \SI{44.1}{\kilo\hertz}.
+			Der Algorithmus von~\cite{2009_DaPlSt} bekommt als Eingabe ein rohes, PCM-kodiertes Audiosignal mit einer Abtastfrequenz von \SI{44.1}{\kilo\hertz}.
+			Die Samples sind als 32-Bit Gleitkommazahlen kodiert.
+
+			Die Ausgabe besteht aus einer Temposchätzung $f_\text{f}$,
+				die alle \num{1.5} Sekunden aktualisiert wird.
+			Aus dem Tempo ergibt sich die Beatperiode mit $T_\text{f} = 1 / f_\text{f}$.
+			Außerdem gibt der Algorithmus eine Beatvorhersage aus,
+				die angibt,
+				wann der nächste Beat kommt.
+			Diese wird jede Beatperiode aktualisiert.
+			Wie oft sie tatsächlich aktualisiert wird,
+				hängt also vom Tempo des Musikstücks ab.
+		}
+
+		\subsubsection*{Funktionsweise}
+		{
+			% STFT und ODF
+			Genau wie~\cite{2011_PlRoSt},
+				nutzt auch dieser Algorithmus die komplexen Spektraldifferenzfunktion von~\cite{2004_BeDaDuSa}
+				als Einsatzdetektionsfunktion (kurz ODF von engl. onset detection function).
+			Diese berechnet aus jedem STFT-Frame $p_t$ eine neues ODF-Sample $d_t$.
+			\begin{equation}
+				d_t = d(p_t)
+			\end{equation}
+			Für die Kurzzeit-Fouriertransformation wurde ein Von-Hann-Fenster mit einer Breite von \num{1024} und eine Schrittweite von \num{512} verwendet.
+			Bei einer Abtastfrequenz von \SI{44.1}{\kilo\hertz} entsteht so ein neuer STFT-Frame,
+				und somit auch ein neues ODF-Sample,
+				alle $512 / \SI{44.1}{\kilo\hertz} = \SI{11.61}{\milli\second}$.
+			Zeitreihen, wie $d_t$, können auf zwei Art und Weisen indexiert werden.
+			Entweder mit der tatsächlichen Zeit $t$ in Sekunden
+				oder mit einem ganzzahligen Zeitindex $\tau$,
+				bei dem eine Einheit \SI{11.61}{\milli\second} entspricht
+				($t = \SI{11.61}{\milli\second} \cdot \tau$).
+			Im Folgenden werden alle Zeitreihen mit $\tau$, statt $t$, indexiert,
+				da die Implementierung intern auch nur mit Zeiteinheiten von \SI{11.61}{\milli\second} arbeitet.
+			Auch Beatperioden werden mit $\Upsilon$ statt $T$ angegeben ($T = \SI{11.61}{\milli\second} \cdot \Upsilon$).
+
+
+			Der Rest des Algorithmus besteht aus zwei Komponenten:
+				der Beatvorhersage und der Temposchätzung.
+
+			% Temposchätzung
+			Zur Temposchätzung wird ein knapp \num{6} Sekunden langer Analyserahmen $\Gamma_\tau$ der Einsatzdetektionsfunktion gespeichert.
+			Dieser ist \num{512} ODF-Samples lang ($512 \cdot \SI{11.61}{\milli\second} = \SI{5.944}{\second} $)
+				und wird alle \num{128} ODF-Samples weitergeschoben,
+				sodass sich immer \SI{75}{\percent} des aktuellen Analyserahmens mit dem vorherigen überlappen.
+			Als nächstes wird der Analyserahmen mit einer gleitenden Mittelwertsfunktion geglättet.
+			\begin{equation}
+				\bar{\Gamma}_\tau = \text{avg}(\{\Gamma_k \mid \tau - 8 \leq k \leq \tau + 8 \})
+				\text{\hspace{5mm}mit\hspace{5mm}} \tau = 0, ..., 511
+			\end{equation}
+			Dieser Mittelwert $\bar{\Gamma}_\tau$ wird von dem orignalem Analyserahmen abgezogen und negative Werte auf 0 gesetzt.
+			So ergibt sich die modifizierte Einsatzdetektionsfunktion $\tilde{\Gamma}_\tau$.
+			\begin{equation}
+				\tilde{\Gamma}_\tau = \max(\{0, \Gamma_\tau - \bar{\Gamma}_\tau\})
+				\text{\hspace{5mm}mit\hspace{5mm}} \tau = 0, ..., 511
+			\end{equation}
+
+			% AKF
+			Im nächsten Schritt berechnen wir die normalisierte Autokorrelationsfunktion $A_l$.
+			\begin{equation}
+				A_l = \frac{\sum_{\tau = 0}^{511} \tilde{\Gamma}_\tau \tilde{\Gamma}_{\tau - l}}{512 - l}
+				\text{\hspace{5mm}mit\hspace{5mm}} l = 0, ..., 511
+			\end{equation}
+			Jede Verzögerung $l$ (in ODF-Samples) der Autokorrelationsfunktion entspricht einer bestimmten Beatperiode und einem Tempo.
+			Die Autokorrelationsfunktion enthält lokale Maxima an Vielfachen der Beatperiode des korrekten Tempos,
+				da sich dort die Einsätze aufeinanderfolgener Beats oder Takte überlagern.
+
+			% Kammfilter
+			Um die Beatperiode zu finden,
+				werden im nächsten Schritt Kammfilter eingesetzt.
+			Ein Kammfilter $\lambda_\Upsilon(l)$ besteht aus vier immer kleiner und breiter werdenden Zähnen,
+				welche sich genau an den Vielfachen der Beatperiode $\Upsilon$ des Kammfilters befinden.
+			\begin{equation}
+				\lambda_\Upsilon(l) =
+				\begin{cases}
+					\frac{1}{2k - 1} & \text{falls } k \Upsilon - (k - 1) \leq l \leq k \Upsilon + (k - 1) \\
+					0 & \text{sonst}
+				\end{cases}
+				\hspace{5mm}
+				\text{\parbox[c]{5cm}{
+					mit $k = 1, 2, 3, 4$ \\
+					und $\Upsilon = \Upsilon_\text{min}, ..., \Upsilon_\text{max}$
+				}}
+			\end{equation}
+			Die Grenzen $\Upsilon_\text{min}$ und $\Upsilon_\text{max}$ der Beatperiode ergeben sich jeweils aus dem maximalen und minimalen Tempolimit,
+				welches für den Algorithmus eingestellt ist.
+			Für die Implementierung dieser Arbeit wurde,
+				wie auch im Paper,
+				das Tempo auf den Bereich von \SIrange{80}{160}{BPM} begrenzt,
+				wodurch sich ein Beatperiodenbereich
+				von $\Upsilon_\text{min} = \lfloor(\SI{11.61}{\milli\second} \cdot \SI{160}{\per\minute})^{-1}\rfloor = 32$
+				bis $\Upsilon_\text{max} = \lceil(\SI{11.61}{\milli\second} \cdot \SI{80}{\per\minute})^{-1}\rceil = 65$
+				ergibt.
+			Jeder Kammfilter wird dann elementweise mit der Autokorelationsfunktion und einem tempoabhängigen Gewicht $r(\Upsilon)$ multipliziert
+				und anschließend alle Elemente aufsummiert.
+			Die Gewichtsfunktion $r(\Upsilon)$ ist eine Rayleigh-Verteilung mit einem Maximum bei \SI{120}{BPM}.
+			So werden häufiger vorkommende Tempi, bevorzugt.
+			Die Rayleigh-Funktion ist wie folgt definiert:
+			\begin{equation}
+				r(\Upsilon) = \frac{\Upsilon}{\beta^2}e^{\frac{-\tau^2}{2\beta^2}}
+			\end{equation}
+			wobei die Konstante $\beta$ den höchsten Punkt der Gewichtsfunktion bestimmt.
+			Ein Wert von $\beta = 43$ ODF-Samples entspricht hier einem Tempo von
+				$(43 \cdot \SI{11.61}{\milli\second})^{-1} = \SI{120}{\per\minute}$.
+			\begin{align}
+				\Upsilon_\text{f} &=
+					\underset{\Upsilon = \Upsilon_\text{min}, ..., \Upsilon_\text{max}}{\text{argmax}}
+					\left( \sum_{l = 0}^{511} r(\Upsilon) \lambda_\Upsilon(l) A(l) \right) \\
+				f_\text{f} &= (\Upsilon_\text{f} \cdot \SI{11.61}{\milli\second})^{-1}
+			\end{align}
+			Die Beatperiode des Kammfilters,
+				der bei dieser Berechnung die größte Summe hervorbringt,
+				wird für die Tempohypothese $f_\text{f}$ genommen.
+
+			% weggelassener Teil ...
+
+			% Beatvorhersage
+			In der zweiten Komponente des Algorithmus,
+				der Beatvorhersage,
+				wird der Zeitpunkt des nächsten Beats berechnet.
+			Dazu wird eine Score-Funktion $C_\tau$ verwendet,
+				für welche ein neues Sample für jedes neu eintreffende ODF-Sample berechnet wird.
+			\begin{equation}
+				C_\tau = C(d_\tau) =
+					(1 - \alpha)d_\tau +
+					\alpha \max_{v = -2 \Upsilon_\text{f}, ..., -\Upsilon_\text{f} / 2}(W_1(v) C_{\tau + v})
+				\label{eq:score_function}
+			\end{equation}
+			$\Upsilon_\text{f}$ ist die Beatperiode des geschätzten Tempos
+				und kann aus dem vorherigen Teil des Algorithmus, der Tempovorhersage, entnommen werden.
+			Zum Start des Algorithmus,
+				wenn es noch keine Tempovorhersage gibt,
+				wird $\Upsilon_\text{f}$ mit \num{43} initialisiert,
+				was einem Tempo von \SI{120}{BPM} entspricht.
+			Der Parameter $\alpha = 0.9$ bestimmt den Anteil des rekursiven Teils der Score-Funktion.
+			Die Gewichtsfunktion $W_1(v)$ bevorzugt Werte, die genau $\Upsilon_\text{f}$ ODF-Samples in der Vergangenheit liegen.
+			\begin{equation}
+				W_1(v) = e^{-\frac{1}{2} \left( \eta \log \left( -\frac{v}{\tau_\text{f}} \right) \right)^2}
+			\end{equation}
+			Der Parameter $\eta = 5$ bestimmt Breite der glockenförmigen Kurve der Gewichtsfunktion.
+
+			% Score-Funktion in der Zukunft
+			Um Beatvorhersagen über die Zukunft machen zu können,
+				wird die Score-Funktion noch genau eine Beatperiode weiter in die Zukunft gebildet.
+			Dazu wird der Parameter $\alpha$ temporär auf \num{1} gesetzt,
+				sodass die linke Seite von Gleichung \eqref{eq:score_function} wegfällt
+				und keine ODF-Samples aus der Zukunft benötigt werden.
+			Nach dieser Berechnung wird $\alpha$ wieder auf den ursprünglichen Wert gesetzt.
+			Das geschieht jedes Mal,
+				wenn die vorherige Beatvorhersage eine halbe Beatperiode in der Vergangenheit liegt.
+			Das Maximum der Score-Funktion in der Zukunft gibt den wahrscheinlichsten Zeitpunkt des nächsten Beats an.
+			Wenn die vorherige Beatvorhersage eine halbe Beatperiode in der Vergangenheit liegt,
+				dann müsste der nächste Beat
+				--- wenn sich das Tempo in der Zwischenzeit nicht geändert hat ---
+				genau eine halbe Beatperiode in der Zukunft liegen.
+			Aus diesem Grund wird die Score-Funktion,
+				vor der Suche nach dem Maximum,
+				mit einer gaußschen Gewichtsfunktion $W_2$ multipliziert,
+				die Werte, welche genau eine halbe Beatperiode in der Zukunft liegen,
+				stärker gewichtet.
+			Der nächste Beatzeitpunkt $\tau_\text{b}$ wird also wie folgt berechnet.
+			\begin{align}
+				\tau_\text{b} &= \tau_0 + \underset{v = 1, ..., \Upsilon_\text{f}}{\text{argmax}}(C(\tau_0 + v)W(v)) \\
+				W_2(v) &= e^{\frac{-(v - \Upsilon_\text{f} / 2)^2}{2(\Upsilon_\text{f} / 2)^2}}
+			\end{align}
+			$\tau_0$ ist der aktuelle Zeitpunkt.
+		}
+	}
+
+	\subsection{2011 Robertson, Stark, Plumbley - Real-Time Visual Beat Tracking Using a Comb Filter Matrix}
+	{
+		\subsubsection*{Ein- und Ausgabe}
+		{
+			Der Algorithmus von~\cite{2011_PlRoSt} bekommt als Eingabe ein rohes, PCM-kodiertes Audiosignal mit einer Abtastfrequenz von \SI{44.1}{\kilo\hertz}.
 			Die Samples sind als 32-Bit Gleitkommazahlen kodiert.
 			Die Ausgabe besteht aus Tempo $\gamma$ und Phase $\theta$ der erkannten Beatfolge
 				und wird alle \num{11.61} Millisekunden aktualisiert.
@@ -43,7 +219,7 @@
 		\subsubsection*{Funktionsweise}
 		{
 			% STFT und ODF
-			Der Algorithmus  arbeitet ebenfalls mit einer Einsatzdetektionsfunktion (Abk.: ODF von engl. onset detection function).
+			Der Algorithmus  arbeitet ebenfalls mit einer Einsatzdetektionsfunktion (kurz ODF von engl. onset detection function).
 			Tatsächlich verwent er sogar dieselbe komplexe Spektraldifferenzfunktion $d$ aus~\cite{2004_BeDaDuSa},
 				die auch in \cite{2009_DaPlSt} verwendet wurde.
 			Diese ODF bekommt einen STFT-Frame $p_t$ als Eingabe und gibt ein ODF-Sample $d_t$ zurück.
