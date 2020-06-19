@@ -20,6 +20,8 @@ link_libraries(
 
 set(
     SOURCE_FILES
+    src/2001_ChNaUpVe/beat_this.cpp include/2001_ChNaUpVe/beat_this.h
+    include/2001_ChNaUpVe/constants.h
     include/2009_DaPlSt/constants.h
     src/2009_DaPlSt/2009_DaPlSt.cpp include/2009_DaPlSt/2009_DaPlSt.h
     src/2009_DaPlSt/beat_prediction.cpp include/2009_DaPlSt/beat_prediction.h
@@ -31,6 +33,7 @@ set(
     src/shift_register.cpp include/shift_register.h
 )
 
+add_executable(2001_CaNaUpVe ${SOURCE_FILES} src/2001_ChNaUpVe/main.cpp)
 add_executable(2009_DaPlSt ${SOURCE_FILES} src/2009_DaPlSt/main.cpp)
 add_executable(2011_PlRoSt ${SOURCE_FILES} src/2011_PlRoSt/main.cpp)
 add_executable(playground ${SOURCE_FILES} src/main.cpp)
