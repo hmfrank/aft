@@ -1,5 +1,5 @@
 # all executables
-ALL = 2009_DaPlSt 2011_PlRoSt playground
+ALL = 2001_ChNaUpVe 2009_DaPlSt 2011_PlRoSt playground
 # all .cpp source files
 SRC = $(wildcard src/*.cpp src/*/*.cpp)
 # all .cpp files with a main function
@@ -33,6 +33,7 @@ run: 2011_PlRoSt
 	./2011_PlRoSt
 
 # executables
+2001_ChNaUpVe: obj/2001_ChNaUpVe/main.o
 2009_DaPlSt: obj/2009_DaPlSt/main.o
 2011_PlRoSt: obj/2011_PlRoSt/main.o
 playground: obj/main.o
