@@ -12,12 +12,6 @@
 \section{Funktionsweise}
 {
 	% TODO: sagen, dass ich hier meine eigenen Implementierung beschreibe, welche aber dem Paper entsprechen sollte und wenn nicht schreib ichs dazu
-	% TODO: vielleicht ein Wort zur Notation verlieren wegen Subscript und Klammern
-	% * Subsxript t ist meistens Zeitreihenindex
-	% * Subscripte sind meistens Indices für Zeitreihen, Arrays oder Matrizen
-	% * manchmal werden Subscripte auch benutzt um verschiedene Versionen einer Variable zu differenzieren
-	%   z. B. tau_f und tau_neu --> dann wern sa aber als Wörter geschrieben mit ner Text-Schriftart
-	% * Zahlen in Klammern sind Parameter einer Funktion, die iwas mit diesen Zahlen macht
 	% TODO: irgendwo erklären was ne ODF ist
 
 	% Man könnte, wenn man noch Wörter braucht, noch viel mehr auf Implementierungsdetails eingehen, wie bestimmte Sachen umgesetzt wurden
@@ -29,19 +23,39 @@
 	% TODO: weggelassenen Teil in 2009_DaPlSt erklären und hier schreiben,
 	% dass es dann unten gesagt wird, wenn sich doch was signifikantes ändert
 
+	\subsubsection*{Mathematische Notation}
+	{
+		In dieser Arbeit werden Subskripte als Indices für Zeitreihen, Listen, Matrizen oder sonstige Arrays genutzt,
+			wie zum Beispiel $d_t$.
+		Manchmal gibt es mehrere Versionen von einer Variable,
+			beispielsweise $\tau_\text{alt}$ und $\tau_\text{neu}$.
+		In diesem Fall bestehen die Subskripte aus Wörtern und werden nicht kursiv gedruckt,
+			um sie von Index-Subskripten unterscheiden zu können.
+
+		Da alle hier vorgestellten Algorithmen auf einem diskreten Zeitraster arbeiten,
+			tauchen bestimmte Zeitvariablen oft in zwei Varianten auf:
+		Eine reelle Variable in Sekunden,
+			die sich auf den kontinuierlichen Zeitstrahl bezieht
+			und eine ganzzahlige Variable,
+			die sich auf das verwendete Zeitraster bezieht.
+		Dabei wird für die ganzzahlige Variabe ein ähnlich aussehender, griechicher Buchstabe verwendet,
+			z. B. $t$ und $\tau$ für Zeitindices
+			oder $T$ und $\Upsilon$ für die Beatperiode.
+	}
+
 	\subsection{2001 Cheng, Nazer, Uppuluri, Verret - Beat This}
 	{
 		\subsubsection*{Ein- und Ausgabe}
 		{
 			Der Algorithmus von~\cite{2001_BeatThis} bekommt einen \num{2.57} Sekunden langen Analyserahmen $s_\tau$ als Eingabe,
 				welcher \num{113432} PCM-kodierte Audiosamples mit einer Abtastfrequenz von \SI{44.1}{\kilo\hertz} enthält.
-			Die Ausgabe besteht aus einer Temposchätzung $f_\text{f}$ des Musikstücks.
+			Die Ausgabe besteht aus einer Temposchätzung $f_\text{final}$ des Musikstücks.
 			Da die Ausgabe des Algorithmus nur eine Funktion des eingegebenen Anlyserahmens ist,
 				jedoch keinen Zustand benötigt oder manipuliert,
 				ist es dem Nutzer überlassen,
 				wie oft die Tempoeinschätzung aktualisiert wird.
 			\begin{equation}
-				f_\text{f} = B([s_\tau \mid \tau = 0, ..., 113431])
+				f_\text{final} = B([s_\tau \mid \tau = 0, ..., 113431])
 			\end{equation}
 		}
 
@@ -68,7 +82,7 @@
 			Vorher wird das Signal jedoch erst vollweg-gleichgerichtet,
 				sodass nur noch positive Samples übrig bleiben.
 			\begin{equation}
-				b_{\tau, k} = h_\tau * |a_{\tau, k}| \text{ für } k = 0, ..., 5
+				b_{\tau, k} = h_\tau * |a_{\tau, k}| \text{\hspace{5mm}für } k = 0, ..., 5
 			\end{equation}
 			Nach dem Faltungstheorem,
 				kann man die Faltung zweier Funktionen als Produkt ihrer fouriertransformierten Signale ausdrücken.
@@ -93,17 +107,17 @@
 						c_{\tau, k} & \text{falls } c_{\tau, k} > 0 \\
 						0           & \text{sonst}
 					\end{cases}
-					\text{für } k = 0, ..., 5
+					\text{\hspace{5mm}für } k = 0, ..., 5
 			\end{align}
 
 			% Kammfilter
 			Im nächsten Schritt suchen wir nach dem Tempo des Songs.
-			Dazu falten wir Kammfilter $\kappa_{\tau, z}$ mit verschiedenen Zahnabständen $z$ mit dem Signal $d_{\tau, k}$.
+			Dazu falten wir Kammfilter $\kappa_{\tau, \psi}$ mit verschiedenen Zahnabständen $\psi$ mit dem Signal $d_{\tau, k}$.
 			Ein Kammfilter ist hier eine Abfolge von drei Impulsen (Zähnen) mit gleichem Abstand.
 			\begin{equation}
-				\kappa_{\tau, z} =
+				\kappa_{\tau, \psi} =
 					\begin{cases}
-						1 & \text{falls } \tau = 0 \text{ oder } \tau = z \text{ oder } \tau = 2z \\
+						1 & \text{falls } \tau = 0 \text{ oder } \tau = \psi \text{ oder } \tau = 2\psi \\
 						0 & \text{sonst}
 					\end{cases}
 			\end{equation}
@@ -114,23 +128,23 @@
 				also die aktuelle Beatperiode des Stücks,
 				dann überlagern sich alle Beatanfangszeitpunkte
 				und ergeben ein sehr energiereiches Signal.
-			Um den richtigen Zahnabstand $z$ zu finden,
-				werden alle Zahnabstände im Bereich von $z_\text{min} = \num{16537}$ bis $z_\text{max} = \num{32921}$
+			Um den richtigen Zahnabstand $\psi$ zu finden,
+				werden alle Zahnabstände im Bereich von $\psi_\text{min} = \num{16537}$ bis $\psi_\text{max} = \num{32921}$
 				mit einer Schrittweite von \num{512} Samples ausprobiert,
 				indem der jeweilige Kammfilter mit den sechs Signalen $d_{\tau, k}$ mit $k = 0, ..., 5$ gefaltet
 				und anschließend die Energien der gefalteten Signale berechnet und aufsummiert werden.
-			Die Werte für $z_\text{min}$ und $z_\text{max}$ entsprechen den Beatperioden in Samples von jeweils \SI{160}{BPM} und \SI{80}{BPM}.
-			So erhält man eine Energie $E_z$ für jeden Zahnabstand.
+			Die Werte für $\psi_\text{min}$ und $\psi_\text{max}$ entsprechen den Beatperioden in Samples von jeweils \SI{160}{BPM} und \SI{80}{BPM}.
+			So erhält man eine Energie $E_\psi$ für jeden Zahnabstand.
 			\begin{align}
-				e_{\tau, k, z} &= d_{\tau, k} * \kappa_{\tau, z} \\
-				E_z &= \sum_{k = 0}^5 \sum_\tau {e_{\tau, k, z}}^2 \\
+				e_{\tau, k, \psi} &= d_{\tau, k} * \kappa_{\tau, \psi} \\
+				E_\psi &= \sum_{k = 0}^5 \sum_\tau {e_{\tau, k, \psi}}^2
 			\end{align}
-			Die Energie mit dem größten Wert bestimmt $z$ als Beatperiode $\Upsilon_\text{f}$ des Musikstücks.
+			Für $\psi = \psi_\text{min}, \psi_\text{min} + 512, \psi_\text{min} + 1024, ..., \psi_\text{max}$.
+			Der Zahnabstand der Energie mit dem größten Wert bestimmt die Beatperiode $\Upsilon_\text{final}$ des Musikstücks.
 			\begin{align}
-				\Upsilon_\text{f} &= \underset{z}{\text{argmax}}(E_z) \\
-				f_\text{f} &= \frac{\SI{44.1}{\kilo\hertz}}{\Upsilon_\text{f}}
+				\Upsilon_\text{final} &= \underset{\psi}{\text{argmax}}(E_\psi) \\
+				f_\text{final} &= \frac{\SI{44.1}{\kilo\hertz}}{\Upsilon_\text{f}}
 			\end{align}
-			$z = z_\text{min}, z_\text{min} + 512, z_\text{min} + 1024, ..., z_\text{max}$
 		}
 	}
 
@@ -141,9 +155,9 @@
 			Der Algorithmus von~\cite{2009_DaPlSt} bekommt als Eingabe ein rohes, PCM-kodiertes Audiosignal mit einer Abtastfrequenz von \SI{44.1}{\kilo\hertz}.
 			Die Samples sind als 32-Bit Gleitkommazahlen kodiert.
 
-			Die Ausgabe besteht aus einer Temposchätzung $f_\text{f}$,
+			Die Ausgabe besteht aus einer Temposchätzung $f_\text{final}$,
 				die alle \num{1.5} Sekunden aktualisiert wird.
-			Aus dem Tempo ergibt sich die Beatperiode mit $T_\text{f} = 1 / f_\text{f}$.
+			Aus dem Tempo ergibt sich die Beatperiode mit $T_\text{final} = 1 / f_\text{final}$.
 			Außerdem gibt der Algorithmus eine Beatvorhersage aus,
 				die angibt,
 				wann der nächste Beat kommt.
@@ -244,14 +258,14 @@
 			Ein Wert von $\beta = 43$ ODF-Samples entspricht hier einem Tempo von
 				$(43 \cdot \SI{11.61}{\milli\second})^{-1} = \SI{120}{\per\minute}$.
 			\begin{align}
-				\Upsilon_\text{f} &=
+				\Upsilon_\text{final} &=
 					\underset{\Upsilon = \Upsilon_\text{min}, ..., \Upsilon_\text{max}}{\text{argmax}}
 					\left( \sum_{l = 0}^{511} r(\Upsilon) \lambda_\Upsilon(l) A(l) \right) \\
-				f_\text{f} &= (\Upsilon_\text{f} \cdot \SI{11.61}{\milli\second})^{-1}
+				f_\text{final} &= (\Upsilon_\text{final} \cdot \SI{11.61}{\milli\second})^{-1}
 			\end{align}
 			Die Beatperiode des Kammfilters,
 				der bei dieser Berechnung die größte Summe hervorbringt,
-				wird für die Tempohypothese $f_\text{f}$ genommen.
+				wird für die Tempohypothese $f_\text{final}$ genommen.
 
 			% weggelassener Teil ...
 
@@ -264,19 +278,19 @@
 			\begin{equation}
 				C_\tau = C(d_\tau) =
 					(1 - \alpha)d_\tau +
-					\alpha \max_{v = -2 \Upsilon_\text{f}, ..., -\Upsilon_\text{f} / 2}(W_1(v) C_{\tau + v})
+					\alpha \max_{v = -2 \Upsilon_\text{final}, ..., -\Upsilon_\text{final} / 2}(W_1(v) C_{\tau + v})
 				\label{eq:score_function}
 			\end{equation}
-			$\Upsilon_\text{f}$ ist die Beatperiode des geschätzten Tempos
+			$\Upsilon_\text{final}$ ist die Beatperiode des geschätzten Tempos
 				und kann aus dem vorherigen Teil des Algorithmus, der Tempovorhersage, entnommen werden.
 			Zum Start des Algorithmus,
 				wenn es noch keine Tempovorhersage gibt,
-				wird $\Upsilon_\text{f}$ mit \num{43} initialisiert,
+				wird $\Upsilon_\text{final}$ mit \num{43} initialisiert,
 				was einem Tempo von \SI{120}{BPM} entspricht.
 			Der Parameter $\alpha = 0.9$ bestimmt den Anteil des rekursiven Teils der Score-Funktion.
-			Die Gewichtsfunktion $W_1(v)$ bevorzugt Werte, die genau $\Upsilon_\text{f}$ ODF-Samples in der Vergangenheit liegen.
+			Die Gewichtsfunktion $W_1(v)$ bevorzugt Werte, die genau $\Upsilon_\text{final}$ ODF-Samples in der Vergangenheit liegen.
 			\begin{equation}
-				W_1(v) = e^{-\frac{1}{2} \left( \eta \log \left( -\frac{v}{\tau_\text{f}} \right) \right)^2}
+				W_1(v) = e^{-\frac{1}{2} \left( \eta \log \left( -\frac{v}{\Upsilon_\text{final}} \right) \right)^2}
 			\end{equation}
 			Der Parameter $\eta = 5$ bestimmt Breite der glockenförmigen Kurve der Gewichtsfunktion.
 
@@ -301,8 +315,8 @@
 				stärker gewichtet.
 			Der nächste Beatzeitpunkt $\tau_\text{b}$ wird also wie folgt berechnet.
 			\begin{align}
-				\tau_\text{b} &= \tau_0 + \underset{v = 1, ..., \Upsilon_\text{f}}{\text{argmax}}(C(\tau_0 + v)W(v)) \\
-				W_2(v) &= e^{\frac{-(v - \Upsilon_\text{f} / 2)^2}{2(\Upsilon_\text{f} / 2)^2}}
+				\tau_\text{b} &= \tau_0 + \underset{v = 1, ..., \Upsilon_\text{final}}{\text{argmax}}(C(\tau_0 + v)W(v)) \\
+				W_2(v) &= e^{\frac{-(v - \Upsilon_\text{final} / 2)^2}{2(\Upsilon_\text{final} / 2)^2}}
 			\end{align}
 			$\tau_0$ ist der aktuelle Zeitpunkt.
 		}
@@ -314,13 +328,13 @@
 		{
 			Der Algorithmus von~\cite{2011_PlRoSt} bekommt als Eingabe ein rohes, PCM-kodiertes Audiosignal mit einer Abtastfrequenz von \SI{44.1}{\kilo\hertz}.
 			Die Samples sind als 32-Bit Gleitkommazahlen kodiert.
-			Die Ausgabe besteht aus Tempo $\gamma$ und Phase $\theta$ der erkannten Beatfolge
+			Die Ausgabe besteht aus Tempo $f_\text{final}$ und Phase $\theta_\text{final}$ der erkannten Beatfolge
 				und wird alle \num{11.61} Millisekunden aktualisiert.
-			Aus dem Tempo ergibt sich die Beatperiode $T = 1 / \gamma$.
+			Aus dem Tempo ergibt sich die Beatperiode $T_\text{final} = 1 / f_\text{final}$.
 			Um die genaue Bedeutung der Phase zu verstehen,
-				kann man die komplette Laufzeit des Algorithmus in $T$ lange Abschnitte unterteilen.
+				kann man die komplette Laufzeit des Algorithmus in $T_\text{final}$ lange Abschnitte unterteilen.
 			So sollte sich in jedem Abschnitt ein Schlag befinden.
-			Die Phase $\theta$ gibt an,
+			Die Phase $\theta_\text{final}$ gibt an,
 				wann innerhalb dieser Abschnitte der Schlag kommt (\SIrange{0}{360}{\degree}).
 			Das ist zum Einen Hilfreich,
 				um den genauen Zeitpunkt des nächsten Schlags zu bestimmen.
@@ -354,11 +368,11 @@
 			Anders als bei~\cite{2009_DaPlSt} wird hier der Analyserahmen nicht alle \num{1.5} Sekunden,
 				sondern nach jedem neuen ODF-Sample weitergeschoben,
 				sodass er immer die letzten \num{6} Sekunden (\num{517} Samples) der Einsatzdetektionsfunktion enthält.
-			So wird aus jedem neuen ODF-Sample $d_t$ sofort das nächste Sample $v_t$ der vorverarbeiteten ODF berechnet.
+			So wird aus jedem neuen ODF-Sample $d_\tau$ sofort das nächste Sample $v_\tau$ der vorverarbeiteten ODF berechnet.
 			\begin{equation}
-				v_t = v(d_t) =
+				v_\tau = v(d_\tau) =
 				\begin{cases}
-					d_t & \text{falls } d_t > \text{median} \\
+					d_\tau & \text{falls } d_\tau > \text{median} \\
 					0    & \text{sonst}
 				\end{cases}
 			\end{equation}
@@ -366,33 +380,38 @@
 				um die Kammfiltermatrix zu aktualisieren.
 
 			% Beschreibung Kammfiltermatrix
-			Die Kammfiltermatrix $X_{\tau, x}$ enthält eine Zeile für jede mögliche Temposchätzung, die der Algorithmus abgeben kann.
-			Diese werden mit der entsprechenden Beatperiode in ODF-Sample-Dauern adressiert.
+			Die Kammfiltermatrix $X_{\Upsilon, x}$ enthält eine Zeile für jede mögliche Temposchätzung, die der Algorithmus abgeben kann.
+			Diese werden mit der entsprechenden Beatperiode in ODF-Sample-Dauern indexiert.
 			Da der Algorithmus auf einen Tempobereich von \SIrange{80}{160}{BPM} beschränkt ist,
 				ergibt sich ein minimaler Zeilenindex von
-				$\tau_{\text{min}} = \lfloor(\SI{11.61}{\milli\second} \cdot \SI{160}{\per\minute})^{-1}\rfloor = 32$
+				$\Upsilon_{\text{min}} = \lfloor(\SI{11.61}{\milli\second} \cdot \SI{160}{\per\minute})^{-1}\rfloor = 32$
 				und ein maximaler Zeilenindex von
-				$\tau_{\text{max}} = \lceil(\SI{11.61}{\milli\second} \cdot \SI{80}{\per\minute})^{-1}\rceil = 65$.
+				$\Upsilon_{\text{max}} = \lceil(\SI{11.61}{\milli\second} \cdot \SI{80}{\per\minute})^{-1}\rceil = 65$.
 			Jede Zeile entählt eine Zelle für jeden diskreten Zeitpunkt innerhalb der entsprechenden Beatperiode.
 			Diese haben auch jeweils einen Abstand von einer ODF-Sample-Dauer
 				und werden deshalb ebenfalls in dieser Einheit adressiert.
-			So ergibt sich für eine bestimmte Zeile $\tau$ ein Zellenindexbereich von $x = 0, ..., \tau - 1$.
+			So ergibt sich für eine bestimmte Zeile $\Upsilon$ ein Zellenindexbereich von $x = 0, ..., \Upsilon - 1$.
 			Der Zellenindex $x$ ist direkt mit der Phase $\theta$ korreliert,
 				jedoch wird hier eine andere Variable verwendet,
-				da $x$ in ODF-Sample-Dauern von $0$ bis $\tau - 1$ ist
+				da $x$ in ODF-Sample-Dauern von $0$ bis $\Upsilon - 1$ ist
 				und $\theta$ einen Phasenwinkel in von \SIrange{0}{359}{\degree} ist
-				und die Umrechnung der beiden Größen von der Beatperiode $\tau$ abhängt.
+				und die Umrechnung der beiden Größen von der Beatperiode $\Upsilon$ abhängt.
 
 			% Kammfiltermatrixaktuelisierung
-			Die Kammfiltermatrix wird mit jedem neuen vorverarbeiteten ODF-Sample $v_t$ zum Zeitpunkt $t$ aktualisiert.
-			Dabei wird für jede Zeile $\tau$ die Zelle,
-				die den aktuellen Zeitpunkt entspricht $x = t \bmod \tau$,
+			Die Kammfiltermatrix wird mit jedem neuen vorverarbeiteten ODF-Sample $v_\tau$ zum Zeitpunkt $\tau$ aktualisiert.
+			Dabei wird für jede Zeile $\Upsilon$ die Zelle,
+				die den aktuellen Zeitpunkt entspricht $x = \tau \bmod \Upsilon$,
 				mit der Updateregel
 				\begin{equation}
-					X_{\tau, x} \leftarrow
-						\alpha v_t +
-						(1 - \alpha) \max_{\substack{\tau_m = \tau_{\text{min}}, ..., \tau_{\text{max}} \\ x_m = 0, ..., \tau - 1}}
-							(g(\tau, \tau_m, 3.5) g(x, x_m, 6) X_{\tau, x})
+					X_{\Upsilon, x} \leftarrow
+						\alpha v_\tau +
+						(1 - \alpha) \max_{
+							\substack{
+								\Upsilon_\text{m} = \Upsilon_{\text{min}}, ..., \Upsilon_{\text{max}} \\
+								x_\text{m} = 0, ..., \Upsilon - 1
+							}
+						}
+						(g(\Upsilon, \Upsilon_\text{m}, 3.5) g(x, x_\text{m}, 6) X_{\Upsilon, x})
 				\end{equation}
 				aktualisiert.
 			Die Konstante $\alpha$ ist \num{0.1}
@@ -427,7 +446,7 @@
 			So werden häufiger vorkommende Tempi, bevorzugt.
 			Die Rayleigh-Funktion ist wie folgt definiert:
 			\begin{equation}
-				r(\tau) = \frac{\tau}{\beta^2}e^{\frac{-\tau^2}{2\beta^2}}
+				r(\Upsilon) = \frac{\Upsilon}{\beta^2}e^{\frac{-\Upsilon^2}{2\beta^2}}
 			\end{equation}
 			wobei die Konstante $\beta$ den höchsten Punkt der Gewichtsfunktion bestimmt.
 			Ein Wert von $\beta = 43$ ODF-Samples entspricht hier einem Tempo von
@@ -438,19 +457,19 @@
 				deren Werte gleichmäßiger über die gesamte Zeile verteilt sind.
 			Die Entropie einer Matrixzeile ist durch
 				\begin{equation}
-					h(\tau) = \sum_{x = 0}^{\tau - 1} -p(\tau, x) log(p(\tau, x))
+					h(\Upsilon) = \sum_{x = 0}^{\Upsilon - 1} -p(\Upsilon, x) log(p(\Upsilon, x))
 				\end{equation}
 				definiert, wobei
 				\begin{equation}
-					p(\tau, x) = \frac{X_{\tau, x}}{\sum_{x_i = 0}^{\tau - 1}X_{\tau, x_i}}
+					p(\Upsilon, x) = \frac{X_{\Upsilon, x}}{\sum_{x_i = 0}^{\Upsilon - 1}X_{\tau, x_i}}
 				\end{equation}
 				als Häufigkeitsverteilung einer Zeile interpretiert werden kann.
 			Als nächstes wird in der resultierenden Matrix
 				\begin{equation}
-					Y_{\tau, x} = \frac{r(\tau)}{h(\tau)}X_{\tau, x}
+					Y_{\Upsilon, x} = \frac{r(\Upsilon)}{h(\Upsilon)}X_{\Upsilon, x}
 				\end{equation}
 				nach dem Maximum gesucht.
-			Der Matrixindex $(\tau_{\text{neu}}, x_{\text{neu}})$ des Maximums gibt das wahrscheinlichste Tempo und die wahrscheinlichste Phase an.
+			Der Matrixindex $(\Upsilon_{\text{neu}}, x_{\text{neu}})$ des Maximums gibt das wahrscheinlichste Tempo und die wahrscheinlichste Phase an.
 
 			% Tempoübergänge
 			Da das so ermittelte Tempo-Phase-Paar  z. B. bei Unregelmäßigkeiten in der Musik etwas hin und her springen kann,
@@ -460,21 +479,21 @@
 				wenn entweder die neue Hypothese sich in der Matrix relativ nah an der alten befindet,
 				oder sie viel stärker ist als die alte.
 			Hierfür definieren wir eine Gewichtsfunktion,
-				welche Werte in der Nähe der aktuellen Hypothese $(\tau_\text{f}, x_\text{f})$ bevorzugt.
+				welche Werte in der Nähe der aktuellen Hypothese $(\Upsilon_\text{final}, x_\text{final})$ bevorzugt.
 			\begin{equation}
-				w(\tau_{\text{neu}}, x_{\text{neu}}) =
-					g(\tau_\text{f}, \tau_{\text{neu}}, 4)
-					g(x_\text{f}, x_{\text{neu}}, 10)
+				w(\Upsilon_{\text{neu}}, x_{\text{neu}}) =
+					g(\Upsilon_\text{final}, \Upsilon_{\text{neu}}, 4)
+					g(x_\text{final}, x_{\text{neu}}, 10)
 			\end{equation}
 			Die Standartabweichungen von \num{4} und \num{10} wurden durch~\cite{2011_PlRoSt} experimentell ermittelt.
 			Die aktuelle Hypothese wird mit folgender Updateregel aktuelisiert:
 			\begin{equation}
-				(\tau_\text{f}, x_\text{f}) \leftarrow
+				(\Upsilon_\text{final}, x_\text{final}) \leftarrow
 				\begin{cases}
-					(\tau_{\text{neu}}, x_{\text{neu}}) &
-						\text{falls } w(\tau_{\text{neu}}, x_{\text{neu}}) Y_{\tau_{\text{neu}}, x_{\text{neu}}} >
-							Y_{\tau_\text{f}, x_\text{f}} \\
-					(\tau_\text{f}, x_\text{f}) &
+					(\Upsilon_{\text{neu}}, x_{\text{neu}}) &
+						\text{falls } w(\Upsilon_{\text{neu}}, x_{\text{neu}}) Y_{\Upsilon_{\text{neu}}, x_{\text{neu}}} >
+							Y_{\Upsilon_\text{final}, x_\text{final}} \\
+					(\Upsilon_\text{final}, x_\text{final}) &
 						\text{sonst}
 				\end{cases}
 			\end{equation}
