@@ -22,6 +22,118 @@
 
 	% Man könnte, wenn man noch Wörter braucht, noch viel mehr auf Implementierungsdetails eingehen, wie bestimmte Sachen umgesetzt wurden
 
+	In diesem Abschnitt wird die Funktionsweise der verwendeten Algorithmen im Detail erklärt.
+	Dabei werden die, für diese Arbeit angefertigten, Implementierungen beschrieben,
+		welche den Algorithmen der ursprünglichen Paper entsprechen sollten,
+		sich jedoch in Kleinigkeiten unterscheiden können.
+	% TODO: weggelassenen Teil in 2009_DaPlSt erklären und hier schreiben,
+	% dass es dann unten gesagt wird, wenn sich doch was signifikantes ändert
+
+	\subsection{2001 Cheng, Nazer, Uppuluri, Verret - Beat This}
+	{
+		\subsubsection*{Ein- und Ausgabe}
+		{
+			Der Algorithmus von~\cite{2001_BeatThis} bekommt einen \num{2.57} Sekunden langen Analyserahmen $s_\tau$ als Eingabe,
+				welcher \num{113432} PCM-kodierte Audiosamples mit einer Abtastfrequenz von \SI{44.1}{\kilo\hertz} enthält.
+			Die Ausgabe besteht aus einer Temposchätzung $f_\text{f}$ des Musikstücks.
+			Da die Ausgabe des Algorithmus nur eine Funktion des eingegebenen Anlyserahmens ist,
+				jedoch keinen Zustand benötigt oder manipuliert,
+				ist es dem Nutzer überlassen,
+				wie oft die Tempoeinschätzung aktualisiert wird.
+			\begin{equation}
+				f_\text{f} = B([s_\tau \mid \tau = 0, ..., 113431])
+			\end{equation}
+		}
+
+		\subsubsection*{Funktionsweise}
+		{
+			% 6 Bandpassfilter
+			Zuerst wird das Eingangssignal $s_\tau$ in sechs Signale $a_{\tau, k}$ mit $k = 0, ..., 5$ aufgeteilt,
+				die jeweils einen anderen Frequenzbereich beinhalten.
+			Dazu werden FFT-basierte Bandpassfilter benutzt.
+			Das Eingangssignal wird duch eine FFT ein ein Frequenzspektrum umgewandelt.
+			In diesem Spektrum werden alle unerwünschten Frequenzen auf \num{0} gesetzt
+				und dann das Spektrum per IFFT wieder zurück in eine Zeitreihe konvertiert.
+			Die Frequenzbereiche der sechs Signale sind
+				\SIrange{0}{200}{\hertz}, \SIrange{200}{400}{\hertz},
+				\SIrange{400}{800}{\hertz}, \SIrange{800}{1600}{\hertz},
+				\SIrange{1600}{3200}{\hertz}, \SIrange{3200}{44100}{\hertz}.
+			Die Idee dahinter ist,
+				dass verschiedene Instrumentengruppen unabhängig voneinander analysiert werden können.
+
+			% Glättung
+			Als nächstes wird jedes der sechs gefilterten Signale geglättet,
+				um einen Verlauf der Lautstärke des Signals zu erhalten.
+			Das wird durch die Faltung mit der rechten Seite eines \num{0.4} Sekunden langen Hanning-Fensters $h_\tau$ erziehlt.
+			Vorher wird das Signal jedoch erst vollweg-gleichgerichtet,
+				sodass nur noch positive Samples übrig bleiben.
+			\begin{equation}
+				b_{\tau, k} = h_\tau * |a_{\tau, k}| \text{ für } k = 0, ..., 5
+			\end{equation}
+			Nach dem Faltungstheorem,
+				kann man die Faltung zweier Funktionen als Produkt ihrer fouriertransformierten Signale ausdrücken.
+			Da eine effiziente Implementierung einer diskreten Fouriertransformation eine Zeitkomplexität von $O(n\log(n))$ hat,
+				kann man die Berechnung dieser Faltung beschleunigen,
+				indem man erst die FFT der beiden Signale berechnet,
+				diese dann elementweise multipliziert
+				und anschließend eine IFFT anwendet.
+			Eine naive Implementierung des Faltungsalgorithmus hätte dagegen eine Zeitkomplexität von $O(n^2)$.
+
+			% Differentiation
+			Um die Zeitpunkte hervorzuheben,
+				an denen die Lautstärke schnell ansteigt,
+				wo sich also Noteneinsätze befinden,
+				werden die sechs Signale differenziert.
+			Um nur die Anstiege der Lautstärke zu extrahieren,
+				werden anschließend alle negativen Werte auf Null gesetzt.
+			\begin{align}
+				c_{\tau, k} &= \frac{d}{d\tau} b_{\tau, k} \\
+				d_{\tau, k} &=
+					\begin{cases}
+						c_{\tau, k} & \text{falls } c_{\tau, k} > 0 \\
+						0           & \text{sonst}
+					\end{cases}
+					\text{für } k = 0, ..., 5
+			\end{align}
+
+			% Kammfilter
+			Im nächsten Schritt suchen wir nach dem Tempo des Songs.
+			Dazu falten wir Kammfilter $\kappa_{\tau, z}$ mit verschiedenen Zahnabständen $z$ mit dem Signal $d_{\tau, k}$.
+			Ein Kammfilter ist hier eine Abfolge von drei Impulsen (Zähnen) mit gleichem Abstand.
+			\begin{equation}
+				\kappa_{\tau, z} =
+					\begin{cases}
+						1 & \text{falls } \tau = 0 \text{ oder } \tau = z \text{ oder } \tau = 2z \\
+						0 & \text{sonst}
+					\end{cases}
+			\end{equation}
+			Die Faltung mit solch einem Kammfilter hat den Effekt,
+				dass das Signal drei mal mit versetzten Anfangszeitpunkten abgespielt wird
+				und sich dabei überlagert.
+			Wenn der Kammfilter den richtigen Zahnabstand hat,
+				also die aktuelle Beatperiode des Stücks,
+				dann überlagern sich alle Beatanfangszeitpunkte
+				und ergeben ein sehr energiereiches Signal.
+			Um den richtigen Zahnabstand $z$ zu finden,
+				werden alle Zahnabstände im Bereich von $z_\text{min} = \num{16537}$ bis $z_\text{max} = \num{32921}$
+				mit einer Schrittweite von \num{512} Samples ausprobiert,
+				indem der jeweilige Kammfilter mit den sechs Signalen $d_{\tau, k}$ mit $k = 0, ..., 5$ gefaltet
+				und anschließend die Energien der gefalteten Signale berechnet und aufsummiert werden.
+			Die Werte für $z_\text{min}$ und $z_\text{max}$ entsprechen den Beatperioden in Samples von jeweils \SI{160}{BPM} und \SI{80}{BPM}.
+			So erhält man eine Energie $E_z$ für jeden Zahnabstand.
+			\begin{align}
+				e_{\tau, k, z} &= d_{\tau, k} * \kappa_{\tau, z} \\
+				E_z &= \sum_{k = 0}^5 \sum_\tau {e_{\tau, k, z}}^2 \\
+			\end{align}
+			Die Energie mit dem größten Wert bestimmt $z$ als Beatperiode $\Upsilon_\text{f}$ des Musikstücks.
+			\begin{align}
+				\Upsilon_\text{f} &= \underset{z}{\text{argmax}}(E_z) \\
+				f_\text{f} &= \frac{\SI{44.1}{\kilo\hertz}}{\Upsilon_\text{f}}
+			\end{align}
+			$z = z_\text{min}, z_\text{min} + 512, z_\text{min} + 1024, ..., z_\text{max}$
+		}
+	}
+
 	\subsection{2009 Stark, Davies, Plumbley - Real-Time Beat-Synchronous Analysis of Musical Audio}
 	{
 		\subsubsection*{Ein- und Ausgabe}
