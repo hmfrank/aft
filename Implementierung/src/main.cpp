@@ -1,6 +1,7 @@
 #include "2001_ChNaUpVe/beat_this.h"
 #include "2009_DaPlSt/2009_DaPlSt.h"
 #include "2011_PlRoSt/2011_PlRoSt.h"
+#include <ctime>
 #include <fstream>
 #include <Gamma/SoundFile.h>
 #include <iostream>
@@ -12,12 +13,17 @@ using namespace std;
 void test_2001_beat_this(const float *audio, size_t n_audio, ofstream *output_file)
 {
 	BeatThis tracker = BeatThis();
+	clock_t used_cpu_time = 0;
 
 	*output_file << "timestamp_smp,timestamp_sec,beat_period_smp,beat_period_sec,tempo_bpm" << endl;
 
 	for (size_t timestamp_smp = 0; timestamp_smp < n_audio; ++timestamp_smp)
 	{
-		if (tracker(audio[timestamp_smp]))
+		clock_t t = clock();
+		bool new_tempo = tracker(audio[timestamp_smp]);
+		used_cpu_time += (clock() - t);
+
+		if (new_tempo)
 		{
 			size_t beat_period_smp = tracker.get_beat_period();
 
@@ -29,18 +35,28 @@ void test_2001_beat_this(const float *audio, size_t n_audio, ofstream *output_fi
 				<< (60.0f * 44100.0f / beat_period_smp) << endl;
 		}
 	}
+
+	float total_cpu_time = (float)used_cpu_time / CLOCKS_PER_SEC;
+	float total_time = ((float)n_audio / 44100.0f);
+	*output_file
+		<< "# total_time=" << total_time << endl
+		<< "# total_cpu_time=" << total_cpu_time << endl
+		<< "# cpu_time_per_sec=" << (total_cpu_time / total_time) << endl;
 }
 
 void test_2009_daplst(const float *audio, size_t n_audio, ofstream *output_file)
 {
 	_2009_DaPlSt tracker = _2009_DaPlSt(44100.0f);
+	clock_t used_cpu_time = 0;
 
 	*output_file << "timestamp_smp,timestamp_sec,beat_period_smp,beat_period_sec,tempo_bpm,beat" << endl;
 
 	size_t last_beat_time = -1;
 	for (size_t timestamp_smp = 0; timestamp_smp < n_audio; ++timestamp_smp)
 	{
+		clock_t t = clock();
 		int result = tracker(audio[timestamp_smp]);
+		used_cpu_time += (clock() - t);
 		size_t current_beat_time = tracker.get_current_beat_time();
 		bool new_tempo = (result & 4) != 0;
 		bool beat = current_beat_time != last_beat_time &&
@@ -81,11 +97,19 @@ void test_2009_daplst(const float *audio, size_t n_audio, ofstream *output_file)
 			*output_file << endl;
 		}
 	}
+
+	float total_cpu_time = (float)used_cpu_time / CLOCKS_PER_SEC;
+	float total_time = ((float)n_audio / 44100.0f);
+	*output_file
+		<< "# total_time=" << total_time << endl
+		<< "# total_cpu_time=" << total_cpu_time << endl
+		<< "# cpu_time_per_sec=" << (total_cpu_time / total_time) << endl;
 }
 
 void test_2011_plrost(const float *audio, size_t n_audio, ofstream *output_file)
 {
 	_2011_PlRoSt tracker = _2011_PlRoSt();
+	clock_t used_cpu_time = 0;
 
 	*output_file << "timestamp_smp,timestamp_sec,beat_period_smp,beat_period_sec,tempo_bpm,phase_smp,phase_sec,phase_deg,beat" << endl;
 
@@ -95,7 +119,10 @@ void test_2011_plrost(const float *audio, size_t n_audio, ofstream *output_file)
 
 	for (size_t timestamp_smp = 0; timestamp_smp < n_audio; ++timestamp_smp)
 	{
-		bool new_tau_x = tracker(audio[timestamp_smp]) && (
+		clock_t t = clock();
+		bool result = tracker(audio[timestamp_smp]);
+		used_cpu_time += (clock() - t);
+		bool new_tau_x = result && (
 			last_tau != tracker.get_current_tau() ||
 			last_x != tracker.get_current_x()
 		);
@@ -144,6 +171,13 @@ void test_2011_plrost(const float *audio, size_t n_audio, ofstream *output_file)
 			*output_file << endl;
 		}
 	}
+
+	float total_cpu_time = (float)used_cpu_time / CLOCKS_PER_SEC;
+	float total_time = ((float)n_audio / 44100.0f);
+	*output_file
+		<< "# total_time=" << total_time << endl
+		<< "# total_cpu_time=" << total_cpu_time << endl
+		<< "# cpu_time_per_sec=" << (total_cpu_time / total_time) << endl;
 }
 
 void test_generic(
