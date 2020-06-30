@@ -2,8 +2,10 @@
 .idea
 *.d
 *.o
+2001_ChNaUpVe
+!src/2001_ChNaUpVe
 2009_DaPlSt
 !src/2009_DaPlSt
 2011_PlRoSt
 !src/2011_PlRoSt
-playground
+test

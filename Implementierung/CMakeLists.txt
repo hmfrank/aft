@@ -36,4 +36,4 @@ set(
 add_executable(2001_CaNaUpVe ${SOURCE_FILES} src/2001_ChNaUpVe/main.cpp)
 add_executable(2009_DaPlSt ${SOURCE_FILES} src/2009_DaPlSt/main.cpp)
 add_executable(2011_PlRoSt ${SOURCE_FILES} src/2011_PlRoSt/main.cpp)
-add_executable(playground ${SOURCE_FILES} src/main.cpp)
+add_executable(test ${SOURCE_FILES} src/main.cpp)
