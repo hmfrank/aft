@@ -3,19 +3,32 @@
 % Das Dokument muss mit XeLaTeX kompiliert werden.
 % --------------------------------------------------
 
+% CONTENT:
+% TODO: Diagramme noch auf Deutsch erstellen
+% TODO: iwo noch Bilder von den Visualisierungen rein
+
+% WEMMA NOCH WÖRTER BRAUCH:
+% * man kann noch viel mehr auf Implementierungsdetails eingehen,
+%       wie bestimmte Sachen umgesetzt wurden
+
+% FORMATIERUNG, ETC.:
 % TODO: Paragraphüberschrift fett drucken
 % TODO: Sprache auf Deutsch stellen
 % TODO: ß soll nicht als SS sondern als ß angezeigt werden
 % TODO: komplette Rechtschreibprüfung
+
 
 \documentclass[openright, twoside, utf8, 11.5pt]{scrbook}
 
 % \usepackage[german]{babel}
 % \usepackage[utf-8]{inputenc}
 \usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{graphicx}
 \usepackage{lipsum}
 \usepackage{mgthesis}
 \usepackage{siunitx}
+\usepackage{tikz}
 
 \sisetup{locale = DE}
 
@@ -81,8 +94,7 @@
 	\renewcommand{\appendixtocname}{Anhang}
 	\renewcommand{\appendixname}{Anhang}
 	\renewcommand{\appendixpagename}{Anhang}
-	\renewcommand\thesection{\Alph{section}}
-	\renewcommand{\setthesection}{\Alph{section}}
+	\renewcommand\thesection{\Alph{section}} \renewcommand{\setthesection}{\Alph{section}}
 	\setcounter{chapter}{0}
 
 	\cleardoublepage
