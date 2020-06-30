@@ -11,7 +11,7 @@
 		die in keinem der anderen Paper wiedergefunden wurden.
 	Leider konnten wir diesen Algorithmus nicht implementieren,
 		da im Paper die Funktionsweise der Einsatzdetektion und des Onset-Time-Vectorizers
-		nicht detailiert genug beschrieben wurde.
+		nicht detailiert genug beschrieben werdern.
 	Da alle anderen Paper statt Einsatzdetektionsvektoren eine Einsatzdetektionsfunktion (ODF von engl. onset detection function) verwenden,
 		konnten wir auch nicht diesen Teil des Algorithmus mit der ODF eines anderen Papers austauschen.
 	Auch ältere Arbeiten von Masataka Goto (\cite{1994_GoMu}, \cite{1995_GoMu1}, \cite{1996_GoMu}, \cite{1997_GoMu2}),
@@ -28,23 +28,13 @@
 	Diese basieren alle auf Kammfilter und sind bis auf \cite{2001_BeatThis} noch relativ neu.
 }
 
-\section{Vergleich}
-{
-}
-
 \section{Funktionsweise}
 {
-	% TODO: sagen, dass ich hier meine eigenen Implementierung beschreibe, welche aber dem Paper entsprechen sollte und wenn nicht schreib ichs dazu
-	% TODO: irgendwo erklären was ne ODF ist
-
-	% Man könnte, wenn man noch Wörter braucht, noch viel mehr auf Implementierungsdetails eingehen, wie bestimmte Sachen umgesetzt wurden
 
 	In diesem Abschnitt wird die Funktionsweise der verwendeten Algorithmen im Detail erklärt.
 	Dabei werden die, für diese Arbeit angefertigten, Implementierungen beschrieben,
 		welche den Algorithmen der ursprünglichen Paper entsprechen sollten,
 		sich jedoch in Kleinigkeiten unterscheiden können.
-	% TODO: weggelassenen Teil in 2009_DaPlSt erklären und hier schreiben,
-	% dass es dann unten gesagt wird, wenn sich doch was signifikantes ändert
 
 	\subsubsection*{Mathematische Notation}
 	{
@@ -60,7 +50,7 @@
 		Eine reelle Variable in Sekunden,
 			die sich auf den kontinuierlichen Zeitstrahl bezieht
 			und eine ganzzahlige Variable,
-			die sich auf das verwendete Zeitraster bezieht.
+			die sich auf das diskrete Zeitraster bezieht.
 		Dabei wird für die ganzzahlige Variabe ein ähnlich aussehender, griechicher Buchstabe verwendet,
 			z. B. $t$ und $\tau$ für Zeitindices
 			oder $T$ und $\Upsilon$ für die Beatperiode.
@@ -291,6 +281,15 @@
 				wird für die Tempohypothese $f_\text{final}$ genommen.
 
 			% weggelassener Teil ...
+			Nach diesem Schritt enthält der originale Algorithmus von~\cite{2009_DaPlSt} noch einen weiteren Schritt,
+				der dafür sorgt,
+				dass sich die Tempohypothese in jeder Iteration nur ein bischen ändern kann.
+			Dieser Teil wurde für diese Implementierung weggelassen,
+				da mit ihm der Algorithmus nach einiger Zeit immer das maximale Tempo von \SI{160}{BPM} ausgab
+				und davon nicht mehr abwich. 
+			Es stellte sich heraus,
+				dass der Algorithmus auch ohne diesen Teil relativ stabile Tempohypothesen abgibt,
+				auch wenn er gelegentlich kurz auf ein anderes Tempo springt.
 
 			% Beatvorhersage
 			In der zweiten Komponente des Algorithmus,
@@ -484,7 +483,7 @@
 				\end{equation}
 				definiert, wobei
 				\begin{equation}
-					p(\Upsilon, x) = \frac{X_{\Upsilon, x}}{\sum_{x_i = 0}^{\Upsilon - 1}X_{\tau, x_i}}
+					p(\Upsilon, x) = \frac{X_{\Upsilon, x}}{\sum_{x_i = 0}^{\Upsilon - 1}X_{\Upsilon, x_i}}
 				\end{equation}
 				als Häufigkeitsverteilung einer Zeile interpretiert werden kann.
 			Als nächstes wird in der resultierenden Matrix
@@ -527,3 +526,8 @@
 		}
 	}
 }
+
+\section{Vergleich}
+{
+}
+
