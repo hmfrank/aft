@@ -10,7 +10,6 @@ import statistics
 
 
 def main(args: argparse.Namespace):
-	pass
 	sb.set()  # makes SB-stuff look pretty
 
 	tr_file_groups = group_by_system(args.test_results)
@@ -55,10 +54,9 @@ def main(args: argparse.Namespace):
 		axes[1, i].set_ylim(0, 200)
 
 	fig.suptitle('Tempo Estimation Errors', fontsize=30)
-
 	fig.savefig(
 		args.output,
-		dpi=100,
+		dpi=args.dpi,
 		pad_inches=0
 	)
 	logging.info(f'Created PNG file {args.output}')
@@ -89,10 +87,10 @@ def analyse_tempi(gt_fname: str, tr_fname: str) \
 	with open(tr_fname, mode='r') as file:
 		reader = csv.reader(file, delimiter=',')
 		header = next(reader)
-		idx_ts_smp = header.index('timestamp_smp')
+		idx_ts_sec = header.index('timestamp_sec')
 		idx_tempo = header.index('tempo_bpm')
 		tr_tempi = [
-			(float(line[idx_ts_smp]) / 44100.0, float(line[idx_tempo]))
+			(float(line[idx_ts_sec]), float(line[idx_tempo]))
 			for line in reader
 			if line[0][0] != '#' and len(line[idx_tempo]) > 0
 		]
