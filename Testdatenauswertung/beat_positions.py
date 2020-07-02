@@ -30,6 +30,9 @@ def main(args: argparse.Namespace):
 		streak_lengths = []
 		i_cnt = {0: 0, 1: 0, 2: 0}
 
+		n_correct_beats = 0
+		n_predicted_beats = 0
+
 		for tr_fname in tr_fnames:
 			gt_fname = find_matching_gt_file(tr_fname, args.ground_truth)
 			gt_beats = read_gt_beats(gt_fname)
@@ -38,6 +41,7 @@ def main(args: argparse.Namespace):
 			best_steak = []
 			best_streak_pairs = []
 			best_streak_ij = (None, None)
+			best_alt_gt_beats = []
 
 			for i in range(3):
 				if i == 0: alt_gt_beats = half_tempo(gt_beats)
@@ -47,26 +51,40 @@ def main(args: argparse.Namespace):
 				for j in range(2):
 					if j == 1: alt_gt_beats = pi_phase(alt_gt_beats)
 
-					pairs = pair(alt_gt_beats, tr_beats)
+					pairs = pair2(alt_gt_beats, tr_beats)
 					streak = longest_streak(pairs, 0.35)
 
 					if len(streak) > len(best_steak):
 						best_steak = streak
 						best_streak_pairs = pairs
 						best_streak_ij = (i, j)
+						best_alt_gt_beats = alt_gt_beats
 
 			all_pairs.extend(best_streak_pairs)
 			streak_lengths.append(len(best_steak))
 			i_cnt[best_streak_ij[0]] += 1
+			n_correct_beats += len(best_alt_gt_beats)
+			n_predicted_beats += len(tr_beats)
 
-		errors = [e for _, _, e in all_pairs]
+		errors = [e for g, t, e in all_pairs if g is not None and t is not None]
+		print(
+			f'{system}\n'
+			f'      # total paired beats: {len(errors):7}\n'
+			f'    # total unpaired beats: {len(all_pairs) - len(errors):7}\n'
+			f'           # correct beats: {n_correct_beats:7}\n'
+			f'  # unpaired correct beats: {sum(1 for _, t, _ in all_pairs if t is None):7}\n'
+			f'         # predicted beats: {n_predicted_beats:7}\n'
+			f'# unpaired predicted beats: {sum(1 for g, _, _ in all_pairs if g is None):7}'
+		)
+
 		sb.distplot(
 			errors, ax=axes[0, s],
 			hist=True, kde=False,
 			bins=[i / 20.0 for i in range(21)]
 		)
 		axes[0, s].set_xlim(0, 1)
-		axes[0, s].set_xlabel(f'Normalized Error')
+		axes[0, s].set_xlabel(f'Normalisierter Fehler')
+		axes[0, s].set_ylim(0, 1200)
 		axes[0, s].set_title(SYSTEM_TO_TITLE[system], fontsize=16)
 
 		sb.distplot(
@@ -77,10 +95,10 @@ def main(args: argparse.Namespace):
 		axes[1, s].set_xlim(0, 90)
 		axes[1, s].invert_yaxis()
 		axes[1, s].set_yticklabels(['100', '80', '60', '40', '20', '0'])
-		axes[1, s].set_ylabel('percentage of songs')
+		axes[1, s].set_ylabel('Anzahl der Lieder (prozentual)')
 		percs = percentiles(streak_lengths, [0.0, 0.2, 0.5, 0.8, 1.0])
 		axes[1, s].set_xlabel(
-			f'Longest Correctly Tracked Period (1 - CDF)\n'
+			f'längste korrekte Beatfolge (1 - CDF)\n'
 			f'min: {percs[0]},   '
 			f'80%: {percs[1]},   '
 			f'50%: {percs[2]},   '
@@ -90,10 +108,10 @@ def main(args: argparse.Namespace):
 
 		sb.barplot(
 			ax=axes[2, s],
-			x=['half', 'correct', 'double'],
+			x=['halb', 'korrekt', 'doppelt'],
 			y=[v for k, v in sorted(i_cnt.items())]
 		)
-		axes[2, s].set_ylim(0, 120)
+		axes[2, s].set_ylim(0, 150)
 
 	fig.suptitle('', fontsize=30)
 	fig.savefig(
@@ -148,6 +166,56 @@ def longest_streak(pairs: List[Tuple[float, float, float]], threshold: float) \
 			current.append((gt_beat, tr_beat, error))
 
 	return longest
+
+
+def pair2(gt_beats: List[float], tr_beats: List[float]) \
+	-> List[Tuple[float, float, float]]:
+
+	gt_beats.sort()
+	pairs = []
+
+	# unpaired tr_beats that lie outside the gt_beat range
+	for tr_beat in tr_beats:
+		if tr_beat < gt_beats[0] or tr_beat > gt_beats[-1]:
+			pairs.append((None, tr_beat, 1.0))
+
+	# for each gt_beat, find all nearby tr_beats and pick the closest one
+	for prv, cur, nxt in zip([None] + gt_beats, gt_beats, gt_beats[1:] + [None]):
+		min = (cur + prv) / 2 if prv is not None else cur
+		max = (cur + nxt) / 2 if nxt is not None else cur
+
+		def error(tr_beat: float) -> float:
+			if tr_beat < cur:
+				return (tr_beat - cur) / ((prv - cur) / 2)
+			elif tr_beat == cur:
+				return 0.0
+			else:  # tr_beat > cur:
+				return (tr_beat - cur) / ((nxt - cur) / 2)
+
+		tr_beat_candidates = [
+			(error(tr_beat), tr_beat)
+			for tr_beat in tr_beats
+			if (min <= tr_beat < max) or (tr_beat == max == cur)
+		]
+		tr_beat_candidates.sort()
+
+		# unpaired gt_beat
+		if len(tr_beat_candidates) == 0:
+			pairs.append((cur, None, 1.0))
+
+		else:
+			# actual pair
+			err, tr_beat = tr_beat_candidates[0]
+			pairs.append((cur, tr_beat, err))
+
+			# unpaired tr_beats, which are unpaired,
+			# because the alg. made too many predictions
+			for _, tr_beat in tr_beat_candidates[1:]:
+				pairs.append((None, tr_beat, 1.0))
+
+	pairs.sort(key=lambda pair: (pair[1] if pair[0] is None else pair[0], pair[1]))
+
+	return pairs
 
 
 def pair(gt_beats: List[float], tr_beats: List[float]) \

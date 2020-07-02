@@ -115,25 +115,84 @@
 
 \section{Beatzeitpunktfehler}
 {
-	\begin{figure}[h]
-		\includegraphics[scale=0.5]{resources/beat_positions.png}
-		\caption{
-			oben: Histogramme der Beatzeitpunktfehler, \\
-			mitte: Verteilung der längsten korrekten Beatfolgen, \\
-			unten: Anzahl der Lieder, bei denen die Beatfolge mit halbem/korrektem/doppeltem Tempo erkannt wurde.
-		}
-		\label{fig:beaterror}
-	\end{figure}
+	\subsection{Ergebnisse}
+	{
+		\begin{figure}[h]
+			\includegraphics[scale=0.5]{resources/beat_positions.png}
+			\caption{
+				oben: Histogramme der Beatzeitpunktfehler, \\
+				mitte: Verteilung der längsten korrekten Beatfolgen, \\
+				unten: Anzahl der Lieder, bei denen die Beatfolge mit halbem/korrektem/doppeltem Tempo erkannt wurde.
+			}
+			\label{fig:beaterror}
+		\end{figure}
 
-	In Abbildung~\ref{fig:beaterror} oben ist die Verteilung der Fehler aller Beatpaare zu sehen,
-		inklusive der Fehler der ungepaarten Schläge,
-		welche immer \num{1} sind.
-	Die Graphen in der Mitte zeigen eine vertikel gespiegelte kumulative Verteilunsfunktion.
-	So kann man für jede Beatfolgenlänge ablsesen,
-		in wievielen Liedern (prozentual) eine korrekte Beatfolge mit mindestens dieser Länge erkannt wurde.
-	Die Balkendiagramme zeigen pro Algorithmus,
-		bei wievielen Liedern eine Beatfolge mit halbem, korrektem oder doppeltem Tempo als Referenzbeatfolge genommen wurde.
-	Ob die Referenzbeatfolge um $\pi$ phasenverschoben wurde, oder nicht, ist nicht zu sehen.
+		\begin{table}[h]
+			\centering
+			\begin{tabular}{l | r | r}
+				                            & \cite{2009_DaPlSt} & \cite{2011_PlRoSt} \\
+				\hline \hline
+				Anzahl korrekter Beats      & \num{14944}        & \num{15951}        \\
+				davon ungepaart             &  \num{1600}        &  \num{1437}        \\
+				\hline
+				Anzahl vorhergesagter Beats & \num{16361}        & \num{24426}        \\
+				davon ungepaart             &  \num{3017}        &  \num{9912}        \\
+				\hline
+				Anzahl der Beatpaare        & \num{13344}        & \num{14514}
+			\end{tabular}
+			\caption{whatever}
+			\label{tab:pairnum}
+		\end{table}
+
+		In Abbildung~\ref{fig:beaterror} oben ist die Verteilung der Fehler aller Beatpaare zu sehen.
+		Die Histogramme zeigen nur die Fehler,
+			der gepaarten Beats,
+			enthalten jedoch keine Informationen über die ungepaarten Beatvorhersagen.
+		Wieviele der korrekten und vorhergesagten Beats gepaart wurden,
+			kann aus Tabelle~\ref{tab:pairnum} entnommen werden.
+		Die unterschiedlichen Zahlen für die Anzahl korrekter Beats kommen daher,
+			dass die Lieder,
+			je nachdem ob sie der Algorithmus mit halbem, korrektem oder doppeltem Tempo erkennt,
+			unterschiedlich viele Beats haben.
+		Die Graphen in der Mitte von Abbildung~\ref{fig:beaterror} zeigen eine vertikel gespiegelte kumulative Verteilunsfunktion.
+		So kann man für jede Beatfolgenlänge ablsesen,
+			in wievielen Liedern (prozentual) eine korrekte Beatfolge mit mindestens dieser Länge erkannt wurde.
+		Die Balkendiagramme unten zeigen pro Algorithmus,
+			bei wievielen Liedern eine Beatfolge mit halbem, korrektem oder doppeltem Tempo als Referenzbeatfolge genommen wurde.
+		Ob die Referenzbeatfolge um $\pi$ phasenverschoben wurde, oder nicht, ist nicht zu sehen.
+	}
+
+	\subsection{Auswertung}
+	{
+		% Histogramauswertung
+		In den beiden Histogrammen kann man erkennen,
+			dass beide Algorithmen eine ähnliche Fehlerverteilung haben,
+			welche auch zeigt,
+			dass es mehr Beatvorhersagen in der Nähe der korrekten Beats gibt.
+		Diese Information bezieht sich jedoch nur auf die gepaarten Schläge.
+		Aus Tabelle~\ref{tab:pairnum} kann abgelesen werden,
+			dass zwar beide Algorithmen ungefär gleich viele Beatvorhersagen hätten machen müssen (Anzahl korrekter Beats),
+			aber~\cite{2011_PlRoSt} viel mehr Beatzeitpunkte ausgegeben hat (Anzahl vorhergesagter Beats),
+			was zu Folge hatte,
+			dass es öfter dazu kam,
+			dass mehrere vorhergesagte Beats in die Nähe eines korrekten Beats fielen
+			und somit mehr ungepaarte Beats generiert wurden.
+		Das heißt also,
+			dass die Beatvorhersagen von beiden Algorithmen ungefär die gleiche Genauigkeit haben,
+			aber~\cite{2011_PlRoSt} zu viele Beats ausgibt.
+
+		% Erklärung
+		Eine mögliche Erklärung dafür ist,
+			dass \cite{2011_PlRoSt} das Tempo zu schnell schätzt,
+			was auch durch Abbildung~\ref{fig:tempoerror} bestätig wird.
+		Dadurch werden auch mehr Schläge pro Minute ausgegeben.
+		Oft bleibt der Algorithmus auch auf einer Tempo-Phase-Hypothese hängen.
+		Wenn diese weit genug weg von den tatsächlichen Werten von Tempo und Phase ist,
+			bewirkt die Tempoupdateregel ---
+			deren eigentlicher Zweck es ist,
+			dass die Tempo-Phase-Hypothese nicht zu schnell zu weit springen kann ---
+			dass sich die Ausgabe von Tempo und Phase überhaupt nicht ändert.
+	}
 }
 
 \section{längste korrekte Beatfolge}
@@ -144,4 +203,11 @@
 
 \section{Rechenzeit}
 {
+	\subection{Ergebnisse}
+	{
+	}
+
+	\subsection{Auswertung}
+	{
+	}
 }

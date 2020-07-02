@@ -198,16 +198,23 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 		{
 			% Pairing
 			Für die Bestimmung der Beatzeitpunktfehler,
-				muss zunächst für jeden ausgegebenen Schlag der dazugehörige richtige Schlag gefunden werden.
+				muss zunächst für jeden korrekten Schlag $C_n$ der dazugehörige Schlag in der Ausgabe des Algorithmus $B_n$ gefunden werden.
 			Dafür wird der Ansatz des Pairings von~\cite{1997_GoMu1} verwendet.
-			Ist die ausgegebene Beatfolge des Algorithmus $B_0, B_1, ...$ und die korrekte Beatfolge $C_0, C_1, ...$,
-				dann werden zwei Beatpositionen $B_m$ und $C_n$ genau dann gepaart,
-				wenn sie die folgende Ungleichung erfüllen.
+			Es werden für jeden korrekten Beat $C_n$ alle ausgegebenen Beats $B_m$ gesucht,
+				die die folgende Ungleichung erfüllen.
 			\begin{equation}
 				C_n - \frac{1}{2}(C_n - C_{n - 1}) \le B_m < C_n + \frac{1}{2}(C_{n + 1} - C_n)
 			\end{equation}
-			Es bleiben einige ungepaarte Beatpositionen übrig,
-				welche die Ungleichung nicht erfüllen können.
+			Gibt es kein $B_m$,
+				welches die Ungleichung erfüllt,
+				wird $C_n$ als ungepaar markiert.
+			Falls es genau ein $B_m$ gibt,
+				welches die Ungleichung erfüllt,
+				wird ein Paar $(C_n, B_m)$ gebildet.
+			Werden für ein $C_n$ mehrere mögliche $B_m$ gefunden,
+				dann bildet $C_n$ ein Paar mit dem $B_m$,
+				das den kleinsten Paarfehler (s. unten) erziehlt.
+			Die anderen $B_m$ werden als ungepaart markiert.
 
 			% Paarfehler
 			Für jedes Paar $(C_n, B_m)$ wird ein normalisierter Fehler $P$ berechnet,
