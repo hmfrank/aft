@@ -203,11 +203,88 @@
 
 \section{Rechenzeit}
 {
-	\subection{Ergebnisse}
+	\subsection{Ergebnisse}
 	{
+		\begin{table}[h]
+			\centering
+			\begin{tabular}{l | r | r | r}
+				                       & \cite{2001_BeatThis} & \cite{2009_DaPlSt}   & \cite{2011_PlRoSt} \\
+				\hline \hline
+				Gesamtrechenzeit       & \SI{979.1}{\second}  & \SI{352.2}{\second} & \SI{2796}{\second} \\
+				pro Sekunde Audioinput & \SI{112.8}{\milli\second} & \SI{40.58}{\milli\second} & \SI{322.1}{\milli\second}
+			\end{tabular}
+			\caption{Rechenzeiten der Algorithmen}
+			\label{tab:cputime}
+		\end{table}
+
+		Tabelle~\ref{tab:cputime} zeigt die Gesamtrechenzeiten,
+			die jeder Algorithmus für die Verarbeitung aller Lieder im Datensatz gebraucht hat,
+			sowie die benötigte Rechenzeit pro Sekunde Audioeingabe
+			also die Zeit,
+			die im Durchschnitt benötigt wird um \num{44100} Audiosamples zu verarbeiten.
+		Die Gesamtlänge aller Lieder im Datensatz beträgt \num{8680} Sekunden.
 	}
 
 	\subsection{Auswertung}
 	{
+		% Who wins?
+		Die Zahlen sind an sich nicht besonders aussagekräftig,
+			da sie stark von der verwendeten Hardware abhängen.
+		Da aber alle Algorithmen auf der gleichen Hardware getestet wurden,
+			lassen sich die Zahlen untereinander vergleichen.
+		So geht auch aus diesem Test~\cite{2009_DaPlSt} als klarer Gewinner hervor,
+			gefolgt von~\cite{2001_BeatThis} und zuletzt~\cite{2011_PlRoSt}.
+
+		% Erklärung
+		Die Unterschiede in der Rechenzeit lassen sich zum Einen auf die unterschiedlichen Aktualsierungsraten der Tempovorhersagen
+			und zum Anderen auf die unterschiedlichen Datenmengen,
+			die die Algorithmen verarbeiten,
+			zurückführen.
+		% Updatezeiten
+		Während~\cite{2009_DaPlSt} die Tempoberechnung nur alle \num{1.5} Sekunden durchführt,
+			aktuallisiert die für diese Arbeit angefertige Implementierung von~\cite{2001_BeatThis} die Tempovorhersage jede Sekunde
+			und~\cite{2011_PlRoSt} sogar nach jedem ODF-Sample,
+			also alle \num{11.61} Millisekunden.
+		% Datenmengen
+		Außerdem arbeitet \cite{2001_BeatThis} direkt auf Audiosamples,
+			mit einer Abtastfrequenz von \SI{44.1}{\kilo\hertz},
+			statt auf einer ODF mit einer Abtastfrequenz von \SI{86}{\hertz} ($1 / \SI{11.61}{\milli\second}$).
+		Dadurch ist der \num{1.08} Sekunden lange Anlyserahmen schon $\SI{1.08}{\second} \cdot \SI{44.1}{\kilo\hertz} \cdot \SI{4}{\byte} = \SI{187}{\kibi\byte}$ lang (\num{4} Byte pro Sample, da das Single-Precision-Gleitkommaformat aus dem IEEE 754 Standard verwendet wurde).
+		Dazu kommt,
+			dass~\cite{2001_BeatThis} zwei mal eine FFT und eine IFFT mit einer Zeitkomplexität von $O(n\log(n))$ auf diesem Array berechnet,
+			während~\cite{2009_DaPlSt} fast nur Operationen mit linearer Zeitkomplexität ausführt.
+		Die anderen beiden Algorithmen berechnen zwar auch eine STFT auf dem Eingangssignal,
+			was nichts anderes als eine wiederholte FFT ist,
+			jedoch nur auf jeweils \num{512} Samples großen Arrays.
+		Der Analyserahmen von~\cite{2009_DaPlSt} umfasst zwar \num{6} Sekunden
+			ist aber nur \num{512} Samples lang,
+			da das ODF-Samples sind.
+		So werden hier in jedem Verarbeitungsschritt viel kleiner Datenmengen verarbeitet.
+		Auch die Kammfiltermatrix aus~\cite{2011_PlRoSt} basiert auf ODF-Samples
+			und besteht deshalb nur aus $32 + 33 + ... + 65 = 1649$ Samples.
+		Diese wird pro Temposchätzung zwei Mal komplett durchlaufen.
+
+		Zusammenfassend kann man also sagen:
+		\cite{2011_PlRoSt} verarbeitet wenig Daten,
+			jedoch mit einer hohen Aktualisierungsrate,
+			wodurch der große Rechenaufwand zustande kommt.
+		\cite{2001_BeatThis} verarbeitet viele Daten,
+			jedoch mit einer geringen Aktualisierungsrate,
+			wodurch auch ein großer Rechenaufwand zustande kommt.
+		\cite{2009_DaPlSt} verarbeitet kleine Datenmengen
+			und das auch mit einer geringen Aktualisierungsrate,
+			woruch der geringe Rechenaufwand zustande kommt.
+
+		Abschließend muss auch gesagt werden,
+			dass die gemessenen Zeiten natürlich implementierungsabhängig sind.
+		Das Aktualisierungsinterval von einer Sekunde bei~\cite{2001_BeatThis} ist beispielsweiße willkürlich gewählt
+			und es gibt in den Implementierungen sicher noch eignige Möglichkeiten für Optimierungen.
+		Die ausschlaggebenden Faktoren,
+			mit denen die unterschiedlichen Rechenzeiten erklärt wurden,
+			also Größe der Analyserahmen,
+			Updateinterval des 2009er und 2011er Algorithmus,
+			etc.,
+			kommen von den Algorithmenbeschreibungen der ursprünglichen Paper
+			und sind nicht der Implementierung zu verschulden.
 	}
 }

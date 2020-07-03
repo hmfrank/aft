@@ -10,10 +10,11 @@ def main(args: argparse.Namespace):
 	tr_file_groups = group_by_system(args.test_results)
 
 	for system, tr_fnames in tr_file_groups.items():
-		print(f'{system}: {cpu_time_per_sec(tr_fnames)} seconds')
+		cpu_time, total_time, ratio = cpu_time_per_sec(tr_fnames)
+		print(f'{system}: CPU Time: {cpu_time:.5g}, Total Time: {total_time:.5g}, Ratio: {ratio:.5g}')
 
 
-def cpu_time_per_sec(tr_fnames: List[str]) -> float:
+def cpu_time_per_sec(tr_fnames: List[str]) -> Tuple[float, float, float]:
 	total_time = 0.0
 	cpu_time = 0.0
 
@@ -31,7 +32,7 @@ def cpu_time_per_sec(tr_fnames: List[str]) -> float:
 					elif parts[0] == '# total_cpu_time':
 						cpu_time += float(parts[1].strip())
 
-	return cpu_time / total_time
+	return cpu_time, total_time, cpu_time / total_time
 
 
 def assert_args(args: argparse.Namespace):
@@ -50,12 +51,6 @@ def parse_args() -> argparse.Namespace:
 		nargs='+',
 		required=True,
 		help='list of test result files, produced by the ./test program'
-	)
-
-	parser.add_argument(
-		'-o', '--output',
-		required=True,
-		help='file name of the output PNG-file'
 	)
 
 	parser.add_argument(
