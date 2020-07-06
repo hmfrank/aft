@@ -35,7 +35,8 @@ def main(args: argparse.Namespace):
 		f'σ = {statistics.stdev(tempi):.4g}')
 	axes.set_title('', fontsize=16)
 
-	fig.suptitle('Datensatz Tempoverteilung', fontsize=30)
+	# fig.suptitle('Datensatz Tempoverteilung', fontsize=30)
+	fig.tight_layout()
 	fig.savefig(
 		args.output,
 		dpi=args.dpi,

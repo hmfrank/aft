@@ -41,19 +41,20 @@ def main(args: argparse.Namespace):
 		axes[0, i].set_xlim(-100, 100)
 		axes[0, i].set_ylim(0, 1200)
 		axes[0, i].set_xlabel(
-			f'Tempo Estimation Error (BPM)\n'
-			f'mean = {statistics.mean(errors):.4g},   '
+			f'Tempofehler (BPM)\n'
+			f'Ø = {statistics.mean(errors):.4g},   '
 			f'σ = {statistics.stdev(errors):.4g}')
 		axes[0, i].set_title(SYSTEM_TO_TITLE[system], fontsize=16)
 
 		sb.barplot(
 			ax=axes[1, i],
-			x=['half', 'correct', 'double'],
+			x=['halb', 'korrekt', 'doppelt'],
 			y=[v for k, v in sorted(error_triplet_idx_cnt.items())]
 		)
 		axes[1, i].set_ylim(0, 200)
 
-	fig.suptitle('Tempo Estimation Errors', fontsize=30)
+	# fig.suptitle('Tempo Estimation Errors', fontsize=30)
+	fig.tight_layout()
 	fig.savefig(
 		args.output,
 		dpi=args.dpi,

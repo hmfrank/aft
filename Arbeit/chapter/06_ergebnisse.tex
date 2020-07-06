@@ -2,14 +2,15 @@
 \label{ergebnisse}
 
 % TODO: entweder Bezug auf die Fragen aus Kapitel 5 nehmen oder se ganz weg lassen
+% TODO: nochma gucken, was genau in Ergebnisse und was in Auswertung kommt
 
 \section{Tempofehler}
 {
 	\subsection{Ergebnisse}
 	{
 		\begin{figure}[h]
-			\hspace{-2.8cm}
-			\includegraphics[scale=0.45]{resources/tempo_error_histogram.png}
+			\hspace{-17mm}
+			\includegraphics[scale=0.4]{resources/tempo_error_histogram.png}
 			\caption{
 				oben: Histogramme der Tempofehler, \\
 				unten: Anzahl der Lieder, bei denen das halbe/korrekte/doppelte Tempo erkannt wurde
@@ -115,15 +116,14 @@
 
 \section{Beatzeitpunktfehler}
 {
+	\label{ergebnisse/beatzeitpunktfehler}
+
 	\subsection{Ergebnisse}
 	{
 		\begin{figure}[h]
-			\includegraphics[scale=0.5]{resources/beat_positions.png}
-			\caption{
-				oben: Histogramme der Beatzeitpunktfehler, \\
-				mitte: Verteilung der längsten korrekten Beatfolgen, \\
-				unten: Anzahl der Lieder, bei denen die Beatfolge mit halbem/korrektem/doppeltem Tempo erkannt wurde.
-			}
+			\centering
+			\includegraphics[scale=0.47]{resources/beat_positions.png}
+			\caption{Histogramme der Beatzeitpunktfehler}
 			\label{fig:beaterror}
 		\end{figure}
 
@@ -144,7 +144,7 @@
 			\label{tab:pairnum}
 		\end{table}
 
-		In Abbildung~\ref{fig:beaterror} oben ist die Verteilung der Fehler aller Beatpaare zu sehen.
+		In Abbildung~\ref{fig:beaterror} ist die Verteilung der Fehler aller Beatpaare zu sehen.
 		Die Histogramme zeigen nur die Fehler,
 			der gepaarten Beats,
 			enthalten jedoch keine Informationen über die ungepaarten Beatvorhersagen.
@@ -154,12 +154,6 @@
 			dass die Lieder,
 			je nachdem ob sie der Algorithmus mit halbem, korrektem oder doppeltem Tempo erkennt,
 			unterschiedlich viele Beats haben.
-		Die Graphen in der Mitte von Abbildung~\ref{fig:beaterror} zeigen eine vertikel gespiegelte kumulative Verteilunsfunktion.
-		So kann man für jede Beatfolgenlänge ablsesen,
-			in wievielen Liedern (prozentual) eine korrekte Beatfolge mit mindestens dieser Länge erkannt wurde.
-		Die Balkendiagramme unten zeigen pro Algorithmus,
-			bei wievielen Liedern eine Beatfolge mit halbem, korrektem oder doppeltem Tempo als Referenzbeatfolge genommen wurde.
-		Ob die Referenzbeatfolge um $\pi$ phasenverschoben wurde, oder nicht, ist nicht zu sehen.
 	}
 
 	\subsection{Auswertung}
@@ -197,8 +191,34 @@
 
 \section{längste korrekte Beatfolge}
 {
-	Die längste korrekte Beatfolge von~\cite{2009_DaPlSt} ist \num{86}.
-	\cite{2011_RoPlSt} hingegen hat Beatfolge von \num{39} Schlägen korrekt erfasst.
+	\subsection{Ergebnisse}
+	{
+		% TODO: wäre sau geil, wenn beide Kurven in einem Diagram wären
+		\begin{figure}[h]
+			\centering
+			\includegraphics[scale=0.47]{resources/longest_streak.png}
+			\caption{Verteilung der längsten korrekten Beatfolgen}
+			\label{fig:longest_streak}
+		\end{figure}
+
+		Die Graphen in Abbildung~\ref{fig:longest_streak} zeigen eine vertikel gespiegelte kumulative Verteilunsfunktion.
+		So kann man für jede Beatfolgenlänge ablsesen,
+			in wievielen Liedern (prozentual) eine korrekte Beatfolge mit mindestens dieser Länge erkannt wurde.
+
+		Die längste korrekte Beatfolge von~\cite{2009_DaPlSt} ist \num{86}.
+		\cite{2011_PlRoSt} hingegen hat maximal eine  Beatfolge von \num{30} Schlägen korrekt erfasst.
+		Generell hat~\cite{2009_DaPlSt} für jede beliebige Beatfolgenlänge eine größere Anzahl an Liedern,
+			bei denen eine mindesten so lange Beatfolge korrekt erfasst wurde.
+	}
+
+	\subsection{Auswertung}
+	{
+		Die Ergebnisse hier lassen sich genauso wie die Ergebnisse in Abschnitt~\ref{ergebnisse/beatzeitpunktfehler} erklären.
+		Wahrscheinlich hat~\cite{2011_PlRoSt} das Tempo zu schnell geschätzt,
+			wodurch zu viele Beatzeitpunkte ausgegeben wurden.
+		Dadurch wird natürlich jede lange korrekte Beatfolge durch viele ungepaarte Beats unterbrochen.
+	}
+
 }
 
 \section{Rechenzeit}

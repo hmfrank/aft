@@ -20,15 +20,19 @@ def main(args: argparse.Namespace):
 		if ex in tr_file_groups:
 			del tr_file_groups[ex]
 
-	fig, axes = plt.subplots(
-		3, len(tr_file_groups),
-		figsize=(6 * len(tr_file_groups), 3 * 6)
+	fig0, axes0 = plt.subplots(
+		1, len(tr_file_groups),
+		figsize=(6 * len(tr_file_groups), 1 * 6)
+	)
+	fig1, axes1 = plt.subplots(
+		1, len(tr_file_groups),
+		figsize=(6 * len(tr_file_groups), 1 * 6)
 	)
 
 	for s, (system, tr_fnames) in enumerate(tr_file_groups.items()):
 		all_pairs = []
 		streak_lengths = []
-		i_cnt = {0: 0, 1: 0, 2: 0}
+		# i_cnt = {0: 0, 1: 0, 2: 0}
 
 		n_correct_beats = 0
 		n_predicted_beats = 0
@@ -40,7 +44,7 @@ def main(args: argparse.Namespace):
 
 			best_steak = []
 			best_streak_pairs = []
-			best_streak_ij = (None, None)
+			# best_streak_ij = (None, None)
 			best_alt_gt_beats = []
 
 			for i in range(3):
@@ -57,12 +61,12 @@ def main(args: argparse.Namespace):
 					if len(streak) > len(best_steak):
 						best_steak = streak
 						best_streak_pairs = pairs
-						best_streak_ij = (i, j)
+						# best_streak_ij = (i, j)
 						best_alt_gt_beats = alt_gt_beats
 
 			all_pairs.extend(best_streak_pairs)
 			streak_lengths.append(len(best_steak))
-			i_cnt[best_streak_ij[0]] += 1
+			# i_cnt[best_streak_ij[0]] += 1
 			n_correct_beats += len(best_alt_gt_beats)
 			n_predicted_beats += len(tr_beats)
 
@@ -78,26 +82,26 @@ def main(args: argparse.Namespace):
 		)
 
 		sb.distplot(
-			errors, ax=axes[0, s],
+			errors, ax=axes0[s],
 			hist=True, kde=False,
 			bins=[i / 20.0 for i in range(21)]
 		)
-		axes[0, s].set_xlim(0, 1)
-		axes[0, s].set_xlabel(f'Normalisierter Fehler')
-		axes[0, s].set_ylim(0, 1200)
-		axes[0, s].set_title(SYSTEM_TO_TITLE[system], fontsize=16)
+		axes0[s].set_xlim(0, 1)
+		axes0[s].set_xlabel(f'Normalisierter Fehler')
+		axes0[s].set_ylim(0, 1200)
+		axes0[s].set_title(SYSTEM_TO_TITLE[system], fontsize=16)
 
 		sb.distplot(
-			streak_lengths, ax=axes[1, s],
+			streak_lengths, ax=axes1[s],
 			hist=False, kde=True,
 			kde_kws={'cumulative': True}
 		)
-		axes[1, s].set_xlim(0, 90)
-		axes[1, s].invert_yaxis()
-		axes[1, s].set_yticklabels(['100', '80', '60', '40', '20', '0'])
-		axes[1, s].set_ylabel('Anzahl der Lieder (prozentual)')
+		axes1[s].set_xlim(0, 90)
+		axes1[s].invert_yaxis()
+		axes1[s].set_yticklabels(['100', '80', '60', '40', '20', '0'])
+		axes1[s].set_ylabel('Anzahl der Lieder (prozentual)')
 		percs = percentiles(streak_lengths, [0.0, 0.2, 0.5, 0.8, 1.0])
-		axes[1, s].set_xlabel(
+		axes1[s].set_xlabel(
 			f'längste korrekte Beatfolge (1 - CDF)\n'
 			f'min: {percs[0]},   '
 			f'80%: {percs[1]},   '
@@ -105,21 +109,24 @@ def main(args: argparse.Namespace):
 			f'20%: {percs[3]},   '
 			f'max: {percs[4]}'
 		)
+		axes1[s].set_title(SYSTEM_TO_TITLE[system], fontsize=16)
 
-		sb.barplot(
-			ax=axes[2, s],
-			x=['halb', 'korrekt', 'doppelt'],
-			y=[v for k, v in sorted(i_cnt.items())]
-		)
-		axes[2, s].set_ylim(0, 150)
+	# sb.barplot(
+		# 	ax=axes[2, s],
+		# 	x=['halb', 'korrekt', 'doppelt'],
+		# 	y=[v for k, v in sorted(i_cnt.items())]
+		# )
+		# axes[2, s].set_ylim(0, 150)
 
-	fig.suptitle('', fontsize=30)
-	fig.savefig(
-		args.output,
-		dpi=args.dpi,
-		pad_inches=0
-	)
-	logging.info(f'Created PNG file {args.output}')
+	fig0.suptitle('', fontsize=30)
+	fig0.tight_layout()
+	fig0.savefig(args.output[0], dpi=args.dpi, pad_inches=0)
+	logging.info(f'Created PNG file {args.output[0]}')
+
+	fig1.suptitle('', fontsize=30)
+	fig1.tight_layout()
+	fig1.savefig(args.output[1], dpi=args.dpi, pad_inches=0)
+	logging.info(f'Created PNG file {args.output[1]}')
 
 
 def assert_args(args: argparse.Namespace):
@@ -329,8 +336,9 @@ def parse_args() -> argparse.Namespace:
 
 	parser.add_argument(
 		'-o', '--output',
+		nargs=2,
 		required=True,
-		help='file name of the output PNG-file'
+		help='file names of the two output PNG-files'
 	)
 
 	parser.add_argument(
