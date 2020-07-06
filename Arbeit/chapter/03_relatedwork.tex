@@ -1,5 +1,93 @@
 \chapter{Verwandte Arbeiten}
 \label{verwandte_arbeiten}
 
-\section{Zusammenfassung}
+% 1997 Goto, Muraoka - Issues in Evaluating Beat Tracking Systems
+\paragraph{\cite{1997_GoMu1}}
+{
+	befasst sich mit Problemen bei der Bewertung von Beaterkennungsalgorithmen.
+	Es wird eine Methode zur Evaluierung der Genauigkeit dieser Algorithmen vorgestellt,
+		welche auch typische Fehler,
+		die solche Systeme machen,
+		in Betracht zieht.
+	Diese Methode wird auch in dieser Arbeit verwendet.
+}
 
+% __________ ALGORITHMEN ______________________________________________________
+
+% 2000 Dixon
+\paragraph{\cite{2000_Di}}
+{
+	stellt einen vielversprechenden Algorithmus zur Erkennung von Beats vor,
+		der auf der Häufigkeitsverteilung von Zeitintervallen zwischen den Beats basiert.
+}
+
+% 2001 Beat This
+\paragraph{\cite{2001_BeatThis}}
+{
+	stellen einen Algorithmus vor,
+		der das Tempo eines Musikstücks erkennt.
+	Dieser wurde nicht für Echtzeitanwendungen konzipiert
+		aber kann trotzdem dafür verwendet werden.
+	Er basiert auf einer Kammfiltermatrix
+		und hat generell einen relativ einfachen Aufbau im Vergleich zu den anderen Algorithmen in dieser Arbeit.
+}
+
+% 2001 Goto
+\paragraph{\cite{2001_Go}}
+{
+	beschreibt ein relativ komplexes Beaterkennungssystem,
+		welches nicht nur Beatpositionen erkennt,
+		sondern auch die hierarchische Taktstruktur eines 4/4-Taktes,
+		welche aus Takten, halben Takten und Schlägen (viertlen Takten) besteht.
+	Das System ist eine Kombination und Verbesserung zweier älterer Systeme,
+		die zum Einen für Musik mit Schlagzeug (\cite{1994_GoMu}, \cite{1995_GoMu1}, \cite{1998_GoMu})
+		und zum Anderen für Musik ohne Schlagzeug (\cite{1996_GoMu}, \cite{1997_GoMu2}, \cite{1999_GoMu})
+		ausgelegt waren.
+	Das neue System funktioniert sowohl mit Musik mit Schlagzeug als auch mit Musik ohne Schlagzeug.
+	Außerdem ist es vielversprechend,
+		weil mehrere verschiedene Informationen verwendet werden um die Ausgabe zu verbessern,
+		namentlich die Einsatzzeitpunkte, Harmoniewechsel und gängige Schlagzeugmuster.
+}
+
+\paragraph{\cite{2004_BeDaDuSa}}
+{
+	vergleicht verschiedene Einsatzdetektionsfunktionen (ODF von eng. onset detection function),
+		welche ein wesentlicher Bestandteil vieler Beaterkennungsalgorithmen sind.
+	Außerdem wird eine Einsatzdetektionsfunktion vorgestellt,
+		die sowohl auf Lautstärkeänderungen,
+		als auch auf Phasenänderungen in der komplexen Domäne,
+		reagiert.
+	Diese ODF wird auch in zwei der in dieser Arbeit verglichenen Algorithmen verwendet.
+}
+
+\paragraph{\cite{2009_DaPlSt}}
+{
+	präsentiert ein Beaterkennungsystem,
+		das ein Hybrid aus zwei Vorgängern ist.
+	So wurde die Beatzeitpunktbestimmung von~\cite{2007_El}
+		und die Tempoerkennung von~\cite{2007_DaPl} inspiriert.
+}
+
+% 2011 PlRoSt
+\paragraph{\cite{2011_PlRoSt}}
+{
+	erklärt einen echtzeitfähigen Beaterkennungsalgorithmus mit visuellem Interface.
+	Hierbei wird eine intuitive Representation einer Kammfiltermatrix visualisiert,
+		mit der der Benutzer interagieren kann.
+	Der Algorithmus kann auch ohne Nutzerinteraktion laufen,
+		aber könnte dann Schwierigkeiten haben,
+		die Mehrdeutigkeit des Beaterkennungsproblems aufzulösen.
+}
+
+% __________ DATENSATZ ________________________________________________________
+
+\paragraph{\cite{2012_HoDaZaOlGo}}
+{
+	stellt eine Methode zur Identifikation von Musik,
+		die für Beaterkennungsalgorithmen schwierig ist,
+		vor.
+	Diese Methode wird benutzt um einen schwierigen Datensatz für die Evaluation von Beaterkennungsalgorithmen zu erstellen.
+	Es wird auch beschrieben,
+		wie die einzelnen Lieder des Datensatzes annotiert wurden.
+	Der so entstandene Datensatz wird auch in den Vergleichstest dieser Arbeit genutzt.
+}
