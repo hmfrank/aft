@@ -33,7 +33,7 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 	\end{equation}
 
 	% Beatzeitpunkte
-	Außerdem geben die Algorithmen von~\cite{2009_DaPlSt} und~\cite{2011_PlRoSt} zusätzlich noch Informationen zur Position des aktuellen oder nächsten Beats aus.
+	Au{\ss}erdem geben die Algorithmen von~\cite{2009_DaPlSt} und~\cite{2011_PlRoSt} zusätzlich noch Informationen zur Position des aktuellen oder nächsten Beats aus.
 	So gibt~\cite{2011_PlRoSt} beispielsweise die Phase aus,
 		welche angibt wo sich der Beat innerhalb des aktuellen Beatintervals befindet.
 	Daraus lassen sich auch absolute Beatzeitpunkte berechnen.
@@ -78,7 +78,7 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 		und es ist kein Resampling nötig.
 	Aus den CDs wurden von jedem Song \num{40} Sekunden extrahiert.
 	% Art der Musik
-	Die Auswahl der Lieder beschränkt sich ausschließlich auf westliche Musik.
+	Die Auswahl der Lieder beschränkt sich ausschlie{\ss}lich auf westliche Musik.
 	Dabei sind verschiedene Musikrichtigunen vertreten,
 		unter anderem: Klassik, Romantik, Filmmusik, Blues, Chanson und Sologitarrenkompositionen.
 	% Wie groß?
@@ -123,7 +123,7 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 		Bei~\cite{2009_DaPlSt} und~\cite{2011_PlRoSt} werden zusätzlich auch die vorhergesagten Beatzeitpunkte gespeichert.
 		Die Tempovorhersagen von~\cite{2011_PlRoSt} werden nur dann gespeichert,
 			wenn sie sich im Vergleich zur letzten Tempovorhersage geändert haben.
-		Das ist bei diesem Algorithmus notwendig um die größe der CSV-Dateien zu reduzieren,
+		Das ist bei diesem Algorithmus notwendig um die grö{\ss}e der CSV-Dateien zu reduzieren,
 			weil der Algorithmus alle \SI{11.61}{\milli\second} eine neue Tempovorhersage ausgibt.
 		Da \cite{2011_PlRoSt} nicht direkt Beatzeitpunkte ausgibt,
 			sondern eine Beatperiode $T$ und Phase $x$,
@@ -162,7 +162,7 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 			Da die einzelnen Algorithmen ihre Temposchätzungen in unterschiedlichen Abständen aktualisieren
 				(bzw. bei~\cite{2011_PlRoSt} nur wenn sich das Tempo ändert),
 				wäre es unfair für jede Temposchätzung einen Fehler zu berechnen.
-			Gibt~\cite{2011_PlRoSt} beispielsweiße ein konstant falsches Tempo über einen längeren Zeitraum aus,
+			Gibt~\cite{2011_PlRoSt} beispielswei{\ss}e ein konstant falsches Tempo über einen längeren Zeitraum aus,
 				würde er nur einmal dafür bestraft werden,
 				während einer der anderen beiden Algorithmen für jede einzelne falsche Temposchätzung in diesem Zeitraum bestraft werden würde.
 			Aus diesem Grund wird ein Fehler für jedes Beatinterval berechnet.
@@ -182,9 +182,9 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 			% Halb- und Doppeltempofehler
 			Weil das Problem der Tempobestimming nicht eindeutig ist,
 				treten bei solchen Systemen häuft Halbtempo- und Doppeltempofehler auf.
-			Das heißt,
+			Das hei{\ss}t,
 				der Algorithmus schätzt genau die Hälfte, bzw. das Doppelte, des richtigen Tempos.
-			Liegt das korrekte Tempo außerhalb des Wertebereichs,
+			Liegt das korrekte Tempo au{\ss}erhalb des Wertebereichs,
 				(\SIrange{80}{160}{BPM} bei allen Algorithmen in dieser Arbeit),
 				ist die beste Ausgabe,
 				die ein Algorithmus machen kann,
@@ -195,7 +195,7 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 				sondern auch die Differenz zum halben und zum doppelten Tempo berechnet.
 			So entstehen pro Song pro Algorithmus drei Fehlerlisten.
 			Die Liste mit der kleinsten Summe der Quadrate wird der Gesamtfehlerliste des Algorithmus angehängt.
-			Die Gesamtfehlerliste kann anschließend als Histogram dargestellt werden.
+			Die Gesamtfehlerliste kann anschlie{\ss}end als Histogram dargestellt werden.
 		}
 
 		\paragraph{Beatzeitpunktfehler und längste korrekte Beatfolge}

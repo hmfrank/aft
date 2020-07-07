@@ -33,7 +33,7 @@
 		\cite{2009_DaPlSt} hingegen weicht im Durchschnitt nur minimal von einem Fehler von 0 ab und
 			hat mehr Fehler, die sehr nah an 0 sind.
 		Am meisten gestreut sind die Fehler bei \cite{2001_BeatThis}.
-		Die Fehler von~\cite{2009_DaPlSt} haben zwar eine etwas größere Streuung (Standardabweichung) als die von~\cite{2011_PlRoSt},
+		Die Fehler von~\cite{2009_DaPlSt} haben zwar eine etwas grö{\ss}ere Streuung (Standardabweichung) als die von~\cite{2011_PlRoSt},
 			trotzdem kann man aber sagen,
 			dass~\cite{2009_DaPlSt} in diesem Vergleich die besten Tempovorhersagen macht,
 			da der Durchschnittsfehler viel näher an 0 ist.
@@ -45,7 +45,7 @@
 			\label{fig:dataset_tempo}
 		\end{figure}
 
-		Auffällig ist außerdem,
+		Auffällig ist au{\ss}erdem,
 			dass bei jedem Algorithmus die meisten Lieder mit dem doppelten Tempo erkannt wurden.
 		Das ist hauptsächlich dem limitierten Ausgabebereich der Algorithmen von \SIrange{80}{160}{BPM} zu verschulden.
 		Abbildung~\ref{fig:dataset_tempo} zeigt die Verteilung der Tempi aller Beatintervalle im Datensatz.
@@ -59,7 +59,7 @@
 			wobei sich die meisten davon im untern Tempoberiech befinden.
 		Das erklärt,
 			warum so viele Lieder mit doppeltem Tempo erkannt wurden.
-		Der rote Berech ist alles was außerhalb von \SIrange{40}{320}{BPM} ist
+		Der rote Berech ist alles was au{\ss}erhalb von \SIrange{40}{320}{BPM} ist
 			und markiert den Tempobereich,
 			den die Algorithmen unmöglich bestimmen können.
 		Dieser Bereich enthält \SI{4.11}{\percent} aller Beatintervalle.
@@ -81,7 +81,7 @@
 			als Einsätze erkannt werden.
 
 		% Mögliche Erklärung 2 (Tempo Induction)
-		Außerdem verwendet~\cite{2001_BeatThis} zur Tempobestimmung Kammfilter mit drei Zähnen,
+		Au{\ss}erdem verwendet~\cite{2001_BeatThis} zur Tempobestimmung Kammfilter mit drei Zähnen,
 			welche einen ähnlichen Effekt wie eine Autokorrelationsfunktion (ACF von engl. auto correlation function) haben.
 		Bei der ACF wird das Signal mit einer verzögerten Version von sich selbst elementweise multipliziert.
 		Bei diesem Kammfilter wird das Signal mit zwei verzögerten Versionen von sich selbst elementweise addiert.
@@ -89,15 +89,15 @@
 			dass sich,
 			bei der richtigen Verzögerung,
 			die regelmäsigen Peaks des Signals überlagern
-			und so die Ausgabe einen großen Wert annimmt.
+			und so die Ausgabe einen gro{\ss}en Wert annimmt.
 		Weil ein Signal,
 			was sich beispielsweise alle $T$ Sekunden wiederholt,
 			sich gleichzeitig auch alle $2T, 3T,$ usw. Sekunden wiederholt,
 			entstehen in der ACF sowie in der Kammfilterausgabe mehrere Peaks jeweils bei Vielfachen des ersten Peaks.
 		\cite{2001_BeatThis} hört an dieser Stelle auf
-			und bestimmt einfach den größten Peak als Beatperiode des Songs,
+			und bestimmt einfach den grö{\ss}ten Peak als Beatperiode des Songs,
 			während die anderen Peaks ignoriert werden.
-		\cite{2009_DaPlSt} hingegen multipliziert anschließend die Ausgabe der ACF mit mehreren Kammfiltern
+		\cite{2009_DaPlSt} hingegen multipliziert anschlie{\ss}end die Ausgabe der ACF mit mehreren Kammfiltern
 			um die Abstände von äquidistanten Peaks in der ACF zu ermitteln.
 
 		% 2009 vs. 2011 (vorverarbeitete ODF)
@@ -176,7 +176,7 @@
 			dass es öfter dazu kam,
 			dass mehrere vorhergesagte Beats in die Nähe eines korrekten Beats fielen
 			und somit mehr ungepaarte Beats generiert wurden.
-		Das heißt also,
+		Das hei{\ss}t also,
 			dass die Beatvorhersagen von beiden Algorithmen ungefär die gleiche Genauigkeit haben,
 			aber~\cite{2011_PlRoSt} zu viele Beats ausgibt.
 
@@ -215,7 +215,7 @@
 
 		Die längste korrekte Beatfolge von~\cite{2009_DaPlSt} ist \num{86}.
 		\cite{2011_PlRoSt} hingegen hat maximal eine  Beatfolge von \num{30} Schlägen korrekt erfasst.
-		Generell hat~\cite{2009_DaPlSt} für jede beliebige Beatfolgenlänge eine größere Anzahl an Liedern,
+		Generell hat~\cite{2009_DaPlSt} für jede beliebige Beatfolgenlänge eine grö{\ss}ere Anzahl an Liedern,
 			bei denen eine mindesten so lange Beatfolge korrekt erfasst wurde.
 	}
 
@@ -277,7 +277,7 @@
 			und~\cite{2011_PlRoSt} sogar nach jedem ODF-Sample,
 			also alle \num{11.61} Millisekunden.
 		% Datenmengen
-		Außerdem arbeitet \cite{2001_BeatThis} direkt auf Audiosamples,
+		Au{\ss}erdem arbeitet \cite{2001_BeatThis} direkt auf Audiosamples,
 			mit einer Abtastfrequenz von \SI{44.1}{\kilo\hertz},
 			statt auf einer ODF mit einer Abtastfrequenz von \SI{86}{\hertz} ($1 / \SI{11.61}{\milli\second}$).
 		Dadurch ist der \num{1.08} Sekunden lange Anlyserahmen schon $\SI{1.08}{\second} \cdot \SI{44.1}{\kilo\hertz} \cdot \SI{4}{\byte} = \SI{187}{\kibi\byte}$ lang (\num{4} Byte pro Sample, da das Single-Precision-Gleitkommaformat aus dem IEEE 754 Standard verwendet wurde).
@@ -286,7 +286,7 @@
 			während~\cite{2009_DaPlSt} fast nur Operationen mit linearer Zeitkomplexität ausführt.
 		Die anderen beiden Algorithmen berechnen zwar auch eine STFT auf dem Eingangssignal,
 			was nichts anderes als eine wiederholte FFT ist,
-			jedoch nur auf jeweils \num{512} Samples großen Arrays.
+			jedoch nur auf jeweils \num{512} Samples gro{\ss}en Arrays.
 		Der Analyserahmen von~\cite{2009_DaPlSt} umfasst zwar \num{6} Sekunden
 			ist aber nur \num{512} Samples lang,
 			da das ODF-Samples sind.
@@ -298,21 +298,21 @@
 		Zusammenfassend kann man also sagen:
 		\cite{2011_PlRoSt} verarbeitet wenig Daten,
 			jedoch mit einer hohen Aktualisierungsrate,
-			wodurch der große Rechenaufwand zustande kommt.
+			wodurch der gro{\ss}e Rechenaufwand zustande kommt.
 		\cite{2001_BeatThis} verarbeitet viele Daten,
 			jedoch mit einer geringen Aktualisierungsrate,
-			wodurch auch ein großer Rechenaufwand zustande kommt.
+			wodurch auch ein gro{\ss}er Rechenaufwand zustande kommt.
 		\cite{2009_DaPlSt} verarbeitet kleine Datenmengen
 			und das auch mit einer geringen Aktualisierungsrate,
 			woruch der geringe Rechenaufwand zustande kommt.
 
-		Abschließend muss auch gesagt werden,
+		Abschlie{\ss}end muss auch gesagt werden,
 			dass die gemessenen Zeiten natürlich implementierungsabhängig sind.
-		Das Aktualisierungsinterval von einer Sekunde bei~\cite{2001_BeatThis} ist beispielsweiße willkürlich gewählt
+		Das Aktualisierungsinterval von einer Sekunde bei~\cite{2001_BeatThis} ist beispielswei{\ss}e willkürlich gewählt
 			und es gibt in den Implementierungen sicher noch eignige Möglichkeiten für Optimierungen.
 		Die ausschlaggebenden Faktoren,
 			mit denen die unterschiedlichen Rechenzeiten erklärt wurden,
-			also Größe der Analyserahmen,
+			also Grö{\ss}e der Analyserahmen,
 			Updateinterval des 2009er und 2011er Algorithmus,
 			etc.,
 			kommen von den Algorithmenbeschreibungen der ursprünglichen Paper

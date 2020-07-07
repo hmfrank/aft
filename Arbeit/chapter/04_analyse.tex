@@ -103,7 +103,7 @@
 				kann man die Berechnung dieser Faltung beschleunigen,
 				indem man erst die FFT der beiden Signale berechnet,
 				diese dann elementweise multipliziert
-				und anschließend eine IFFT anwendet.
+				und anschlie{\ss}end eine IFFT anwendet.
 			Eine naive Implementierung des Faltungsalgorithmus hätte dagegen eine Zeitkomplexität von $O(n^2)$.
 
 			% Differentiation
@@ -112,7 +112,7 @@
 				wo sich also Noteneinsätze befinden,
 				werden die sechs Signale differenziert.
 			Um nur die Anstiege der Lautstärke zu extrahieren,
-				werden anschließend alle negativen Werte auf Null gesetzt.
+				werden anschlie{\ss}end alle negativen Werte auf Null gesetzt.
 			\begin{align}
 				c_{\tau, k} &= \frac{d}{d\tau} b_{\tau, k} \\
 				d_{\tau, k} &=
@@ -145,7 +145,7 @@
 				werden alle Zahnabstände im Bereich von $\psi_\text{min} = \num{16537}$ bis $\psi_\text{max} = \num{32921}$
 				mit einer Schrittweite von \num{512} Samples ausprobiert,
 				indem der jeweilige Kammfilter mit den sechs Signalen $d_{\tau, k}$ mit $k = 0, ..., 5$ gefaltet
-				und anschließend die Energien der gefalteten Signale berechnet und aufsummiert werden.
+				und anschlie{\ss}end die Energien der gefalteten Signale berechnet und aufsummiert werden.
 			Die Werte für $\psi_\text{min}$ und $\psi_\text{max}$ entsprechen den Beatperioden in Samples von jeweils \SI{160}{BPM} und \SI{80}{BPM}.
 			So erhält man eine Energie $E_\psi$ für jeden Zahnabstand.
 			\begin{align}
@@ -153,7 +153,7 @@
 				E_\psi &= \sum_{k = 0}^5 \sum_\tau {e_{\tau, k, \psi}}^2
 			\end{align}
 			Für $\psi = \psi_\text{min}, \psi_\text{min} + 512, \psi_\text{min} + 1024, ..., \psi_\text{max}$.
-			Der Zahnabstand der Energie mit dem größten Wert bestimmt die Beatperiode $\Upsilon_\text{final}$ des Musikstücks.
+			Der Zahnabstand der Energie mit dem grö{\ss}ten Wert bestimmt die Beatperiode $\Upsilon_\text{final}$ des Musikstücks.
 			\begin{align}
 				\Upsilon_\text{final} &= \underset{\psi}{\text{argmax}}(E_\psi) \\
 				f_\text{final} &= \frac{\SI{44.1}{\kilo\hertz}}{\Upsilon_\text{f}}
@@ -171,7 +171,7 @@
 			Die Ausgabe besteht aus einer Temposchätzung $f_\text{final}$,
 				die alle \num{1.5} Sekunden aktualisiert wird.
 			Aus dem Tempo ergibt sich die Beatperiode mit $T_\text{final} = 1 / f_\text{final}$.
-			Außerdem gibt der Algorithmus eine Beatvorhersage aus,
+			Au{\ss}erdem gibt der Algorithmus eine Beatvorhersage aus,
 				die angibt,
 				wann der nächste Beat kommt.
 			Diese wird jede Beatperiode aktualisiert.
@@ -260,7 +260,7 @@
 				bis $\Upsilon_\text{max} = \lceil(\SI{11.61}{\milli\second} \cdot \SI{80}{\per\minute})^{-1}\rceil = 65$
 				ergibt.
 			Jeder Kammfilter wird dann elementweise mit der Autokorelationsfunktion und einem tempoabhängigen Gewicht $r(\Upsilon)$ multipliziert
-				und anschließend alle Elemente aufsummiert.
+				und anschlie{\ss}end alle Elemente aufsummiert.
 			Die Gewichtsfunktion $r(\Upsilon)$ ist eine Rayleigh-Verteilung mit einem Maximum bei \SI{120}{BPM}.
 			So werden häufiger vorkommende Tempi, bevorzugt.
 			Die Rayleigh-Funktion ist wie folgt definiert:
@@ -277,7 +277,7 @@
 				f_\text{final} &= (\Upsilon_\text{final} \cdot \SI{11.61}{\milli\second})^{-1}
 			\end{align}
 			Die Beatperiode des Kammfilters,
-				der bei dieser Berechnung die größte Summe hervorbringt,
+				der bei dieser Berechnung die grö{\ss}te Summe hervorbringt,
 				wird für die Tempohypothese $f_\text{final}$ genommen.
 
 			% weggelassener Teil ...
@@ -332,7 +332,7 @@
 				genau eine halbe Beatperiode in der Zukunft liegen.
 			Aus diesem Grund wird die Score-Funktion,
 				vor der Suche nach dem Maximum,
-				mit einer gaußschen Gewichtsfunktion $W_2$ multipliziert,
+				mit einer gau{\ss}schen Gewichtsfunktion $W_2$ multipliziert,
 				die Werte, welche genau eine halbe Beatperiode in der Zukunft liegen,
 				stärker gewichtet.
 			Der nächste Beatzeitpunkt $\tau_\text{b}$ wird also wie folgt berechnet.
@@ -417,7 +417,7 @@
 				jedoch wird hier eine andere Variable verwendet,
 				da $x$ in ODF-Sample-Dauern von $0$ bis $\Upsilon - 1$ ist
 				und $\theta$ einen Phasenwinkel in von \SIrange{0}{359}{\degree} ist
-				und die Umrechnung der beiden Größen von der Beatperiode $\Upsilon$ abhängt.
+				und die Umrechnung der beiden Grö{\ss}en von der Beatperiode $\Upsilon$ abhängt.
 
 			% Kammfiltermatrixaktuelisierung
 			Die Kammfiltermatrix wird mit jedem neuen vorverarbeiteten ODF-Sample $v_\tau$ zum Zeitpunkt $\tau$ aktualisiert.
@@ -438,7 +438,7 @@
 				aktualisiert.
 			Die Konstante $\alpha$ ist \num{0.1}
 				und $g$ ist eine Gewichtsfunktion,
-				die die Form einer gaußschen Normalverteilung annimmt,
+				die die Form einer gau{\ss}schen Normalverteilung annimmt,
 				jedoch immer ein Maximum von \num{1} hat.
 			$\sigma$ bestimmt also nur die Breite der Glockenkurve,
 				aber nicht die Höhe,
@@ -464,7 +464,7 @@
 
 			% Y-Matrix
 			Zunächst wird jede Zeile mit einem Rayleigh-Gewicht multipliziert.
-			Diese Gewichtsfunktion hat ihr Maximum bei \SI{120}{BPM} und flacht nach außen hin ab.
+			Diese Gewichtsfunktion hat ihr Maximum bei \SI{120}{BPM} und flacht nach au{\ss}en hin ab.
 			So werden häufiger vorkommende Tempi, bevorzugt.
 			Die Rayleigh-Funktion ist wie folgt definiert:
 			\begin{equation}
@@ -476,7 +476,7 @@
 			Die Zeile des rightigen Tempos hat wahrscheinlich eine starke Konzentration an hohen Werten um den Punkt der richtigen Phase herum.
 			Das bedeutet,
 				dass diese Zeile eine niedrigere Entropie hat als andere Zeilen,
-				deren Werte gleichmäßiger über die gesamte Zeile verteilt sind.
+				deren Werte gleichmä{\ss}iger über die gesamte Zeile verteilt sind.
 			Die Entropie einer Matrixzeile ist durch
 				\begin{equation}
 					h(\Upsilon) = \sum_{x = 0}^{\Upsilon - 1} -p(\Upsilon, x) log(p(\Upsilon, x))
@@ -494,7 +494,7 @@
 			Der Matrixindex $(\Upsilon_{\text{neu}}, x_{\text{neu}})$ des Maximums gibt das wahrscheinlichste Tempo und die wahrscheinlichste Phase an.
 
 			% Tempoübergänge
-			Da das so ermittelte Tempo-Phase-Paar  z. B. bei Unregelmäßigkeiten in der Musik etwas hin und her springen kann,
+			Da das so ermittelte Tempo-Phase-Paar  z. B. bei Unregelmä{\ss}igkeiten in der Musik etwas hin und her springen kann,
 				gibt es noch eine Tempoupdateregel,
 				die dafür sorgt,
 				dass sich das Tempo und die Phase nur dann ändern können,
