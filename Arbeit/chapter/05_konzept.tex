@@ -28,7 +28,8 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 	Alle drei Algorithmen geben eine Schätzung des Tempos des aktuellen Songs aus.
 	Daraus erschliest sich die Frage:
 	\begin{equation}
-		\text{\emph{Was ist die Genauigkeit der Temposchätzungen?}}
+		\label{question:tempo}
+		\text{\emph{Wie hoch ist die Genauigkeit der Temposchätzungen?}}
 	\end{equation}
 
 	% Beatzeitpunkte
@@ -40,7 +41,9 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 		können diese als Grundlage für einen weiteren Vergleich dieser beiden Algorithmen verwendet werden.
 	Dabei sollen die Fragen untersucht werden:
 	\begin{align}
-		\text{\emph{Was ist die Genauigkeit der Vorhersage der Beatzeitpunkte?}} \\
+		\label{question:beat}
+		\text{\emph{Wie hoch ist die Genauigkeit der Vorhersage der Beatzeitpunkte?}} \\
+		\label{question:streak}
 		\text{\emph{Wie lange ist die längste korrekt bestimmte Beatfolge?}}
 	\end{align}
 
@@ -50,7 +53,8 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 		welcher Algorithmus am effizientesten damit umgeht.
 	Wir stellen uns die Frage:
 	\begin{equation}
-		\text{\emph{Welcher Algorithmus benötigt im Echtzeitbetrieb die wenigste/meiste CPU-Zeit pro Sekunde.}}
+		\label{question:cpu_time}
+		\text{\emph{Wieviel CPU-Zeit wird im Echtzeitbetrieb pro Sekunde benötigt?}}
 	\end{equation}
 }
 
