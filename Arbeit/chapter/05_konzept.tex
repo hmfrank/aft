@@ -15,7 +15,7 @@ In Abschnitt~\ref{konzept/ziele} wird erklärt,
 	was die Ziele der einzelnen Tests sind
 	und welche Fragen durch die Tests beantwortet werden sollen.
 In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
-	und in Abschnitt~\ref{konzept/gestaltung} wird die Umsetzung der Tests bezchrieben.
+	und in Abschnitt~\ref{konzept/gestaltung} wird die Umsetzung der Tests beschrieben.
 
 
 \section{Ziele} \label{konzept/ziele}
@@ -26,35 +26,35 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 
 	% Tempo
 	Alle drei Algorithmen geben eine Schätzung des Tempos des aktuellen Songs aus.
-	Daraus erschliest sich die Frage:
+	Daraus ergibt sich follgende die erste Forschungsfrage.
 	\begin{equation}
 		\label{question:tempo}
 		\text{\emph{Wie hoch ist die Genauigkeit der Temposchätzungen?}}
 	\end{equation}
 
 	% Beatzeitpunkte
-	Au{\ss}erdem geben die Algorithmen von~\cite{2009_DaPlSt} und~\cite{2011_PlRoSt} zusätzlich noch Informationen zur Position des aktuellen oder nächsten Beats aus.
+	Au{\ss}erdem liefern die Algorithmen von~\cite{2009_DaPlSt} und~\cite{2011_PlRoSt} zusätzlich noch Informationen zur Position des aktuellen oder nächsten Beats.
 	So gibt~\cite{2011_PlRoSt} beispielsweise die Phase aus,
-		welche angibt wo sich der Beat innerhalb des aktuellen Beatintervals befindet.
-	Daraus lassen sich auch absolute Beatzeitpunkte berechnen.
+		welche die Position des Beats innerhalb des aktuellen Beatintervalls angibt.
+	Daraus lassen sich die absoluten Beatzeitpunkte berechnen.
 	Da das System von~\cite{2009_DaPlSt} direkt absolute Beatzeitpunkte ausgibt,
-		können diese als Grundlage für einen weiteren Vergleich dieser beiden Algorithmen verwendet werden.
-	Dabei sollen die Fragen untersucht werden:
+		können diese als Grundlage für einen weiteren Vergleich der beiden Algorithmen verwendet werden.
+	Dies wirft zwei weitere Forschungsfragen auf.
 	\begin{align}
 		\label{question:beat}
 		\text{\emph{Wie hoch ist die Genauigkeit der Vorhersage der Beatzeitpunkte?}} \\
 		\label{question:streak}
-		\text{\emph{Wie lange ist die längste korrekt bestimmte Beatfolge?}}
+		\text{\emph{Wie lang ist die längste korrekt bestimmte Beatfolge?}}
 	\end{align}
 
 	% CPU-Zeit
-	Alle Algorithmen nutzen CPU-Resourcen.
-	Folglich kann auch untersucht werden,
+	Alle Algorithmen nutzen CPU-Ressourcen.
+	Folglich kann untersucht werden,
 		welcher Algorithmus am effizientesten damit umgeht.
-	Wir stellen uns die Frage:
+	Vor diesem Hintergrund reiht sich eine letzte Forschungsfrage ein.
 	\begin{equation}
 		\label{question:cpu_time}
-		\text{\emph{Wieviel CPU-Zeit wird im Echtzeitbetrieb pro Sekunde benötigt?}}
+		\text{\emph{Wie viel CPU-Zeit wird im Echtzeitbetrieb pro Sekunde benötigt?}}
 	\end{equation}
 }
 
@@ -66,7 +66,8 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 		der frei erhältlich ist
 		und per Hand mit Beatzeitpunkten annotiert ist.
 	Um die Leistungsfähigkeit von Beaterkennungsalgorithmen bestimmen zu können,
-		is es wichtig einen manuell annotieren Datensatz zu verwenden.
+		ist es wichtig,
+		einen manuell annotierten Datensatz zu verwenden.
 	Wäre der Datensatz automatisch annotiert worden,
 		würde man nur den eigenen Beaterkennungsalgorithmus mit dem,
 		der für die Annotation verwendet wurde,
@@ -75,63 +76,66 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 	% Woher kommen die Daten?
 	Der verwendete Datensatz wurde aus Audio-CDs extrahiert.
 	Folglich haben alle Dateien eine Abtastfrequenz von \SI{44.1}{\kilo\hertz}
-		und es ist kein Resampling nötig.
+		und es ist kein Resampling notwendig.
 	Aus den CDs wurden von jedem Song \num{40} Sekunden extrahiert.
 	% Art der Musik
 	Die Auswahl der Lieder beschränkt sich ausschlie{\ss}lich auf westliche Musik.
-	Dabei sind verschiedene Musikrichtigunen vertreten,
+	Dabei sind verschiedene Musikrichtungen vertreten,
 		unter anderem: Klassik, Romantik, Filmmusik, Blues, Chanson und Sologitarrenkompositionen.
 	% Wie groß?
 	Der Datensatz besteht aus 217 Liedern.
-	Davon haben 19 Lieder einen einfach, leicht erkennbaren Rhythmus.
+	Davon haben 19 Lieder einen einfachen leicht erkennbaren Rhythmus.
 	% Warum schwierige Rhythmen?
-	Viele bisherige Datensätze enthalten viel Musik aus Rock-, Pop- oder Dance-Generes
+	Viele bisherige Datensätze enthalten Musik aus Rock-, Pop- oder Dance-Genres
 		mit leicht erkennbaren Beats,
-		die durch klare Schlagzeugtöne definiert sind.
-	Das macht es besonders leiht für Beaterkennungsalgorithmen die korrekten Beatzeitpunkte zu finden.
-	Um zu verhindern,
-		dass sich aktuelle Systeme nicht weiterentwickeln,
-		da sie auf den einfachen Datensätzen fast perfekt Ergebnisse erziehlen
-		und somit kein Spielraum für Verbesserung ist,
-		haben die Authoren dieses Datensatz absichtlich schwierige und diverse Rhythmen ausgewählt.
+		die klar durch Schlagzeugtöne definiert sind.
+	% TODO: 
+	Dies erleichtert den Beaterkennungsalgorithmen,
+		die korrekten Beatzeitpunkte zu finden.
+	Da aktuelle Systeme auf den einfachen Datensätzen bereits fast perfekte Ergebnisse erzielen,
+		bleibt somit kaum Spielraum für weitere Verbeserung.
+	Um dem entgegenzuwirken,
+		haben die Autoren dieses Datensatzes absichtlich schwierige Rhythmen ausgewählt.
 
 	% Labels
 	Zu jedem Exzerpt eines Liedes gibt es eine Annotationsdatei,
 		welche die Liste der Beatzeitpunkte in diesem Lied enthält.
-	Das Tempo des Liedes an einem bestimmten Zeitpunkt wird durch den Kehrwert des aktuellen Beatintervals bestimmt.
+	Das Tempo des Liedes an einem bestimmten Zeitpunkt wird durch den Kehrwert des aktuellen Beatintervalls bestimmt.
 }
 
 \section{Gestaltung der Tests} \label{konzept/gestaltung}
 {
 	Die Testsoftware besteht aus zwei Komponenten:
-		die Datenakquisition und die Datenauswertung.
+		Datenakquisition und Datenauswertung.
 	% TODO: hier vlt noch aweng rein, warum die beiden Komponenten getrennt sin
 
 	\subsection{Datenakquisition}
 	{
 		% Was die Datenakquisition grob macht
 		Die Datenakquisitionskomponente ruft die einzelnen Beaterkennungsalgorithmen auf
-			und musste deshalb auch in C++ implementiert werden,
+			und wurde in C++ implementiert
 			um sie mit den Algorithmen zu linken.
 		Es wird jedes Lied im Testdatensatz einmal in jeden der drei Algorithmen gegeben
 			und dabei deren Ausgaben in einer CSV-Datei gespeichert.
-		Dabei entsteht eine Datei pro Lied pro Algorithmus.
-		Die Algorithmen werden vor jedem neuen Song neu initialisiert.
+		Dabei entsteht eine Datei pro Lied und Algorithmus.
+		Die Algorithmen werden vor jedem Song neu initialisiert.
 
 		% Was bei welchem Alg. aufgezeichnet wird und wie
 		Bei~\cite{2001_BeatThis} wird nur jede neue Tempovorhersage aufgezeichnet.
-		Bei~\cite{2009_DaPlSt} und~\cite{2011_PlRoSt} werden zusätzlich auch die vorhergesagten Beatzeitpunkte gespeichert.
+		Bei~\cite{2009_DaPlSt} und~\cite{2011_PlRoSt} werden zusätzlich die vorhergesagten Beatzeitpunkte gespeichert.
 		Die Tempovorhersagen von~\cite{2011_PlRoSt} werden nur dann gespeichert,
 			wenn sie sich im Vergleich zur letzten Tempovorhersage geändert haben.
-		Das ist bei diesem Algorithmus notwendig um die grö{\ss}e der CSV-Dateien zu reduzieren,
-			weil der Algorithmus alle \SI{11.61}{\milli\second} eine neue Tempovorhersage ausgibt.
+		Da der Algorithmus alle \SI{11.61}{\milli\second} eine neue Tempovorhersage ausgibt,
+			ist das bei diesem Algorithmus notwendig,
+			um die Grö{\ss}e der CSV-Dateien zu reduzieren.
 		Da \cite{2011_PlRoSt} nicht direkt Beatzeitpunkte ausgibt,
 			sondern eine Beatperiode $T$ und Phase $x$,
 			welche ständig aktualisiert werden,
 			wird anhand dieser Information der nächste Beatzeitpunkt berechnet
-			und dieser erst dann gespeichert,
-			wenn er erreicht wird,
-			sodass jede Beatvorhersage nur einmal in der CSV-Datei auftritt.
+			und erst dann gespeichert,
+			wenn er erreicht wird.
+		Somit wird sichergestellt,
+			dass jede Beatvorhersage nur einmal in der CSV-Datei auftritt.
 		Gibt es ein $k \in \mathbb{N}$, das die Gleichung $kT + x = t$ erfüllt,
 			wobei $t$ der aktuelle Zeitpunkt ist,
 			dann wird $t$ als Beatzeitpunkt gespeichert.
@@ -139,7 +143,7 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 		% CPU-Zeit-Messung
 		Die API der Beaterkennungsalgorithmen funktioniert so,
 			dass jedes Audiosample separat und nacheinander per Funktionsaufruf in das System gegeben wird.
-		Alle Berechnungen laufen in Subroutinen dieser Funktion.
+		Alle Berechnungen laufen in Subroutinen dieser Funktion ab.
 		Um die Gesamtrechenzeit des Algorithmus zu bestimmen,
 			wird die CPU-Zeit von jedem dieser Funktionsaufrufe gemessen und aufsummiert.
 	}
