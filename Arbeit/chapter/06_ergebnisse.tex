@@ -1,5 +1,6 @@
 \chapter{Ergebnisse und Auswertung}
 \label{ergebnisse}
+\acresetall
 
 % TODO: nochma gucken, was genau in Ergebnisse und was in Auswertung kommt
 
@@ -22,8 +23,8 @@
 
 		% Beschreibung Abbildung Tempofehler
 		Die Histogramme in Abbildung~\ref{fig:tempoerror} zeigen die Verteilung der Tempofehler aller Lieder pro Algorithmus.
-		Der abgebildete Bereich von \SIrange{-100}{100}{BPM} ist in \num{40} Balken unterteilt.
-		So umfasst jeder Balken eine Spanne von \SI{5}{BPM}.
+		Der abgebildete Bereich von \SIrange{-100}{100}{\ac{BPM}} ist in \num{40} Balken unterteilt.
+		So umfasst jeder Balken eine Spanne von \SI{5}{\ac{BPM}}.
 		Die Balkendiagramme zeigen pro Algorithmus,
 			bei wievielen Liedern das halbe, das korrekte oder das doppelte Tempo als Referenztempo genommen wurde.
 
@@ -47,19 +48,19 @@
 
 		Auffällig ist au{\ss}erdem,
 			dass bei jedem Algorithmus die meisten Lieder mit dem doppelten Tempo erkannt wurden.
-		Das ist hauptsächlich dem limitierten Ausgabebereich der Algorithmen von \SIrange{80}{160}{BPM} zu verschulden.
+		Das ist hauptsächlich dem limitierten Ausgabebereich der Algorithmen von \SIrange{80}{160}{\ac{BPM}} zu verschulden.
 		Abbildung~\ref{fig:dataset_tempo} zeigt die Verteilung der Tempi aller Beatintervalle im Datensatz.
 		Der grüne Bereich enthält \SI{44.44}{\percent} aller Beatintervalle
 			und markiert den Tempobereich,
-			den die Algorithmen direkt ausgeben können (\SIrange{80}{160}{BPM}).
+			den die Algorithmen direkt ausgeben können (\SIrange{80}{160}{\ac{BPM}}).
 		Der gelbe Bereich markiert den Tempobereich,
 			den die Algorithmen mit Berücksichtigung von Halb- und Doppeltempofehler ausgeben können,
-			also von \SIrange{40}{80}{BPM} und von \SIrange{160}{320}{BPM},
+			also von \SIrange{40}{80}{\ac{BPM}} und von \SIrange{160}{320}{\ac{BPM}},
 			und enthält \SI{51.45}{\percent} aller Beatintervalle,
 			wobei sich die meisten davon im untern Tempoberiech befinden.
 		Das erklärt,
 			warum so viele Lieder mit doppeltem Tempo erkannt wurden.
-		Der rote Berech ist alles was au{\ss}erhalb von \SIrange{40}{320}{BPM} ist
+		Der rote Berech ist alles was au{\ss}erhalb von \SIrange{40}{320}{\ac{BPM}} ist
 			und markiert den Tempobereich,
 			den die Algorithmen unmöglich bestimmen können.
 		Dieser Bereich enthält \SI{4.11}{\percent} aller Beatintervalle.
@@ -72,18 +73,18 @@
 		Eine mögliche Erklärung,
 			warum~\cite{2001_BeatThis} ungenauere Tempovorhersagen macht,
 			ist,
-			dass der Algorithmus eine einfachere Einsatzdetektionsfunktion (ODF von engl. onset detection function) verwendet.
-		Die ODF basiert auf einer Glättung und einer anschliesenden Differentiation.
+			dass der Algorithmus eine einfachere \ac{ODF} verwendet.
+		Die \ac{ODF} basiert auf einer Glättung und einer anschliesenden Differentiation.
 		So werden nur schnelle Anstiege der Lautstärke extrahiert,
-			während bei der ODF der anderen beiden Algorithmen auch die Änderungen der Phase im Signal berücksichtigt werden
+			während bei der \ac{ODF} der anderen beiden Algorithmen auch die Änderungen der Phase im Signal berücksichtigt werden
 			und so auch Tonänderungen,
 			bei denen die Lautstärke gleich bleibt,
 			als Einsätze erkannt werden.
 
 		% Mögliche Erklärung 2 (Tempo Induction)
 		Au{\ss}erdem verwendet~\cite{2001_BeatThis} zur Tempobestimmung Kammfilter mit drei Zähnen,
-			welche einen ähnlichen Effekt wie eine Autokorrelationsfunktion (ACF von engl. auto correlation function) haben.
-		Bei der ACF wird das Signal mit einer verzögerten Version von sich selbst elementweise multipliziert.
+			welche einen ähnlichen Effekt wie eine \ac{ACF} haben.
+		Bei der \ac{ACF} wird das Signal mit einer verzögerten Version von sich selbst elementweise multipliziert.
 		Bei diesem Kammfilter wird das Signal mit zwei verzögerten Versionen von sich selbst elementweise addiert.
 		Beide Operationen haben den Effekt,
 			dass sich,
@@ -93,18 +94,18 @@
 		Weil ein Signal,
 			was sich beispielsweise alle $T$ Sekunden wiederholt,
 			sich gleichzeitig auch alle $2T, 3T,$ usw. Sekunden wiederholt,
-			entstehen in der ACF sowie in der Kammfilterausgabe mehrere Peaks jeweils bei Vielfachen des ersten Peaks.
+			entstehen in der \ac{ACF} sowie in der Kammfilterausgabe mehrere Peaks jeweils bei Vielfachen des ersten Peaks.
 		\cite{2001_BeatThis} hört an dieser Stelle auf
 			und bestimmt einfach den grö{\ss}ten Peak als Beatperiode des Songs,
 			während die anderen Peaks ignoriert werden.
-		\cite{2009_DaPlSt} hingegen multipliziert anschlie{\ss}end die Ausgabe der ACF mit mehreren Kammfiltern
-			um die Abstände von äquidistanten Peaks in der ACF zu ermitteln.
+		\cite{2009_DaPlSt} hingegen multipliziert anschlie{\ss}end die Ausgabe der \ac{ACF} mit mehreren Kammfiltern
+			um die Abstände von äquidistanten Peaks in der \ac{ACF} zu ermitteln.
 
 		% 2009 vs. 2011 (vorverarbeitete ODF)
 		Die Tempobestimmung von~\cite{2011_PlRoSt} lässt sich schwierig mit der der anderen beiden Algorithmen vergleichen,
 			da sie auf einem komplett anderen Prinzip aufbaut.
 		Es lässt sich aber in der Visualisierung der Algorithmen erkennen,
-			dass die vorverarbeitete ODF von~\cite{2009_DaPlSt} deutlichere und prägnantere Peaks hat,
+			dass die vorverarbeitete \ac{ODF} von~\cite{2009_DaPlSt} deutlichere und prägnantere Peaks hat,
 			als die von~\cite{2011_PlRoSt}.
 		Das könnte teilweise die unterschiedlichen Ergebnisse dieser beiden Algorithmen erklären.
 
@@ -201,7 +202,6 @@
 
 	\subsection{Ergebnisse}
 	{
-		% TODO: wäre sau geil, wenn beide Kurven in einem Diagram wären
 		\begin{figure}[h]
 			\centering
 			\includegraphics[scale=0.47]{resources/longest_streak.png}
@@ -274,24 +274,24 @@
 		% Updatezeiten
 		Während~\cite{2009_DaPlSt} die Tempoberechnung nur alle \num{1.5} Sekunden durchführt,
 			aktuallisiert die für diese Arbeit angefertige Implementierung von~\cite{2001_BeatThis} die Tempovorhersage jede Sekunde
-			und~\cite{2011_PlRoSt} sogar nach jedem ODF-Sample,
+			und~\cite{2011_PlRoSt} sogar nach jedem \ac{ODF}-Sample,
 			also alle \num{11.61} Millisekunden.
 		% Datenmengen
 		Au{\ss}erdem arbeitet \cite{2001_BeatThis} direkt auf Audiosamples,
 			mit einer Abtastfrequenz von \SI{44.1}{\kilo\hertz},
-			statt auf einer ODF mit einer Abtastfrequenz von \SI{86}{\hertz} ($1 / \SI{11.61}{\milli\second}$).
-		Dadurch ist der \num{1.08} Sekunden lange Anlyserahmen schon $\SI{1.08}{\second} \cdot \SI{44.1}{\kilo\hertz} \cdot \SI{4}{\byte} = \SI{187}{\kibi\byte}$ lang (\num{4} Byte pro Sample, da das Single-Precision-Gleitkommaformat aus dem IEEE 754 Standard verwendet wurde).
+			statt auf einer \ac{ODF} mit einer Abtastfrequenz von \SI{86}{\hertz} ($1 / \SI{11.61}{\milli\second}$).
+		Dadurch ist der \num{1.08} Sekunden lange Anlyserahmen schon $\SI{1.08}{\second} \cdot \SI{44.1}{\kilo\hertz} \cdot \SI{4}{\byte} = \SI{187}{\kibi\byte}$ lang (\num{4} Byte pro Sample, da das Single-Precision-Gleitkommaformat aus dem \acs{IEEE} 754 Standard verwendet wurde).
 		Dazu kommt,
-			dass~\cite{2001_BeatThis} zwei mal eine FFT und eine IFFT mit einer Zeitkomplexität von $O(n\log(n))$ auf diesem Array berechnet,
+			dass~\cite{2001_BeatThis} zwei mal eine \ac{FFT} und eine \ac{IFFT} mit einer Zeitkomplexität von $O(n\log(n))$ auf diesem Array berechnet,
 			während~\cite{2009_DaPlSt} fast nur Operationen mit linearer Zeitkomplexität ausführt.
-		Die anderen beiden Algorithmen berechnen zwar auch eine STFT auf dem Eingangssignal,
-			was nichts anderes als eine wiederholte FFT ist,
+		Die anderen beiden Algorithmen berechnen zwar auch eine \ac{STFT} auf dem Eingangssignal,
+			was nichts anderes als eine wiederholte \ac{FFT} ist,
 			jedoch nur auf jeweils \num{512} Samples gro{\ss}en Arrays.
 		Der Analyserahmen von~\cite{2009_DaPlSt} umfasst zwar \num{6} Sekunden
 			ist aber nur \num{512} Samples lang,
-			da das ODF-Samples sind.
+			da das \ac{ODF}-Samples sind.
 		So werden hier in jedem Verarbeitungsschritt viel kleiner Datenmengen verarbeitet.
-		Auch die Kammfiltermatrix aus~\cite{2011_PlRoSt} basiert auf ODF-Samples
+		Auch die Kammfiltermatrix aus~\cite{2011_PlRoSt} basiert auf \ac{ODF}-Samples
 			und besteht deshalb nur aus $32 + 33 + ... + 65 = 1649$ Samples.
 		Diese wird pro Temposchätzung zwei Mal komplett durchlaufen.
 
@@ -308,7 +308,7 @@
 
 		Abschlie{\ss}end muss auch gesagt werden,
 			dass die gemessenen Zeiten natürlich implementierungsabhängig sind.
-		Das Aktualisierungsinterval von einer Sekunde bei~\cite{2001_BeatThis} ist beispielswei{\ss}e willkürlich gewählt
+		Das Aktualisierungsinterval von einer Sekunde bei~\cite{2001_BeatThis} ist beispielsweise willkürlich gewählt
 			und es gibt in den Implementierungen sicher noch eignige Möglichkeiten für Optimierungen.
 		Die ausschlaggebenden Faktoren,
 			mit denen die unterschiedlichen Rechenzeiten erklärt wurden,

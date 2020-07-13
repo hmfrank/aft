@@ -15,6 +15,8 @@
 
 % FORMATIERUNG, ETC.:
 % TODO: komplette Rechtschreibprüfung
+% TODO: SIrange fixen
+% TODO: Millisekunden einheitlich
 
 
 \documentclass[openright, twoside, utf8, 11.5pt]{scrbook}
@@ -44,18 +46,6 @@
 
 \begin{document}
 	\color{mycolor}
-	% Abkürzungen (für Verzeichnis: \acro statt \acrodef und mit begin/end{acronym} vor das Inhaltsverzeichnis bauen)
-	\acrodef{RS}{Recommender Systems}
-	\acrodef{CF}{Collaborative Filtering}
-	\acrodef{DAW}{Digital Audio Workstation}
-	\acrodef{IR}{Information Retrieval}
-	\acrodef{ML}{Machine Learning}
-	\acrodef{MCI}{Mensch-Computer-Interaktion}
-	\acrodef{UX}{User Experience}
-	\acrodef{UI}{User Interface}
-	\acrodef{GUI}{grafische Benutzeroberfläche}
-	\acrodefplural{GUI}[GUI]{grafischen Benutzeroberfläche}
-	\acrodef{SUI}{Suchinterface}
 
 	% Titelseite
 	\input{Titel.tex}
@@ -112,6 +102,26 @@
 			\newpage
 			\listoftables
 			\markboth{Tabellenverzeichnis}{Tabellenverzeichnis}
+			% GLOSSAR
+			\stepcounter{section} \stepcounter{section}
+			\newpage
+			\section{Glossar}
+			\markboth{D \hspace{2.25mm} GLOSSAR}{D \hspace{2.25mm} GLOSSAR}
+			\begin{acronym}[ODF]
+				\acro{ACF}{Autokorrelationsfunktion}
+				\acro{API}{Application Programming Interface}
+				\acro{BPM}{Beats pro Minute}
+				\acro{CD}{Compact Disc}
+				\acro{CPU}{Central Processing Unit}
+				\acro{CSV}{Comma-Separated Values}
+				\acro{FFT}{Schnelle Fourier-Transformation}
+				\acro{IEEE}{Institute of Electrical and Electronics Engineers}
+				\acro{IFFT}{Inverse Schnelle Fourier-Transformation}
+				\acro{ODF}{Einsatzdetektionsfunktion}
+				\acroplural{ODF}{Einsatzdetektionsfunktionen}
+				\acro{PCM}{Puls-Code-Modulation}
+				\acro{STFT}{Kurzzeit-Fourier-Transformation}
+			\end{acronym}
 		\end{subappendices}
 	\end{appendices}
 \end{document}

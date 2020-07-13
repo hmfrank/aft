@@ -1,5 +1,6 @@
 \chapter{Konzept}
 \label{konzept}
+\acresetall
 
 % Wie funktionieren die Tests, ganz grob?
 Um die drei Algorithmen zu vergleichen,
@@ -48,13 +49,13 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 	\end{align}
 
 	% CPU-Zeit
-	Alle Algorithmen nutzen CPU-Ressourcen.
+	Alle Algorithmen nutzen Ressourcen der \ac{CPU}.
 	Folglich kann untersucht werden,
 		welcher Algorithmus am effizientesten damit umgeht.
 	Vor diesem Hintergrund reiht sich eine letzte Forschungsfrage ein.
 	\begin{equation}
 		\label{question:cpu_time}
-		\text{\emph{Wie viel CPU-Zeit wird im Echtzeitbetrieb pro Sekunde benötigt?}}
+		\text{\emph{Wie viel \acs{CPU}-Zeit wird im Echtzeitbetrieb pro Sekunde benötigt?}}
 	\end{equation}
 }
 
@@ -74,10 +75,11 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 		vergleichen.
 
 	% Woher kommen die Daten?
-	Der verwendete Datensatz wurde aus Audio-CDs extrahiert.
+	Der verwendete Datensatz wurde aus Audio-\acsp{CD} (\aclp{CD}) extrahiert.
+	\acused{CD}
 	Folglich haben alle Dateien eine Abtastfrequenz von \SI{44.1}{\kilo\hertz}
 		und es ist kein Resampling notwendig.
-	Aus den CDs wurden von jedem Song \num{40} Sekunden extrahiert.
+	Aus den \acp{CD} wurden von jedem Song \num{40} Sekunden extrahiert.
 	% Art der Musik
 	Die Auswahl der Lieder beschränkt sich ausschlie{\ss}lich auf westliche Musik.
 	Dabei sind verschiedene Musikrichtungen vertreten,
@@ -107,7 +109,6 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 {
 	Die Testsoftware besteht aus zwei Komponenten:
 		Datenakquisition und Datenauswertung.
-	% TODO: hier vlt noch aweng rein, warum die beiden Komponenten getrennt sin
 
 	\subsection{Datenakquisition}
 	{
@@ -116,7 +117,8 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 			und wurde in C++ implementiert
 			um sie mit den Algorithmen zu linken.
 		Es wird jedes Lied im Testdatensatz einmal in jeden der drei Algorithmen gegeben
-			und dabei deren Ausgaben in einer CSV-Datei gespeichert.
+			und dabei deren Ausgaben in einer \acs{CSV}-Datei (\acl{CSV}) gespeichert.
+		\acused{CSV}
 		Dabei entsteht eine Datei pro Lied und Algorithmus.
 		Die Algorithmen werden vor jedem Song neu initialisiert.
 
@@ -127,7 +129,7 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 			wenn sie sich im Vergleich zur letzten Tempovorhersage geändert haben.
 		Da der Algorithmus alle \SI{11.61}{\milli\second} eine neue Tempovorhersage ausgibt,
 			ist das bei diesem Algorithmus notwendig,
-			um die Grö{\ss}e der CSV-Dateien zu reduzieren.
+			um die Grö{\ss}e der \acs{CSV}-Dateien zu reduzieren.
 		Da \cite{2011_PlRoSt} nicht direkt Beatzeitpunkte ausgibt,
 			sondern eine Beatperiode $T$ und Phase $x$,
 			welche ständig aktualisiert werden,
@@ -135,24 +137,24 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 			und erst dann gespeichert,
 			wenn er erreicht wird.
 		Somit wird sichergestellt,
-			dass jede Beatvorhersage nur einmal in der CSV-Datei auftritt.
+			dass jede Beatvorhersage nur einmal in der \acs{CSV}-Datei auftritt.
 		Gibt es ein $k \in \mathbb{N}$, das die Gleichung $kT + x = t$ erfüllt,
 			wobei $t$ der aktuelle Zeitpunkt ist,
 			dann wird $t$ als Beatzeitpunkt gespeichert.
 
 		% CPU-Zeit-Messung
-		Die API der Beaterkennungsalgorithmen funktioniert so,
+		Die \ac{API} der Beaterkennungsalgorithmen funktioniert so,
 			dass jedes Audiosample separat und nacheinander per Funktionsaufruf in das System gegeben wird.
 		Alle Berechnungen laufen in Subroutinen dieser Funktion ab.
 		Um die Gesamtrechenzeit des Algorithmus zu bestimmen,
-			wird die CPU-Zeit von jedem dieser Funktionsaufrufe gemessen und aufsummiert.
+			wird die \acs{CPU}-Zeit von jedem dieser Funktionsaufrufe gemessen und aufsummiert.
 	}
 
 	\subsection{Datenauswertung}
 	{
 		% allgemeines Gelaber
 		In der Datenauswertungskomponente der Testsoftware,
-			werden lediglich die gepseicherten CSV-Dateien verarbeitet.
+			werden lediglich die gepseicherten \acs{CSV}-Dateien verarbeitet.
 		So konnte diese unabhängig von der Implementierung der Algorithmen und deren Programmiersprache programmiert werden.
 		Hier entsehen vier Auswertungen,
 			welche sich auf die vier Fragen aus Anschnitt~\ref{konzept/ziele} beziehen.
@@ -189,7 +191,7 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 			Das hei{\ss}t,
 				der Algorithmus schätzt genau die Hälfte, bzw. das Doppelte, des richtigen Tempos.
 			Liegt das korrekte Tempo au{\ss}erhalb des Wertebereichs,
-				(\SIrange{80}{160}{BPM} bei allen Algorithmen in dieser Arbeit),
+				(\SIrange{80}{160}{\ac{BPM}} bei allen Algorithmen in dieser Arbeit),
 				ist die beste Ausgabe,
 				die ein Algorithmus machen kann,
 				zwangsläufig das halbe oder doppelte Tempo.
@@ -312,11 +314,11 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 
 		\paragraph{Rechenzeit}
 		{
-			Die relative Rechenzeit eines Algorithmus ergibt sich aus der Division der für alle Lieder benötigten CPU-Zeit durch die gesamte Dauer aller Lieder.
+			Die relative Rechenzeit eines Algorithmus ergibt sich aus der Division der für alle Lieder benötigten \acs{CPU}-Zeit durch die gesamte Dauer aller Lieder.
 			Diese Zahl gibt an,
-				wie viele Sekunden CPU-Zeit ein Algorithmus benötigt um eine Sekunde Audiodaten zu verarbeiten
+				wie viele Sekunden \acs{CPU}-Zeit ein Algorithmus benötigt um eine Sekunde Audiodaten zu verarbeiten
 				und erreicht bei Echtzeitalgorithmen maximal einen Wert von \num{1}.
-			Der Rechenzeittest wurde auf einer Intel CPU der Baureihe Core i5-3320M mit einer Taktrate von \SI{2.6}{\giga\hertz} durchgeführt.
+			Der Rechenzeittest wurde auf einer Intel \ac{CPU} der Baureihe Core i5-3320M mit einer Taktrate von \SI{2.6}{\giga\hertz} durchgeführt.
 			Die Implementierungen sind nicht auf eine parallele Verarbeitung optimiert
 				und nutzen deshalb maximal einen Thread.
 		}
