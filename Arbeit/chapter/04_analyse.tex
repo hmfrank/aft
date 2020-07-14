@@ -61,7 +61,7 @@
 	{
 		\subsubsection*{Ein- und Ausgabe}
 		{
-			Der Algorithmus von~\cite{2001_BeatThis} bekommt einen \num{2.57} Sekunden langen Analyserahmen $s_\tau$ als Eingabe,
+			Der Algorithmus von~\cite{2001_BeatThis} bekommt einen \SI{2.57}{\second} langen Analyserahmen $s_\tau$ als Eingabe,
 				welcher \num{113432} \acs{PCM}-kodierte Audiosamples mit einer Abtastfrequenz von \SI{44.1}{\kilo\hertz} enthält.
 			Die Ausgabe besteht aus einer Temposchätzung $f_\text{final}$ des Musikstücks.
 			Da die Ausgabe des Algorithmus nur eine Funktion des eingegebenen Analyserahmens ist,
@@ -92,7 +92,7 @@
 			% Glättung
 			Als nächstes wird jedes der sechs gefilterten Signale geglättet,
 				um einen Verlauf der Lautstärke des Signals zu erhalten.
-			Dies wird durch die Faltung mit der rechten Seite eines \num{0.4} Sekunden langen Hanning-Fensters $h_\tau$ erzielt.
+			Dies wird durch die Faltung mit der rechten Seite eines \SI{0.4}{\second} langen Hanning-Fensters $h_\tau$ erzielt.
 			Vorher wird das Signal jedoch erst vollweg-gleichgerichtet,
 				sodass nur noch positive Samples übrigbleiben.
 			\begin{equation}
@@ -168,7 +168,7 @@
 			Die Samples sind als 32-Bit Gleitkommazahlen kodiert.
 
 			Die Ausgabe besteht aus einer Temposchätzung $f_\text{final}$,
-				die alle \num{1.5} Sekunden aktualisiert wird.
+				die alle \SI{1.5}{\second} aktualisiert wird.
 			Aus dem Tempo ergibt sich die Beatperiode mit $T_\text{final} = 1 / f_\text{final}$.
 			Au{\ss}erdem gibt der Algorithmus eine Beatvorhersage aus,
 				die angibt wann der nächste Beat kommt.
@@ -349,7 +349,7 @@
 			Der Algorithmus von~\cite{2011_PlRoSt} bekommt als Eingabe ein rohes \acs{PCM}-kodiertes Audiosignal mit einer Abtastfrequenz von \SI{44.1}{\kilo\hertz}.
 			Die Samples sind als 32-bit Gleitkommazahlen kodiert.
 			Die Ausgabe besteht aus Tempo $f_\text{final}$ und Phase $\theta_\text{final}$ der erkannten Beatfolge
-				und wird alle \num{11.61} Millisekunden aktualisiert.
+				und wird alle \SI{11.61}{\milli\second} aktualisiert.
 			Aus dem Tempo ergibt sich die Beatperiode $T_\text{final} = 1 / f_\text{final}$.
 			Um die genaue Bedeutung der Phase zu verstehen,
 				kann man die komplette Laufzeit des Algorithmus in $T_\text{final}$ lange Abschnitte unterteilen.
@@ -384,7 +384,7 @@
 				wird in der Implementierung dieser Arbeit
 				ein sechs Sekunden langer Analyserahmen der \ac{ODF} gespeichert
 				und dieser zur Berechung des Medians genutzt.
-			Anders als bei~\cite{2009_DaPlSt} wird hier der Analyserahmen nicht alle \num{1.5} Sekunden,
+			Anders als bei~\cite{2009_DaPlSt} wird hier der Analyserahmen nicht alle \SI{1.5}{\second},
 				sondern nach jedem neuen ODF-Sample weitergeschoben,
 				sodass er immer die letzten sechs Sekunden (\num{517} Samples) der \ac{ODF} enthält.
 			So wird aus jedem neuen ODF-Sample $d_\tau$ sofort das nächste Sample $v_\tau$ der vorverarbeiteten ODF berechnet.

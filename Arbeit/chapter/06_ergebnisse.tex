@@ -253,7 +253,7 @@
 		Damit ist die Zeit gemeint,
 			die im Durchschnitt benötigt,
 			wird um \num{44100} Audiosamples zu verarbeiten.
-		Die Gesamtlänge aller Lieder im Datensatz beträgt \num{8680} Sekunden.
+		Die Gesamtlänge aller Lieder im Datensatz beträgt \SI{8680}{\second}.
 	}
 
 	\subsection{Auswertung}
@@ -270,20 +270,20 @@
 			die die Algorithmen verarbeiten,
 			zurückführen.
 		% Updatezeiten
-		Während~\cite{2009_DaPlSt} die Tempoberechnung alle \num{1.5} Sekunden durchführt,
+		Während~\cite{2009_DaPlSt} die Tempoberechnung alle \SI{1.5}{\second} durchführt,
 			aktualisiert die für diese Arbeit angefertigte Implementierung von~\cite{2001_BeatThis} die Tempovorhersage jede Sekunde
-			und~\cite{2011_PlRoSt} alle \num{11.61} Millisekunden.
+			und~\cite{2011_PlRoSt} alle \SI{11.61}{\milli\second}.
 		% Datenmengen
 		Au{\ss}erdem arbeitet \cite{2001_BeatThis} direkt auf Audiosamples
 			mit einer Abtastfrequenz von \SI{44.1}{\kilo\hertz}
 			statt auf einer \ac{ODF} mit einer Abtastfrequenz von $1 / \SI{11.61}{\milli\second} = \SI{86}{\hertz}$.
-		Dadurch ist der \num{1.08} Sekunden lange Analyserahmen schon $\SI{1.08}{\second} \cdot \SI{44.1}{\kilo\hertz} \cdot \SI{4}{\byte} = \SI{187}{\kibi\byte}$ lang (\num{4} Byte pro Sample, da das Single-Precision-Gleitkommaformat aus dem \acs{IEEE} 754 Standard verwendet wurde).
+		Dadurch ist der \SI{1.08}{\second} lange Analyserahmen schon $\SI{1.08}{\second} \cdot \SI{44.1}{\kilo\hertz} \cdot \SI{4}{\byte} = \SI{187}{\kibi\byte}$ lang (\num{4} Byte pro Sample, da das Single-Precision-Gleitkommaformat aus dem \acs{IEEE} 754 Standard verwendet wurde).
 		Dazu kommt,
 			dass~\cite{2001_BeatThis} zweimal eine \ac{FFT} und eine \ac{IFFT} mit einer Zeitkomplexität von $O(n\log(n))$ auf diesem Array berechnet,
 			während~\cite{2009_DaPlSt} fast nur Operationen mit linearer Zeitkomplexität ausführt.
 		Die anderen beiden Algorithmen berechnen zwar auch eine \ac{STFT} (wiederholte \ac{FFT}) auf dem Eingangssignal,
 			jedoch nur auf jeweils \num{512} Samples gro{\ss}en Arrays (\SI{2}{\kibi\byte})
-		Der Analyserahmen von~\cite{2009_DaPlSt} umfasst zwar \num{6} Sekunden,
+		Der Analyserahmen von~\cite{2009_DaPlSt} umfasst zwar \SI{6}{\second},
 			ist aber nur \num{512} Samples lang,
 			da es sich \ac{ODF}-Samples handelt.
 		Dadurch werden in jedem Verarbeitungsschritt viel kleinere Datenmengen verarbeitet.
