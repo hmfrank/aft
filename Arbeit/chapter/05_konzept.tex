@@ -91,7 +91,6 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 	Viele bisherige Datensätze enthalten Musik aus Rock-, Pop- oder Dance-Genres
 		mit leicht erkennbaren Beats,
 		die klar durch Schlagzeugtöne definiert sind.
-	% TODO: 
 	Dies erleichtert den Beaterkennungsalgorithmen,
 		die korrekten Beatzeitpunkte zu finden.
 	Da aktuelle Systeme auf den einfachen Datensätzen bereits fast perfekte Ergebnisse erzielen,
@@ -153,62 +152,60 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 	\subsection{Datenauswertung}
 	{
 		% allgemeines Gelaber
-		In der Datenauswertungskomponente der Testsoftware,
-			werden lediglich die gepseicherten \acs{CSV}-Dateien verarbeitet.
+		In der Datenauswertungskomponente der Testsoftware werden lediglich die gespeicherten \acs{CSV}-Dateien verarbeitet.
 		So konnte diese unabhängig von der Implementierung der Algorithmen und deren Programmiersprache programmiert werden.
-		Hier entsehen vier Auswertungen,
-			welche sich auf die vier Fragen aus Anschnitt~\ref{konzept/ziele} beziehen.
+		Hier entstehen vier Auswertungen,
+			welche sich auf die vier Forschungsfragen aus Abschnitt~\ref{konzept/ziele} beziehen.
 
 		\paragraph{Tempofehler}
 		{
 			% Wie Tempofehler berechnet werden
 			Um die Genauigkeit der Temposchätzungen zu bestimmen,
-				wird ein Fehlerhistogram der Temposchätzungen erstellt.
-			Dazu muss erst für jeden Algorithmus eine Liste aller Fehler her.
-			Da die einzelnen Algorithmen ihre Temposchätzungen in unterschiedlichen Abständen aktualisieren
-				(bzw. bei~\cite{2011_PlRoSt} nur wenn sich das Tempo ändert),
-				wäre es unfair für jede Temposchätzung einen Fehler zu berechnen.
-			Gibt~\cite{2011_PlRoSt} beispielswei{\ss}e ein konstant falsches Tempo über einen längeren Zeitraum aus,
-				würde er nur einmal dafür bestraft werden,
-				während einer der anderen beiden Algorithmen für jede einzelne falsche Temposchätzung in diesem Zeitraum bestraft werden würde.
-			Aus diesem Grund wird ein Fehler für jedes Beatinterval berechnet.
-			So enthalten am Ende alle drei Fehlerlisten gleich viele Fehler.
-			Das korrekte Tempo wird aus dem Kehrwert des aktuellen Beatintervals berechnet,
+				wird ein Fehlerhistogramm der Temposchätzungen erstellt.
+			Dazu muss zunächst für jeden Algorithmus eine Liste aller Fehlerwerte erstellt werden.
+			Es wäre es nicht zielführend für jede Temposchätzung einen Fehlerwert zu berechnen,
+				da die einzelnen Algorithmen ihre Temposchätzungen in unterschiedlichen Abständen aktualisieren.
+			Gibt~\cite{2011_PlRoSt} beispielsweise ein konstant falsches Tempo über einen längeren Zeitraum aus,
+				würde er nur einmal ein Fehlerwert in dessen Fehlerliste eingetragen werden,
+				während einer der anderen beiden Algorithmen
+				für jede einzelne falsche Temposchätzung in diesem Zeitraum
+				einen Fehlerwert in dessen Liste eingetragen bekommen würde.
+			Aus diesem Grund wird ein Fehlerwert für jedes Beatintervall berechnet.
+			So enthalten am Ende alle drei Fehlerlisten gleich viele Fehlerwerte.
+			Das korrekte Tempo wird aus dem Kehrwert des aktuellen Beatintervalls berechnet,
 				welches wiederum aus der Differenz des nächsten und des letzten Beatzeitpunktes bestimmt wird.
-			Der Fehler des aktuellen Intervals ergibt sich aus der Differenz der aktuellen Tempovorhersage und dem korrekten Tempo.
+			Der Fehlerwert des aktuellen Intervalls ergibt sich aus der Differenz der aktuellen Tempovorhersage und dem korrekten Tempo.
 			Alle Temposchätzungen vor dem ersten und nach dem letzten Beat werden ignoriert,
 				da für diese Bereiche kein korrektes Tempo bestimmt werden kann.
-			Gibt es im aktuellen Beatinterval keine Temposchätzung,
-				wird die vorherige Schätzung genommen,
-				bzw. dieses Interval übersprungen,
+			Gibt es im aktuellen Beatintervall keine Temposchätzung,
+				wird die vorherige Schätzung genommen
+				bzw. dieses Intervall übersprungen,
 				wenn es bis zum aktuellen Zeitpunkt noch keine Schätzung gab.
 			Gibt es mehrere Temposchätzungen,
 				wird der Mittelwert genommen.
 
 			% Halb- und Doppeltempofehler
-			Weil das Problem der Tempobestimming nicht eindeutig ist,
-				treten bei solchen Systemen häuft Halbtempo- und Doppeltempofehler auf.
-			Das hei{\ss}t,
-				der Algorithmus schätzt genau die Hälfte, bzw. das Doppelte, des richtigen Tempos.
-			Liegt das korrekte Tempo au{\ss}erhalb des Wertebereichs,
+			Da das Problem der Tempobestimmung nicht eindeutig ist,
+				treten bei solchen Systemen verhäuft Halb- und Doppeltempofehler auf.
+			Damit ist gemeint,
+				dass der Algorithmus genau die Hälfte bzw. das Doppelte des richtigen Tempos schätzt.
+			Liegt das korrekte Tempo au{\ss}erhalb des Wertebereichs
 				(\SIrange{80}{160}{\ac{BPM}} bei allen Algorithmen in dieser Arbeit),
-				ist die beste Ausgabe,
-				die ein Algorithmus machen kann,
+				ist die beste Ausgabe eines Algorithmus,
 				zwangsläufig das halbe oder doppelte Tempo.
-			Solche Fehler sind nicht schlimm
-				und um sie zu berücksichtigen,
-				wird für jedes Beatinterval nicht nur die Differenz zum korrekten Tempo,
+			Um solche Fehler zu berücksichtigen,
+				wird für jedes Beatintervall nicht nur die Differenz zum korrekten Tempo,
 				sondern auch die Differenz zum halben und zum doppelten Tempo berechnet.
-			So entstehen pro Song pro Algorithmus drei Fehlerlisten.
-			Die Liste mit der kleinsten Summe der Quadrate wird der Gesamtfehlerliste des Algorithmus angehängt.
-			Die Gesamtfehlerliste kann anschlie{\ss}end als Histogram dargestellt werden.
+			So entstehen pro Song und Algorithmus drei Fehlerlisten.
+			Die Liste mit der kleinsten Summe der Quadrate der Fehlerwerte wird der Gesamtfehlerliste des Algorithmus angehangen.
+			Die Gesamtfehlerliste kann anschlie{\ss}end als Histogramm dargestellt werden.
 		}
 
 		\paragraph{Beatzeitpunktfehler und längste korrekte Beatfolge}
 		{
 			% Pairing
-			Für die Bestimmung der Beatzeitpunktfehler,
-				muss zunächst für jeden korrekten Schlag $C_n$ der dazugehörige Schlag in der Ausgabe des Algorithmus $B_n$ gefunden werden.
+			Für die Bestimmung der Beatzeitpunktfehler muss zunächst
+				für jeden korrekten Schlag $C_n$ der dazugehörige Schlag in der Ausgabe des Algorithmus $B_n$ gefunden werden.
 			Dafür wird der Ansatz des Pairings von~\cite{1997_GoMu1} verwendet.
 			Es werden für jeden korrekten Beat $C_n$ alle ausgegebenen Beats $B_m$ gesucht,
 				die die folgende Ungleichung erfüllen.
@@ -217,17 +214,17 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 			\end{equation}
 			Gibt es kein $B_m$,
 				welches die Ungleichung erfüllt,
-				wird $C_n$ als ungepaar markiert.
+				wird $C_n$ als ungepaart markiert.
 			Falls es genau ein $B_m$ gibt,
 				welches die Ungleichung erfüllt,
 				wird ein Paar $(C_n, B_m)$ gebildet.
 			Werden für ein $C_n$ mehrere mögliche $B_m$ gefunden,
 				dann bildet $C_n$ ein Paar mit dem $B_m$,
-				das den kleinsten Paarfehler (s. unten) erziehlt.
+				das den kleinsten Paarfehler erzielt.
 			Die anderen $B_m$ werden als ungepaart markiert.
 
 			% Paarfehler
-			Für jedes Paar $(C_n, B_m)$ wird ein normalisierter Fehler $P$ berechnet,
+			Für jedes Paar $(C_n, B_m)$ wird ein normalisierter Paarfehler $P$ berechnet,
 				der zwischen \num{0} und \num{1} liegt,
 				wobei \num{0} bedeutet,
 				dass $B_m$ genau auf dem korrekten Beat $C_n$ liegt,
@@ -241,7 +238,8 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 					\end{cases}
 			\end{equation}
 			Alle ungepaarten Beats,
-				sowohl aus $C_n$ als auch aus $B_n$ erhalten einen Fehler von \num{1}.
+				sowohl aus $C_n$ als auch aus $B_n$,
+				erhalten einen Fehlerwert von \num{1}.
 
 			\begin{figure}[h]
 				\centering
@@ -278,37 +276,37 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 					\draw [tick] (4.8, 0.0) -- (5.0, 0.2);
 					\draw [tick] (4.8, 0.2) -- (5.0, 0.0);
 				\end{tikzpicture}
-				\caption{normalisierter Fehler $P$}
+				\caption{normalisierter Paarfehler $P$}
 			\end{figure}
 
 			% Halb-, Doppeltempo- und Pi-Phase-Fehler
-			Beim Erkennen von Beatfolgen,
-				treten neben Halbtempo- und Doppeltempofehler auch häufig $\pi$-Phase-Fehler auf.
-			Ein $\pi$-Phase-Fehler ist,
+			Beim Erkennen von Beatfolgen
+				treten neben Halb- und Doppeltempofehler auch häufig $\pi$-Phase-Fehler auf.
+			Davon ist die Rede,
 				wenn der Beaterkennungsalgorithmus immer genau die Mitte zwischen zwei Beats als Beatvorhersage ausgibt.
-			Das tritt häufig bei Liedern auf,
-				die zwischen den Hauptschlägen noch Off-Beat-Schläge haben,
-				welche lauter oder prägnanter sind als die Hauptschläge.
+			Dies tritt häufig bei Liedern auf,
+				die zwischen den Hauptschlägen zusätzlich Off-Beat-Schläge haben,
+				welche lauter bzw. prägnanter sind als die Hauptschläge.
 			Um diese drei Fehlertypen und alle Kombinationen dieser Fehler zu berücksichtigen,
-				werden pro Song sechs ``korrekte`` Beatfolgen betrachtet:
+				werden pro Song sechs als korrekt angesehene Beatfolgen betrachtet:
 				die originale Beatfolge,
 				die Halbtempobeatfolge, in der jeder zweite Beat fehlt,
-				die Doppeltempobeatfolge, in der zwischen jedem Beat noch ein weiterer Beat eingefügt wird
-				und jeweils diese drei Beatfolgen mit einer $\pi$-Phasenverschiebung.
+				die Doppeltempobeatfolge, in der zwischen jedem Beat ein weiterer Beat eingefügt wird
+				und jeweils diese drei mit einer $\pi$-Phasenverschiebung.
 
 			% Wie alles zusammen kommt
 			Eine korrekt vorhergesagte Beatfolge ist eine Folge von Paaren,
 				die (1) keine ungepaarten Beats in ihrem Zeitraum hat und
-				(2) kein Paar mit einem Fehler von \num{0.35} oder mehr hat.
+				(2) kein Paar mit einem Fehlerwert von \num{0.35} oder mehr hat.
+			% TODO: gucken ob (1) und (2) sinnvoll ist
 			Für jeden Algorithmus wird für jedes Lied im Datensatz das oben beschriebene Pairing und die Fehlerberechnung
-				sechs Mal berechnet:
-				ein Mal für jede der sechs ``korrekten`` Beatfolgen.
-			So entstehen sechs Listen von Beatpaaren.
-			Die Liste mit der längsten korrekt vorhergesagten Beatfolge,
+				sechsmal durchgeführt:
+				einmal für jede der sechs Beatfolgen.
+			Dadurch entstehen sechs Listen von Beatpaaren.
+			Die Liste mit der längsten korrekt vorhergesagten Beatfolge
 				wird als die Beatpaarfolge für diesen Song und diesen Algorithmus genommen.
-			Die Fehler dieser Beatpaarfolge werden einer Gesamtfehlerliste,
-				welche pro Algorithmus existiert und später als Histogram dargestellt wird,
-				hinzugefügt.
+			Die Paarfehler dieser Beatpaarfolge werden einer Gesamtfehlerliste hinzugefügt,
+				welche pro Algorithmus existiert und später als Histogramm dargestellt wird.
 			Die Fehler der ungepaarten Beats werden ebenfalls dieser Gesamtfehlerliste hinzugefügt.
 		}
 
@@ -316,9 +314,10 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 		{
 			Die relative Rechenzeit eines Algorithmus ergibt sich aus der Division der für alle Lieder benötigten \acs{CPU}-Zeit durch die gesamte Dauer aller Lieder.
 			Diese Zahl gibt an,
-				wie viele Sekunden \acs{CPU}-Zeit ein Algorithmus benötigt um eine Sekunde Audiodaten zu verarbeiten
+				wie viele Sekunden \acs{CPU}-Zeit ein Algorithmus benötigt,
+				um eine Sekunde Audiodaten zu verarbeiten
 				und erreicht bei Echtzeitalgorithmen maximal einen Wert von \num{1}.
-			Der Rechenzeittest wurde auf einer Intel \ac{CPU} der Baureihe Core i5-3320M mit einer Taktrate von \SI{2.6}{\giga\hertz} durchgeführt.
+			Der Rechenzeittest wurde auf einer Intel-\ac{CPU} der Baureihe Core i5-3320M mit einer Taktrate von \SI{2.6}{\giga\hertz} durchgeführt.
 			Die Implementierungen sind nicht auf eine parallele Verarbeitung optimiert
 				und nutzen deshalb maximal einen Thread.
 		}
