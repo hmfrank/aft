@@ -2,10 +2,15 @@
 \label{zusammenfassung}
 \acresetall
 
+In diesem Kapitel werden das Ziel der Arbeit, die Umsetzung des Vergleichs und das Resultat der Tests kurz zusammengefasst.
+Abschlie{\ss}end werden Ziele für zukünftige Vergleiche von Beaterkennungsalgorithmen vorgestellt.
+
 \section{Fazit}
 {
+	% was gemacht werden sollte (Ziel)
 	Im Rahmen dieser Arbeit sollte eine Auswahl von Beaterkennungsalgorithmen implementiert
 		und mithilfe von verschiedenen Tests verglichen werden.
+	% was gemacht wurde (Umsetzung)
 	Es wurden die Algorithmen \cite{2001_BeatThis}, \cite{2009_DaPlSt} und \cite{2011_PlRoSt} ausgewählt und implementiert.
 	Vier Tests wurden entworfen und implementiert,
 		die die Algorithmen auf Genauigkeit der Tempovorhersage, Genauigkeit der Beatzeitpunkte, längste korrekte Beatfolge und Rechenzeit testen,
@@ -13,6 +18,7 @@
 		da dieser Algorithmus keine Beatzeitpunkte ausgibt.
 	Für den Test wurde der Datensatz von~\cite{2012_HoDaZaOlGo} verwendet,
 		welcher für Beaterkennungsalgorithmen besonders schwierige Lieder enthält.
+	% was rausgekommen ist (Resultat)
 	Der Algorithmus von~\cite{2009_DaPlSt} schnitt beim Test auf Genauigkeit der Tempovorhersage am besten ab.
 	Die anderen beiden Algorithmen schätzten bei einem Gro{\ss}teil der Lieder das Tempo zu schnell ein.
 	Dies verursachte bei~\cite{2011_PlRoSt},
@@ -21,6 +27,7 @@
 	Auch beim Test auf Rechenzeit,
 		schnitt~\cite{2009_DaPlSt} am besten ab,
 		gefolgt von \cite{2001_BeatThis} und \cite{2011_PlRoSt}.
+	% Erklärung Rechenzeit
 	Die Unterschiede in der Rechenzeit sind hauptsächlich auf die unterschiedlichen Datenmengen,
 		die die Algorithmen intern verarbeiten
 		und die unterschiedlichen Aktualisierungsraten der Tempo- und Beatzeitpunktvorhersage zurückzuführen.
