@@ -83,9 +83,9 @@
 			In diesem Spektrum werden alle unerwünschten Frequenzen auf \num{0} gesetzt
 				und dann das Spektrum per \ac{IFFT} wieder zurück in eine Zeitreihe konvertiert.
 			Die Frequenzbereiche der sechs Signale sind
-				\SIrange{0}{200}{\hertz}, \SIrange{200}{400}{\hertz},
-				\SIrange{400}{800}{\hertz}, \SIrange{800}{1600}{\hertz},
-				\SIrange{1600}{3200}{\hertz}, \SIrange{3200}{44100}{\hertz}.
+				\SI{0}{\hertz} bis \SI{200}{\hertz}, \SI{200}{\hertz} bis \SI{400}{\hertz},
+				\SI{400}{\hertz} bis \SI{800}{\hertz}, \SI{800}{\hertz} bis \SI{1600}{\hertz},
+				\SI{1600}{\hertz} bis \SI{3200}{\hertz}, \SI{3200}{\hertz} bis \SI{44100}{\hertz}.
 			Die Idee dahinter ist,
 				dass verschiedene Instrumentengruppen unabhängig voneinander analysiert werden können.
 
@@ -252,7 +252,7 @@
 				welches für den Algorithmus eingestellt ist.
 			Für die Implementierung dieser Arbeit wurde
 				wie auch im Paper
-				das Tempo auf den Bereich von \SIrange{80}{160}{\ac{BPM}} begrenzt,
+				das Tempo auf den Bereich von \SI{80}{\ac{BPM}} bis \SI{160}{\ac{BPM}} begrenzt,
 				wodurch sich ein Beatperiodenbereich
 				von $\Upsilon_\text{min} = \lfloor(\SI{11.61}{\milli\second} \cdot \SI{160}{\per\minute})^{-1}\rfloor = 32$
 				bis $\Upsilon_\text{max} = \lceil(\SI{11.61}{\milli\second} \cdot \SI{80}{\per\minute})^{-1}\rceil = 65$
@@ -355,7 +355,7 @@
 				kann man die komplette Laufzeit des Algorithmus in $T_\text{final}$ lange Abschnitte unterteilen.
 			So sollte sich in jedem Abschnitt ein Schlag befinden.
 			Die Phase $\theta_\text{final}$ gibt an,
-				wann innerhalb dieser Abschnitte der Schlag kommt (\SIrange{0}{360}{\degree}).
+				wann innerhalb dieser Abschnitte der Schlag kommt (\SI{0}{\degree} bis \SI{360}{\degree}).
 			Dies ist zum einen hilfreich,
 				um den genauen Zeitpunkt des nächsten Schlags zu bestimmen,
 				zum anderen kann man an langsamen Drifts der Phase die Genauigkeit der Temposchätzung erkennen.
@@ -401,7 +401,7 @@
 			% Beschreibung Kammfiltermatrix
 			Die Kammfiltermatrix $X_{\Upsilon, x}$ enthält eine Zeile für jede mögliche Temposchätzung, die der Algorithmus abgeben kann.
 			Diese werden mit der entsprechenden Beatperiode in ODF-Sample-Dauern indizieren.
-			Da der Algorithmus auf einen Tempobereich von \SIrange{80}{160}{\ac{BPM}} beschränkt ist,
+			Da der Algorithmus auf einen Tempobereich von \SI{80}{\ac{BPM}} bis \SI{160}{\ac{BPM}} beschränkt ist,
 				ergibt sich ein minimaler Zeilenindex von
 				$\Upsilon_{\text{min}} = \lfloor(\SI{11.61}{\milli\second} \cdot \SI{160}{\per\minute})^{-1}\rfloor = 32$
 				und ein maximaler Zeilenindex von
@@ -413,7 +413,7 @@
 			Der Zellenindex $x$ ist direkt mit der Phase $\theta$ korreliert,
 				jedoch wird hier eine andere Variable verwendet,
 				da $x$ in ODF-Sample-Dauern von $0$ bis $\Upsilon - 1$ angegeben werden kann
-				und $\theta$ einen Phasenwinkel von \SIrange{0}{359}{\degree} annehmen kann
+				und $\theta$ einen Phasenwinkel von \SI{0}{\degree} bis \SI{359}{\degree} annehmen kann
 				und die Umrechnung der beiden Grö{\ss}en von der Beatperiode $\Upsilon$ abhängt.
 
 			% Kammfiltermatrixaktuelisierung

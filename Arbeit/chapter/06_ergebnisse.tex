@@ -22,7 +22,7 @@
 
 		% Beschreibung Abbildung Tempofehler
 		Die Histogramme in Abbildung~\ref{fig:tempoerror} zeigen die Verteilung der Tempofehler aller Lieder pro Algorithmus.
-		Der abgebildete Bereich von \SIrange{-100}{100}{\ac{BPM}} ist in \num{40} Balken unterteilt.
+		Der abgebildete Bereich von \SI{-100}{\ac{BPM}} bis \SI{100}{\ac{BPM}} ist in \num{40} Balken unterteilt.
 		So umfasst jeder Balken eine Spanne von \SI{5}{\ac{BPM}}.
 		Die Balkendiagramme zeigen pro Algorithmus
 			bei wie vielen Liedern das halbe, das korrekte oder das doppelte Tempo als Referenztempo genommen wurde.
@@ -47,19 +47,19 @@
 
 		Zusätzlich ist anzumerken,
 			dass bei jedem Algorithmus die meisten Lieder mit dem doppelten Tempo erkannt wurden.
-		Dies resultiert hauptsächlich aus dem limitierten Ausgabebereich der Algorithmen von \SIrange{80}{160}{\ac{BPM}}.
+		Dies resultiert hauptsächlich aus dem limitierten Ausgabebereich der Algorithmen von \SI{80}{\ac{BPM}} bis \SI{160}{\ac{BPM}}.
 		Abbildung~\ref{fig:dataset_tempo} zeigt die Verteilung der Tempi aller Beatintervalle im Datensatz.
 		Der grüne Bereich enthält \SI{44.44}{\percent} aller Beatintervalle
 			und markiert den Tempobereich,
-			den die Algorithmen direkt ausgeben können (\SIrange{80}{160}{\ac{BPM}}).
+			den die Algorithmen direkt ausgeben können (\SI{80}{\ac{BPM}} bis \SI{160}{\ac{BPM}}).
 		Der gelbe Bereich markiert den Tempobereich,
 			den die Algorithmen mit Berücksichtigung von Halb- und Doppeltempofehlern ausgeben können.
-		Dieser Bereich erstreckt sich von \SIrange{40}{80}{\ac{BPM}} und von \SIrange{160}{320}{\ac{BPM}}
+		Dieser Bereich erstreckt sich von \SI{40}{\ac{BPM}} bis \SI{80}{\ac{BPM}} und von \SI{160}{\ac{BPM}} bis \SI{320}{\ac{BPM}}
 			und enthält \SI{51.45}{\percent} aller Beatintervalle,
 			wobei sich die meisten davon im untern Tempobereich befinden.
 		Dies erklärt,
 			warum so viele Lieder mit doppeltem Tempo erkannt wurden.
-		Der rote Bereich umfasst alles au{\ss}erhalb von \SIrange{40}{320}{\ac{BPM}}
+		Der rote Bereich umfasst alles au{\ss}erhalb von \SI{40}{\ac{BPM}} bis \SI{320}{\ac{BPM}}
 			und markiert den Tempobereich,
 			den die Algorithmen unmöglich bestimmen können.
 		Dieser Bereich enthält \SI{4.11}{\percent} aller Beatintervalle.
