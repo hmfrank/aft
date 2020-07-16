@@ -173,7 +173,7 @@ In diesem Kapitel wird die Auswahl der für den Vergleich verwendeten Algorithme
 			Die Ausgabe besteht aus einer Temposchätzung $f_\text{final}$,
 				die alle \SI{1.5}{\second} aktualisiert wird.
 			Aus dem Tempo ergibt sich die Beatperiode mit $T_\text{final} = 1 / f_\text{final}$.
-			Au{\ss}erdem gibt der Algorithmus eine Beatvorhersage aus,
+			Au{\ss}erdem gibt der Algorithmus eine Beatvorhersage $\tau_\text{beat}$ aus,
 				die angibt wann der nächste Beat kommt.
 			Diese wird jede Beatperiode aktualisiert.
 			Wie oft sie tatsächlich aktualisiert wird,
@@ -217,7 +217,7 @@ In diesem Kapitel wird die Auswahl der für den Vergleich verwendeten Algorithme
 				\bar{\Gamma}_\tau = \text{avg}(\{\Gamma_k \mid \tau - 8 \leq k \leq \tau + 8 \})
 				\text{\hspace{5mm}mit\hspace{5mm}} \tau = 0, ..., 511
 			\end{equation}
-			Dieser Mittelwert $\bar{\Gamma}_\tau$ wird von dem originalen Analyserahmen abgezogen und negative Werte auf null gesetzt.
+			Dieser Mittelwert $\bar{\Gamma}_\tau$ wird von dem originalen Analyserahmen abgezogen und negative Werte auf \num{0} gesetzt.
 			So ergibt sich die modifizierte \ac{ODF} $\tilde{\Gamma}_\tau$.
 			\begin{equation}
 				\tilde{\Gamma}_\tau = \max(\{0, \Gamma_\tau - \bar{\Gamma}_\tau\})
@@ -284,7 +284,7 @@ In diesem Kapitel wird die Auswahl der für den Vergleich verwendeten Algorithme
 			% weggelassener Teil ...
 			Nach diesem Schritt enthält der originale Algorithmus von~\cite{2009_DaPlSt} noch einen weiteren Schritt,
 				der dafür sorgt,
-				dass sich die Tempohypothese in jeder Iteration nur lediglich geringfügig ändern kann.
+				dass sich die Tempohypothese in jeder Iteration lediglich geringfügig ändern kann.
 			Dieser Teil wurde für diese Implementierung weggelassen,
 				da mit ihm der Algorithmus nach einiger Zeit immer das maximale Tempo von \SI{160}{\ac{BPM}} ausgab
 				und davon nicht mehr abwich. 
@@ -321,7 +321,7 @@ In diesem Kapitel wird die Auswahl der für den Vergleich verwendeten Algorithme
 			Um Beatvorhersagen über die Zukunft machen zu können,
 				wird die Score-Funktion noch genau eine Beatperiode weiter in die Zukunft berechnet.
 			Dazu wird der Parameter $\alpha$ temporär auf \num{1} gesetzt,
-				sodass die linke Seite von Gleichung \eqref{eq:score_function} wegfällt
+				sodass der linke Summand von Gleichung \eqref{eq:score_function} wegfällt
 				und keine \ac{ODF}-Samples aus der Zukunft benötigt werden.
 			Nach dieser Berechnung wird $\alpha$ wieder auf den ursprünglichen Wert gesetzt.
 			Dies geschieht jedes Mal,
@@ -336,12 +336,12 @@ In diesem Kapitel wird die Auswahl der für den Vergleich verwendeten Algorithme
 				mit einer gau{\ss}schen Gewichtsfunktion $W_2$ multipliziert,
 				die Werte, welche genau eine halbe Beatperiode in der Zukunft liegen,
 				stärker gewichtet.
-			Der nächste Beatzeitpunkt $\tau_\text{b}$ wird demnach folgenderma{\ss}en berechnet.
+			Der nächste Beatzeitpunkt $\tau_\text{beat}$ wird demnach folgenderma{\ss}en berechnet.
 			\begin{align}
-				\tau_\text{b} &= \tau_0 + \underset{v = 1, ..., \Upsilon_\text{final}}{\text{argmax}}(C(\tau_0 + v)W(v)) \\
+				\tau_\text{beat} &= \tau_\text{now} + \underset{v = 1, ..., \Upsilon_\text{final}}{\text{argmax}}(C(\tau_\text{now} + v)W_2(v)) \\
 				W_2(v) &= e^{\frac{-(v - \Upsilon_\text{final} / 2)^2}{2(\Upsilon_\text{final} / 2)^2}}
 			\end{align}
-			$\tau_0$ ist der aktuelle Zeitpunkt.
+			$\tau_\text{now}$ ist der aktuelle Zeitpunkt.
 		}
 	}
 
@@ -473,7 +473,7 @@ In diesem Kapitel wird die Auswahl der für den Vergleich verwendeten Algorithme
 			Ein Wert von $\beta = 43$ ODF-Samples entspricht hier einem Tempo von
 				$(43 \cdot \SI{11.61}{\milli\second})^{-1} = \SI{120}{\per\minute}$.
 			Die Zeile des richtigen Tempos hat womöglich eine starke Konzentration an hohen Werten um den Punkt der richtigen Phase herum.
-			Damit ist gemeint,
+			Daraus folgt,
 				dass diese Zeile eine niedrigere Entropie hat als andere Zeilen,
 				deren Werte gleichmä{\ss}iger über die gesamte Zeile verteilt sind.
 			Die Entropie einer Matrixzeile ist durch
@@ -482,7 +482,7 @@ In diesem Kapitel wird die Auswahl der für den Vergleich verwendeten Algorithme
 				\end{equation}
 				definiert, wobei
 				\begin{equation}
-					p(\Upsilon, x) = \frac{X_{\Upsilon, x}}{\sum_{x_i = 0}^{\Upsilon - 1}X_{\Upsilon, x_i}}
+					p(\Upsilon, x) = \frac{X_{\Upsilon, x}}{\sum_{x_\text{i} = 0}^{\Upsilon - 1}X_{\Upsilon, x_\text{i}}}
 				\end{equation}
 				als Häufigkeitsverteilung einer Zeile interpretiert werden kann.
 			Als nächstes wird in der resultierenden Matrix
@@ -520,7 +520,7 @@ In diesem Kapitel wird die Auswahl der für den Vergleich verwendeten Algorithme
 			\end{equation}
 
 			% Schlusssatz
-			All in diesem Unterabschnitt dargestellten Berechnungen werden für jedes neue Sample der \ac{ODF} durchgeführt.
+			Alle in diesem Unterabschnitt dargestellten Berechnungen werden für jedes neue Sample der \ac{ODF} durchgeführt.
 			So gibt der Algorithmus alle \SI{11.61}{\milli\second} eine neue Tempo-Phase-Hypothese aus.
 		}
 	}

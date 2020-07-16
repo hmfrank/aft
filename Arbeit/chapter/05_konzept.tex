@@ -29,7 +29,7 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 
 	% Tempo
 	Alle drei Algorithmen geben eine Schätzung des Tempos des aktuellen Songs aus.
-	Daraus ergibt sich follgende die erste Forschungsfrage.
+	Daraus ergibt sich folgende erste Forschungsfrage.
 	\begin{equation}
 		\label{question:tempo}
 		\text{\emph{Wie hoch ist die Genauigkeit der Temposchätzungen?}}
@@ -144,7 +144,7 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 			dann wird $t$ als Beatzeitpunkt gespeichert.
 
 		% CPU-Zeit-Messung
-		Die \ac{API} der Beaterkennungsalgorithmen funktioniert so,
+		ass \ac{API} der Beaterkennungsalgorithmen funktioniert so,
 			dass jedes Audiosample separat und nacheinander per Funktionsaufruf in das System gegeben wird.
 		Alle Berechnungen laufen in Subroutinen dieser Funktion ab.
 		Um die Gesamtrechenzeit des Algorithmus zu bestimmen,
@@ -165,10 +165,10 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 			Um die Genauigkeit der Temposchätzungen zu bestimmen,
 				wird ein Fehlerhistogramm der Temposchätzungen erstellt.
 			Dazu muss zunächst für jeden Algorithmus eine Liste aller Fehlerwerte erstellt werden.
-			Es wäre es nicht zielführend für jede Temposchätzung einen Fehlerwert zu berechnen,
+			Es wäre nicht zielführend für jede Temposchätzung einen Fehlerwert zu berechnen,
 				da die einzelnen Algorithmen ihre Temposchätzungen in unterschiedlichen Abständen aktualisieren.
 			Gibt~\cite{2011_PlRoSt} beispielsweise ein konstant falsches Tempo über einen längeren Zeitraum aus,
-				würde er nur einmal ein Fehlerwert in dessen Fehlerliste eingetragen werden,
+				würde nur einmal ein Fehlerwert in dessen Fehlerliste eingetragen werden,
 				während einer der anderen beiden Algorithmen
 				für jede einzelne falsche Temposchätzung in diesem Zeitraum
 				einen Fehlerwert in dessen Liste eingetragen bekommen würde.
@@ -183,7 +183,7 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 				wird die vorherige Schätzung genommen
 				bzw. dieses Intervall übersprungen,
 				wenn es bis zum aktuellen Zeitpunkt noch keine Schätzung gab.
-			Gibt es mehrere Temposchätzungen,
+			Gibt es mehrere Temposchätzungen im aktuellen Beatintervall,
 				wird der Mittelwert genommen.
 
 			% Halb- und Doppeltempofehler
@@ -254,7 +254,7 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 
 					\draw [axis] (0, -1) -- (6, -1) node [anchor=south] {Zeit};
 					\draw [axis] (0, 0) -- (6, 0);
-					\draw [axis] (0, 0) -- (0, 1.75) node [anchor=south] {Fehler};
+					\draw [axis] (0, 0) -- (0, 1.75) node [anchor=south] {Fehlerwert};
 
 					\draw [tick] (0, 0) -- (-0.2, 0) node [anchor=east] {0};
 					\draw [tick] (0, 1) -- (-0.2, 1) node [anchor=east] {1};
@@ -308,7 +308,7 @@ In Abschnitt~\ref{konzept/testdaten} wird der verwendete Datensatz vorgestellt
 				wird als die Beatpaarfolge für diesen Song und diesen Algorithmus genommen.
 			Die Paarfehler dieser Beatpaarfolge werden einer Gesamtfehlerliste hinzugefügt,
 				welche pro Algorithmus existiert und später als Histogramm dargestellt wird.
-			Die Fehler der ungepaarten Beats werden ebenfalls dieser Gesamtfehlerliste hinzugefügt.
+			Die Fehlerwerte der ungepaarten Beats werden ebenfalls dieser Gesamtfehlerliste hinzugefügt.
 		}
 
 		\subsubsection*{\large Rechenzeit}
