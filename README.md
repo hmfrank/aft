@@ -1,4 +1,4 @@
-# Comparison of Beatdetection algorithms
+# Qualitativer Vergleich von Beaterkennungsalgorithmen
 Beaterkennungsalgorithmen sind Algorithmen,
 	die den regelmäßigen Puls von Musikstücken erkennen,
 	zu dem wir Menschen oft beim Hören von Musik unterbewusst mit dem Fuß oder einem Finger mittippen.
