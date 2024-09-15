@@ -19,3 +19,41 @@ Die Auswertung dieser Aufzeichnungen ergab,
 * [2001_BeatThis] - CHENG, Kileen ; NAZER, Bobak ; UPPULURI, Jyoti ; VERRET, Ryan: Beat This — A Beat Synchronization Project. 2001. – URL: https://www.clear.rice.edu/elec301/ Projects01/beat_sync/beatalgo.html. – Zugriﬀsdatum: 08.04.2020
 * [2009_DaPlSt] - STARK, Adam M. ; DAVIES, Matthew E. P. ; PLUMBLEY, Mark D.: Real-Time Beat-Synchronous Analysis of Musical Audio. (2009)
 * [2011_PlRoSt] - ROBERTSON, Andrew ; STARK, Adam M. ; PLUMBLEY, Mark D.: Real-Time Visual Beat Tracking Using a Comb Filter Matrix. (2011)
+
+# Dependencies
+* ALSA
+* Gamma (included as submodule)
+* SDL2
+* SDL2-image
+* SDL2-mixer
+* SDL2-ttf
+* simple2d (included as submodule)
+* PortAudio
+* PulseAudio
+
+## Ubuntu
+```shell script
+$ sudo apt-get install \
+    libasound-dev \
+    libsdl2-dev \
+    libsdl2-image-dev \
+    libsdl2-mixer-dev \
+    libsdl2-ttf-dev \
+    portaudio19-dev \
+    pulseaudio
+```
+
+## NixOS
+TODO
+
+# Build
+```shell script
+$ cd Implementierung/
+$ make
+```
+
+# Run
+```shell script
+$ cd Implementierung/
+$ ./record.sh | ./2009_DaPlSt
+```

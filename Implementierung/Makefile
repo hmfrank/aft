@@ -1,24 +1,30 @@
 # all executables
 ALL = 2001_ChNaUpVe 2009_DaPlSt 2011_PlRoSt test
+
 # all .cpp source files
 SRC = $(wildcard src/*.cpp src/*/*.cpp)
+
 # all .cpp files with a main function
 SRC_MAIN = $(wildcard src/main.cpp src/*/main.cpp)
+
 # all .o object files, except the main ones
 OBJ = $(patsubst src/%.cpp, obj/%.o, $(filter-out $(SRC_MAIN), $(SRC)))
+
 # all .d files (they store build dependency lists)
 DEP = $(patsubst src/%.cpp, dep/%.d, $(SRC))
 
 # compiler executable
 CC = g++
+
 # directories to search for .h-files in
-INCLUDE = include/ libs/Gamma/ libs/simple2d/include/ /usr/include/SDL2/
-# directories to search for .a-file libraries in
-LIBS = libs/Gamma/build/lib/ libs/simple2d/build/
+INCLUDE = include/ libs/Gamma/ libs/simple2d/include/
+
 # compiler flags
-CFLAGS = -std=c++14 $(addprefix -I , $(INCLUDE)) $(addprefix -L , $(LIBS)) -D_REENTRANT -pthread
+CFLAGS = -std=c++14 $(addprefix -I , $(INCLUDE)) -L libs/ -D_REENTRANT -pthread
+
 # linker flags
 LDFLAGS = -lGamma -lportaudio -lsimple2d -lSDL2 -lGL -lm -lSDL2_image -lSDL2_mixer -lSDL2_ttf -lpthread
+
 
 
 # phony targets
@@ -27,6 +33,9 @@ LDFLAGS = -lGamma -lportaudio -lsimple2d -lSDL2 -lGL -lm -lSDL2_image -lSDL2_mix
 all: $(ALL)
 
 clean:
+	$(MAKE) clean -C libs/Gamma/
+	$(MAKE) clean -C libs/simple2d/
+	rm libs/libGamma.a libs/libsimple2d.a
 	rm -rf $(ALL) dep/ obj/
 
 run: test
@@ -38,9 +47,19 @@ run: test
 2011_PlRoSt: obj/2011_PlRoSt/main.o
 test: obj/main.o
 
-$(ALL): $(OBJ)
+$(ALL): $(OBJ) libs/libGamma.a libs/libsimple2d.a
 	@echo -e 'LD' $@
 	@$(CC) $(CFLAGS) $^ $(LDFLAGS) -o $@
+
+# libs
+libs/libGamma.a:
+	$(MAKE) -C libs/Gamma/
+	cp libs/Gamma/build/lib/libGamma.a libs/
+
+libs/libsimple2d.a:
+	$(MAKE) -C libs/simple2d
+	cp libs/simple2d/build/libsimple2d.a libs/
+
 
 # .o files
 .SECONDEXPANSION:
