@@ -141,6 +141,8 @@ _2011_PlRoSt &_2011_PlRoSt::operator=(const _2011_PlRoSt &that)
 		that.y_matrix,
 		sizeof(*this->y_matrix) * MATRIX_WIDTH * MATRIX_HEIGHT
 	);
+
+	return *this;
 }
 
 _2011_PlRoSt::~_2011_PlRoSt()
