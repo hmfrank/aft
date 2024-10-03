@@ -3,9 +3,6 @@
 
 #include <cstddef>
 
-// TODO: unit test
-// TODO: code style
-
 /// When you push a new item, it is added to the end of the buffer.
 /// So the array you get from `get_content()` looks like this:
 /// index:        0        1, 2, ...     len - 1

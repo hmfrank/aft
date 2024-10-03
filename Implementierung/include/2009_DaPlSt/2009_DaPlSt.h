@@ -10,8 +10,6 @@
 using namespace gam;
 
 // TODO: herrausfinden, warum er manchmal auf TAU_MIN hängen bleibt
-// TODO: move smaple rate from constructor parameter to constants
-// TODO: unit test
 
 
 /// Implementation of the algorithm described in
@@ -33,7 +31,7 @@ class _2009_DaPlSt
 		BeatPrediction beat_prediction;
 
 	public:
-		/// \param sample_rate Rate of the audio samples passed to `next()` in Herz.
+		/// \param sample_rate Rate of the audio samples passed to the ()-operator in Herz.
 		///     Recommended Sample Rate: 44100 or any half or double (22050, 11025, 88200, etc.)
 		explicit _2009_DaPlSt(float sample_rate);
 		_2009_DaPlSt(const _2009_DaPlSt&);

@@ -7,17 +7,15 @@
 
 using namespace gam;
 
-// TODO: unit test
-
 
 /// Implementation of the tempo induction part (Section 2.3.) of
 /// [2009 Davies, Plumbley, Stark - Real-time Beat-synchronous Analysis of Musical Audio].
 /// Most details of this algorithm are described in
 /// [2007 Davies, Plumbey - Context-Dependent Beat Tracking of Musical Audio].
 ///
-/// The actual algorithm is in the `next_sample` method that is supposed to be called repeatedly for each new sample
+/// The actual algorithm is in the ()-operator that is supposed to be called repeatedly for each new sample
 /// of the onset detection function.
-/// An instance of this class is needed to store some state between successive `next_sample`-calls.
+/// An instance of this class is needed to store some state between successive ()-operator-calls.
 class TempoInduction
 {
 	private:

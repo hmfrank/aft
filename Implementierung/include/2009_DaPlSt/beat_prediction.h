@@ -4,15 +4,13 @@
 #include <cstdio>
 #include "shift_register.h"
 
-// TODO: unit test
-
 
 /// Implementation of the beat prediction part (Section 2.2.) of
 /// [2009 Davies, Plumbley, Stark - Real-time Beat-synchronous Analysis of Musical Audio].
 ///
-/// The actual algorithm is in the `next_sample` method that is supposed to be called repeatedly for each new sample
+/// The actual algorithm is in the ()-operator that is supposed to be called repeatedly for each new sample
 /// of the onset detection function.
-/// An instance of this class is needed to store some state between successive `next_sample`-calls.
+/// An instance of this class is needed to store some state between successive ()-operator-calls.
 class BeatPrediction
 {
 	private:
